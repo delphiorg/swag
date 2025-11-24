@@ -1,6 +1,8 @@
 # SWAG
 This a snapshot from what I published in 2001... Maybe I will revisit it again.
 
+[index](index.html)
+
 ---
 
 Welcome to the HTML version of SWAG [SourceWare Archive Group](https://web.archive.org/web/20020722092859/http://gdsoft.com/swag/). This is an HTML version of the last SWAG release from **11/29/1997**. 
