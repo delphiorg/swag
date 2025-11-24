@@ -1,0 +1,487 @@
+<html>
+<head><title> "Frequency Domain Simulation" by ROBY JOHANES</title><link rel="STYLESHEET" type="text/css" href="../swagsource.css"></head>
+<body><p align="center">
+<b>[</b><a href="index.html">Back to GRAPHICS SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0292.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0292.OBJFILES.ZIP">Attachment</a><b>]</b>
+
+</p><!--StartFragment--><pre><code><font color="#008000"><i>{ Frequency Domain Simulation to prove Fourier Transform
+  Features:
+  A friendly GUI with mouse and Help
+
+  By  : Roby Johanes
+  http://www.geocities.com/SiliconValley/Park/3230
+  Finished in 1996
+
+  Final Update: December 1997 for submission to SWAG
+
+  Note from the author:
+* In unit Images there contains all images of this program. They are
+  in RAW format, you should convert them all into OBJ using BINOBJ.EXE
+* In addition, you should convert the existing EGAVGA.BGI driver into
+  OBJ file using BINOBJ.EXE (supplied in BP package) in order to make
+  this code fully functional.
+}
+{ NOTE FROM SWAG :
+  The OBJ files needed for this program in included in an XX34 module at
+  the end.
+
+{$A+,G+,N+,E-,R-,S-}
+</i></font><font color="#FF0000"><b>uses </b></font>crt<font color="#000080">, </font>graph<font color="#000080">, </font>images<font color="#000080">;
+</font><font color="#FF0000"><b>var
+  </b></font>xm<font color="#000080">, </font>ym<font color="#000080">, </font>b <font color="#000080">: </font>word<font color="#000080">;
+  </font>digit     <font color="#000080">: </font><font color="#FF0000"><b>array</b></font><font color="#000080">[</font><font color="#800000">0</font><font color="#000080">..</font><font color="#800000">9</font><font color="#000080">] </font><font color="#FF0000"><b>of </b></font>pointer<font color="#000080">;
+  </font>mouseok   <font color="#000080">: </font>boolean<font color="#000080">;
+
+</font><font color="#008000"><i>{ Far mouse handler to get (x,y) coordinate and button pressed }
+</i></font><font color="#FF0000"><b>procedure </b></font>mousehand<font color="#000080">; </font><font color="#FF0000"><b>far</b></font><font color="#000080">; </font><font color="#FF0000"><b>assembler</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>asm
+  </b></font><font color="#FF00FF">push    ds
+  mov     ax,seg @data
+  mov     ds,ax
+  mov     [xm],cx
+  mov     [ym],dx
+  and     bx,3
+  mov     [b],bx
+  pop     ds
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#008000"><i>{ Initialize douse driver }
+</i></font><font color="#FF0000"><b>procedure </b></font>initmouse<font color="#000080">; </font><font color="#FF0000"><b>assembler</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>asm
+  </b></font><font color="#FF00FF">mov ax,3533h      </font><font color="#008000"><i>{ Check for the existence of mouse driver }
+  </i></font><font color="#FF00FF">int 21h
+  mov dx,es
+  or  dx,dx
+  jnz @@1
+  or  bx,bx
+  jz  @@2
+@@1:
+  xor ax,ax         </font><font color="#008000"><i>{ Reset mouse driver and install handler }
+  </i></font><font color="#FF00FF">int 33h
+  mov [mouseok],al
+  or  ax,ax
+  jz  @@2
+  mov ax,cs
+  mov es,ax
+  mov dx,offset mousehand
+  mov ax,12
+  mov cx,1fh
+  int 33h
+@@2:
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>hidemouse<font color="#000080">; </font><font color="#FF0000"><b>assembler</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>asm
+  </b></font><font color="#FF00FF">cmp [mouseok],0
+  je  @@1
+  mov ax,2
+  int 33h
+@@1:
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>showmouse<font color="#000080">; </font><font color="#FF0000"><b>assembler</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>asm
+  </b></font><font color="#FF00FF">cmp [mouseok],0
+  je  @@1
+  mov ax,1
+  int 33h
+@@1:
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>function </b></font>inside<font color="#000080">(</font>x1<font color="#000080">,</font>y1<font color="#000080">,</font>x2<font color="#000080">,</font>y2 <font color="#000080">: </font>word<font color="#000080">):</font>boolean<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  if </b></font><font color="#000080">(</font>xm<font color="#000080">&gt;=</font>x1<font color="#000080">) </font><font color="#FF0000"><b>and </b></font><font color="#000080">(</font>xm<font color="#000080">&lt;=</font>x2<font color="#000080">) </font><font color="#FF0000"><b>and </b></font><font color="#000080">(</font>ym<font color="#000080">&gt;=</font>y1<font color="#000080">) </font><font color="#FF0000"><b>and </b></font><font color="#000080">(</font>ym<font color="#000080">&lt;=</font>y2<font color="#000080">) </font><font color="#FF0000"><b>then </b></font>inside<font color="#000080">:=</font>true
+     <font color="#FF0000"><b>else </b></font>inside<font color="#000080">:=</font>false<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>init<font color="#000080">;
+</font><font color="#FF0000"><b>type </b></font>tfix <font color="#000080">= </font><font color="#FF0000"><b>record
+              </b></font>x<font color="#000080">, </font>y <font color="#000080">: </font>word<font color="#000080">;
+            </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>var </b></font>gd<font color="#000080">, </font>gm <font color="#000080">: </font>integer<font color="#000080">; </font>p<font color="#000080">:^</font>tfix<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>gd<font color="#000080">:=</font>VGA<font color="#000080">; </font>gm<font color="#000080">:=</font>VGAHi<font color="#000080">;
+  </font>initgraph<font color="#000080">(</font>gd<font color="#000080">,</font>gm<font color="#000080">,</font><font color="#800000">''</font><font color="#000080">);
+  </font><font color="#FF0000"><b>if </b></font>graphresult<font color="#000080">&lt;&gt;</font>grok <font color="#FF0000"><b>then
+  begin
+    </b></font>writeln<font color="#000080">(</font><font color="#800000">'Sorry, you have no compatible VGA cards.'</font><font color="#000080">); </font>halt<font color="#000080">;
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">; </font>mouseok<font color="#000080">:=</font>false<font color="#000080">; </font>initmouse<font color="#000080">;
+  </font>digit<font color="#000080">[</font><font color="#800000">0</font><font color="#000080">]:=@</font>Digit0<font color="#000080">; </font>digit<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">]:=@</font>Digit1<font color="#000080">; </font>digit<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">]:=@</font>Digit2<font color="#000080">;
+  </font>digit<font color="#000080">[</font><font color="#800000">3</font><font color="#000080">]:=@</font>Digit3<font color="#000080">; </font>digit<font color="#000080">[</font><font color="#800000">4</font><font color="#000080">]:=@</font>Digit4<font color="#000080">; </font>digit<font color="#000080">[</font><font color="#800000">5</font><font color="#000080">]:=@</font>Digit5<font color="#000080">;
+  </font>digit<font color="#000080">[</font><font color="#800000">6</font><font color="#000080">]:=@</font>Digit6<font color="#000080">; </font>digit<font color="#000080">[</font><font color="#800000">7</font><font color="#000080">]:=@</font>Digit7<font color="#000080">; </font>digit<font color="#000080">[</font><font color="#800000">8</font><font color="#000080">]:=@</font>Digit8<font color="#000080">;
+  </font>digit<font color="#000080">[</font><font color="#800000">9</font><font color="#000080">]:=@</font>Digit9<font color="#000080">; </font>randomize<font color="#000080">; </font>settextjustify<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">2</font><font color="#000080">);
+  </font>p<font color="#000080">:=@</font>scrolldown<font color="#000080">; </font>p<font color="#000080">^.</font>y<font color="#000080">:=</font>p<font color="#000080">^.</font>y<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>shade<font color="#000080">(</font>x<font color="#000080">,</font>y <font color="#000080">: </font>word<font color="#000080">; </font>c <font color="#000080">: </font>byte<font color="#000080">; </font>s <font color="#000080">: </font><font color="#FF0000"><b>string</b></font><font color="#000080">);
+</font><font color="#FF0000"><b>begin
+  </b></font>setcolor<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">);
+  </font>outtextxy<font color="#000080">(</font>x<font color="#000080">+</font><font color="#800000">1</font><font color="#000080">,</font>y<font color="#000080">+</font><font color="#800000">1</font><font color="#000080">,</font>s<font color="#000080">);
+  </font>outtextxy<font color="#000080">(</font>x<font color="#000080">+</font><font color="#800000">2</font><font color="#000080">,</font>y<font color="#000080">+</font><font color="#800000">2</font><font color="#000080">,</font>s<font color="#000080">);
+  </font>setcolor<font color="#000080">(</font>c<font color="#000080">);
+  </font>outtextxy<font color="#000080">(</font>x<font color="#000080">,</font>y<font color="#000080">,</font>s<font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>setupscreen<font color="#000080">;
+</font><font color="#FF0000"><b>var </b></font>i <font color="#000080">: </font>word<font color="#000080">; </font>p <font color="#000080">: </font>pointer<font color="#000080">; </font>f <font color="#000080">: </font><font color="#FF0000"><b>file</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>setrgbpalette<font color="#000080">(</font><font color="#800000">3</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">);
+  </font>setrgbpalette<font color="#000080">(</font><font color="#800000">20</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">);
+  </font>setrgbpalette<font color="#000080">(</font><font color="#800000">57</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">);
+  </font>setrgbpalette<font color="#000080">(</font><font color="#800000">59</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">);
+  </font>setrgbpalette<font color="#000080">(</font><font color="#800000">5</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">);
+  </font>setrgbpalette<font color="#000080">(</font><font color="#800000">2</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">);
+
+  </font><font color="#FF0000"><b>for </b></font>i<font color="#000080">:=</font><font color="#800000">0 </font><font color="#FF0000"><b>to </b></font><font color="#800000">7 </font><font color="#FF0000"><b>do
+  begin
+    </b></font>putimage<font color="#000080">(</font>i<font color="#000080">*</font><font color="#800000">80</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,@</font>pcb<font color="#000080">^,</font><font color="#800000">0</font><font color="#000080">);
+    </font>putimage<font color="#000080">(</font>i<font color="#000080">*</font><font color="#800000">80</font><font color="#000080">,</font><font color="#800000">160</font><font color="#000080">,@</font>pcb<font color="#000080">^,</font><font color="#800000">0</font><font color="#000080">);
+    </font>putimage<font color="#000080">(</font>i<font color="#000080">*</font><font color="#800000">80</font><font color="#000080">,</font><font color="#800000">320</font><font color="#000080">,@</font>pcb<font color="#000080">^,</font><font color="#800000">0</font><font color="#000080">);
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+  </font>setfillstyle<font color="#000080">(</font><font color="#800000">1</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">);
+  </font>bar<font color="#000080">(</font><font color="#800000">6</font><font color="#000080">,</font><font color="#800000">26</font><font color="#000080">,</font><font color="#800000">633</font><font color="#000080">,</font><font color="#800000">399</font><font color="#000080">);
+  </font>setrgbpalette<font color="#000080">(</font><font color="#800000">3</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">10</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">);
+  </font>setrgbpalette<font color="#000080">(</font><font color="#800000">20</font><font color="#000080">,</font><font color="#800000">60</font><font color="#000080">,</font><font color="#800000">50</font><font color="#000080">,</font><font color="#800000">10</font><font color="#000080">);
+  </font>setrgbpalette<font color="#000080">(</font><font color="#800000">57</font><font color="#000080">,</font><font color="#800000">10</font><font color="#000080">,</font><font color="#800000">20</font><font color="#000080">,</font><font color="#800000">10</font><font color="#000080">);
+  </font>setrgbpalette<font color="#000080">(</font><font color="#800000">59</font><font color="#000080">,</font><font color="#800000">20</font><font color="#000080">,</font><font color="#800000">40</font><font color="#000080">,</font><font color="#800000">10</font><font color="#000080">);
+  </font>setrgbpalette<font color="#000080">(</font><font color="#800000">5</font><font color="#000080">,</font><font color="#800000">10</font><font color="#000080">,</font><font color="#800000">30</font><font color="#000080">,</font><font color="#800000">10</font><font color="#000080">);
+  </font>setrgbpalette<font color="#000080">(</font><font color="#800000">2</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">20</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">);
+  </font>shade<font color="#000080">(</font><font color="#800000">34</font><font color="#000080">,</font><font color="#800000">416</font><font color="#000080">,</font><font color="#800000">6</font><font color="#000080">,</font><font color="#800000">'AMPLITUDE'</font><font color="#000080">);
+  </font>shade<font color="#000080">(</font><font color="#800000">207</font><font color="#000080">,</font><font color="#800000">416</font><font color="#000080">,</font><font color="#800000">6</font><font color="#000080">,</font><font color="#800000">'PERIOD'</font><font color="#000080">);
+  </font>shade<font color="#000080">(</font><font color="#800000">367</font><font color="#000080">,</font><font color="#800000">416</font><font color="#000080">,</font><font color="#800000">6</font><font color="#000080">,</font><font color="#800000">'DOMAIN'</font><font color="#000080">);
+  </font>putimage<font color="#000080">(</font><font color="#800000">460</font><font color="#000080">,</font><font color="#800000">400</font><font color="#000080">,@</font>about<font color="#000080">^,</font><font color="#800000">0</font><font color="#000080">);
+  </font>putimage<font color="#000080">(</font><font color="#800000">210</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,@</font>title<font color="#000080">^,</font><font color="#800000">0</font><font color="#000080">);
+  </font>setcolor<font color="#000080">(</font><font color="#800000">11</font><font color="#000080">);
+  </font>rectangle<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">639</font><font color="#000080">,</font><font color="#800000">479</font><font color="#000080">);
+  </font>rectangle<font color="#000080">(</font><font color="#800000">5</font><font color="#000080">,</font><font color="#800000">25</font><font color="#000080">,</font><font color="#800000">634</font><font color="#000080">,</font><font color="#800000">400</font><font color="#000080">);
+  </font>settextstyle<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">1</font><font color="#000080">);
+  </font>settextjustify<font color="#000080">(</font><font color="#800000">2</font><font color="#000080">,</font><font color="#800000">2</font><font color="#000080">);
+  </font>shade<font color="#000080">(</font><font color="#800000">630</font><font color="#000080">,</font><font color="#800000">10</font><font color="#000080">,</font><font color="#800000">15</font><font color="#000080">,</font><font color="#800000">'F1 = Help'</font><font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>drawaxis<font color="#000080">;
+</font><font color="#FF0000"><b>var </b></font>i <font color="#000080">: </font>word<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>setcolor<font color="#000080">(</font><font color="#800000">2</font><font color="#000080">);
+  </font>setlinestyle<font color="#000080">(</font><font color="#800000">1</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">1</font><font color="#000080">);
+  </font>i<font color="#000080">:=</font><font color="#800000">33</font><font color="#000080">;
+  </font><font color="#FF0000"><b>repeat
+    </b></font>line<font color="#000080">(</font>i<font color="#000080">,</font><font color="#800000">26</font><font color="#000080">,</font>i<font color="#000080">,</font><font color="#800000">399</font><font color="#000080">); </font>i<font color="#000080">:=</font>i<font color="#000080">+</font><font color="#800000">30</font><font color="#000080">;
+  </font><font color="#FF0000"><b>until </b></font>i<font color="#000080">&gt;</font><font color="#800000">630</font><font color="#000080">;
+  </font>i<font color="#000080">:=</font><font color="#800000">32</font><font color="#000080">;
+  </font><font color="#FF0000"><b>repeat
+    </b></font>line<font color="#000080">(</font><font color="#800000">6</font><font color="#000080">,</font>i<font color="#000080">,</font><font color="#800000">633</font><font color="#000080">,</font>i<font color="#000080">); </font>i<font color="#000080">:=</font>i<font color="#000080">+</font><font color="#800000">30</font><font color="#000080">;
+  </font><font color="#FF0000"><b>until </b></font>i<font color="#000080">&gt;</font><font color="#800000">399</font><font color="#000080">;
+  </font>setcolor<font color="#000080">(</font><font color="#800000">10</font><font color="#000080">);
+  </font>setlinestyle<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">1</font><font color="#000080">);
+  </font>line<font color="#000080">(</font><font color="#800000">6</font><font color="#000080">,</font><font color="#800000">212</font><font color="#000080">,</font><font color="#800000">633</font><font color="#000080">,</font><font color="#800000">212</font><font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>plot<font color="#000080">(</font>a<font color="#000080">,</font>n <font color="#000080">: </font>word<font color="#000080">; </font>f <font color="#000080">: </font>real<font color="#000080">);
+</font><font color="#FF0000"><b>var
+  </b></font>y     <font color="#000080">: </font><font color="#FF0000"><b>array</b></font><font color="#000080">[</font><font color="#800000">0</font><font color="#000080">..</font><font color="#800000">629</font><font color="#000080">] </font><font color="#FF0000"><b>of </b></font>word<font color="#000080">;
+  </font>i<font color="#000080">, </font>j  <font color="#000080">: </font>word<font color="#000080">;
+  </font>t<font color="#000080">, </font>at <font color="#000080">: </font>real<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+   </b></font>fillchar<font color="#000080">(</font>y<font color="#000080">,</font><font color="#800000">1260</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">);
+   </font>i<font color="#000080">:=</font><font color="#800000">1</font><font color="#000080">;
+   </font><font color="#FF0000"><b>repeat
+      </b></font>j<font color="#000080">:=</font><font color="#800000">0</font><font color="#000080">;
+      </font><font color="#FF0000"><b>repeat
+         </b></font>t<font color="#000080">:=</font><font color="#800000">2</font><font color="#000080">*</font>pi<font color="#000080">*</font>f<font color="#000080">*</font>i<font color="#000080">; </font>at<font color="#000080">:=</font>a<font color="#000080">/</font>i<font color="#000080">;
+         </font>y<font color="#000080">[</font>j<font color="#000080">]  :=</font>y<font color="#000080">[</font>j<font color="#000080">]  +</font>round<font color="#000080">(</font>at<font color="#000080">*</font>sin<font color="#000080">(</font>t<font color="#000080">*</font>j<font color="#000080">));
+         </font>y<font color="#000080">[</font>j<font color="#000080">+</font><font color="#800000">1</font><font color="#000080">]:=</font>y<font color="#000080">[</font>j<font color="#000080">+</font><font color="#800000">1</font><font color="#000080">]+</font>round<font color="#000080">(</font>at<font color="#000080">*</font>sin<font color="#000080">(</font>t<font color="#000080">*(</font>j<font color="#000080">+</font><font color="#800000">1</font><font color="#000080">)));
+         </font>y<font color="#000080">[</font>j<font color="#000080">+</font><font color="#800000">2</font><font color="#000080">]:=</font>y<font color="#000080">[</font>j<font color="#000080">+</font><font color="#800000">2</font><font color="#000080">]+</font>round<font color="#000080">(</font>at<font color="#000080">*</font>sin<font color="#000080">(</font>t<font color="#000080">*(</font>j<font color="#000080">+</font><font color="#800000">2</font><font color="#000080">)));
+         </font>y<font color="#000080">[</font>j<font color="#000080">+</font><font color="#800000">3</font><font color="#000080">]:=</font>y<font color="#000080">[</font>j<font color="#000080">+</font><font color="#800000">3</font><font color="#000080">]+</font>round<font color="#000080">(</font>at<font color="#000080">*</font>sin<font color="#000080">(</font>t<font color="#000080">*(</font>j<font color="#000080">+</font><font color="#800000">3</font><font color="#000080">)));
+         </font>y<font color="#000080">[</font>j<font color="#000080">+</font><font color="#800000">4</font><font color="#000080">]:=</font>y<font color="#000080">[</font>j<font color="#000080">+</font><font color="#800000">4</font><font color="#000080">]+</font>round<font color="#000080">(</font>at<font color="#000080">*</font>sin<font color="#000080">(</font>t<font color="#000080">*(</font>j<font color="#000080">+</font><font color="#800000">4</font><font color="#000080">)));
+         </font>y<font color="#000080">[</font>j<font color="#000080">+</font><font color="#800000">5</font><font color="#000080">]:=</font>y<font color="#000080">[</font>j<font color="#000080">+</font><font color="#800000">5</font><font color="#000080">]+</font>round<font color="#000080">(</font>at<font color="#000080">*</font>sin<font color="#000080">(</font>t<font color="#000080">*(</font>j<font color="#000080">+</font><font color="#800000">5</font><font color="#000080">)));
+         </font>y<font color="#000080">[</font>j<font color="#000080">+</font><font color="#800000">6</font><font color="#000080">]:=</font>y<font color="#000080">[</font>j<font color="#000080">+</font><font color="#800000">6</font><font color="#000080">]+</font>round<font color="#000080">(</font>at<font color="#000080">*</font>sin<font color="#000080">(</font>t<font color="#000080">*(</font>j<font color="#000080">+</font><font color="#800000">6</font><font color="#000080">)));
+         </font>j<font color="#000080">:=</font>j<font color="#000080">+</font><font color="#800000">7</font><font color="#000080">;
+      </font><font color="#FF0000"><b>until </b></font>j<font color="#000080">&gt;=</font><font color="#800000">629</font><font color="#000080">;
+      </font>i<font color="#000080">:=</font>i<font color="#000080">+</font><font color="#800000">2</font><font color="#000080">;
+   </font><font color="#FF0000"><b>until </b></font>i<font color="#000080">&gt;</font>n<font color="#000080">;
+   </font>setcolor<font color="#000080">(</font><font color="#800000">14</font><font color="#000080">);
+   </font>moveto<font color="#000080">(</font><font color="#800000">6</font><font color="#000080">,</font>y<font color="#000080">[</font><font color="#800000">0</font><font color="#000080">]+</font><font color="#800000">212</font><font color="#000080">);
+   </font><font color="#FF0000"><b>for </b></font>j<font color="#000080">:=</font><font color="#800000">0 </font><font color="#FF0000"><b>to </b></font><font color="#800000">627 </font><font color="#FF0000"><b>do </b></font>lineto<font color="#000080">(</font>j<font color="#000080">+</font><font color="#800000">6</font><font color="#000080">,</font>y<font color="#000080">[</font>j<font color="#000080">]+</font><font color="#800000">212</font><font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>drawdigit<font color="#000080">(</font>x<font color="#000080">, </font>y<font color="#000080">, </font>n <font color="#000080">: </font>word<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+  </b></font>putimage<font color="#000080">(</font>x<font color="#000080">,</font>y<font color="#000080">,</font>digit<font color="#000080">[</font>n <font color="#FF0000"><b>div </b></font><font color="#800000">100</font><font color="#000080">]^,</font>copyput<font color="#000080">); </font>n<font color="#000080">:=</font>n <font color="#FF0000"><b>mod </b></font><font color="#800000">100</font><font color="#000080">;
+  </font>putimage<font color="#000080">(</font>x<font color="#000080">+</font><font color="#800000">15</font><font color="#000080">,</font>y<font color="#000080">,</font>digit<font color="#000080">[</font>n <font color="#FF0000"><b>div </b></font><font color="#800000">10</font><font color="#000080">]^,</font>copyput<font color="#000080">); </font>n<font color="#000080">:=</font>n <font color="#FF0000"><b>mod </b></font><font color="#800000">10</font><font color="#000080">;
+  </font>putimage<font color="#000080">(</font>x<font color="#000080">+</font><font color="#800000">30</font><font color="#000080">,</font>y<font color="#000080">,</font>digit<font color="#000080">[</font>n<font color="#000080">]^,</font>copyput<font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>showstatus<font color="#000080">(</font>a<font color="#000080">,</font>n<font color="#000080">,</font>f <font color="#000080">: </font>word<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+  </b></font>putimage<font color="#000080">(</font><font color="#800000">40</font><font color="#000080">,</font><font color="#800000">430</font><font color="#000080">,@</font>scroller<font color="#000080">^,</font>copyput<font color="#000080">);
+  </font>drawdigit<font color="#000080">(</font><font color="#800000">42</font><font color="#000080">,</font><font color="#800000">432</font><font color="#000080">,</font>a<font color="#000080">);
+  </font>putimage<font color="#000080">(</font><font color="#800000">200</font><font color="#000080">,</font><font color="#800000">430</font><font color="#000080">,@</font>scroller<font color="#000080">^,</font>copyput<font color="#000080">);
+  </font>drawdigit<font color="#000080">(</font><font color="#800000">202</font><font color="#000080">,</font><font color="#800000">432</font><font color="#000080">,</font>f<font color="#000080">);
+  </font>putimage<font color="#000080">(</font><font color="#800000">360</font><font color="#000080">,</font><font color="#800000">430</font><font color="#000080">,@</font>scroller<font color="#000080">^,</font>copyput<font color="#000080">);
+  </font>drawdigit<font color="#000080">(</font><font color="#800000">362</font><font color="#000080">,</font><font color="#800000">432</font><font color="#000080">,</font>n<font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>help<font color="#000080">;
+</font><font color="#FF0000"><b>var </b></font>p <font color="#000080">: </font>pointer<font color="#000080">; </font>s<font color="#000080">: </font>word<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>s<font color="#000080">:=</font>imagesize<font color="#000080">(</font><font color="#800000">220</font><font color="#000080">,</font><font color="#800000">130</font><font color="#000080">,</font><font color="#800000">420</font><font color="#000080">,</font><font color="#800000">350</font><font color="#000080">);
+  </font>getmem<font color="#000080">(</font>p<font color="#000080">,</font>s<font color="#000080">);
+  </font>hidemouse<font color="#000080">;
+  </font>getimage<font color="#000080">(</font><font color="#800000">220</font><font color="#000080">,</font><font color="#800000">130</font><font color="#000080">,</font><font color="#800000">420</font><font color="#000080">,</font><font color="#800000">350</font><font color="#000080">,</font>p<font color="#000080">^);
+  </font>putimage<font color="#000080">(</font><font color="#800000">220</font><font color="#000080">,</font><font color="#800000">130</font><font color="#000080">,@</font>helppic<font color="#000080">^,</font><font color="#800000">0</font><font color="#000080">);
+  </font>showmouse<font color="#000080">;
+  </font><font color="#FF0000"><b>repeat until </b></font><font color="#000080">(</font>keypressed<font color="#000080">) </font><font color="#FF0000"><b>or </b></font><font color="#000080">(</font>b<font color="#000080">&gt;</font><font color="#800000">0</font><font color="#000080">);
+  </font>hidemouse<font color="#000080">;
+  </font>putimage<font color="#000080">(</font><font color="#800000">220</font><font color="#000080">,</font><font color="#800000">130</font><font color="#000080">,</font>p<font color="#000080">^,</font><font color="#800000">0</font><font color="#000080">);
+  </font>showmouse<font color="#000080">;
+  </font>freemem<font color="#000080">(</font>p<font color="#000080">,</font>s<font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>function </b></font>quit <font color="#000080">: </font>boolean<font color="#000080">;
+</font><font color="#FF0000"><b>var
+  </b></font>c <font color="#000080">: </font>char<font color="#000080">;
+  </font>p <font color="#000080">: </font>pointer<font color="#000080">;
+  </font>s <font color="#000080">: </font>word<font color="#000080">;
+  </font>u <font color="#000080">: </font>boolean<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>s<font color="#000080">:=</font>imagesize<font color="#000080">(</font><font color="#800000">180</font><font color="#000080">,</font><font color="#800000">190</font><font color="#000080">,</font><font color="#800000">460</font><font color="#000080">,</font><font color="#800000">290</font><font color="#000080">);
+  </font>getmem<font color="#000080">(</font>p<font color="#000080">,</font>s<font color="#000080">); </font>u<font color="#000080">:=</font>true<font color="#000080">;
+  </font>hidemouse<font color="#000080">;
+  </font>getimage<font color="#000080">(</font><font color="#800000">180</font><font color="#000080">,</font><font color="#800000">190</font><font color="#000080">,</font><font color="#800000">460</font><font color="#000080">,</font><font color="#800000">290</font><font color="#000080">,</font>p<font color="#000080">^);
+  </font>showmouse<font color="#000080">;
+  </font><font color="#FF0000"><b>repeat
+    if </b></font>u <font color="#FF0000"><b>then
+    begin
+      </b></font>hidemouse<font color="#000080">;
+      </font>putimage<font color="#000080">(</font><font color="#800000">180</font><font color="#000080">,</font><font color="#800000">190</font><font color="#000080">,@</font>quitpic<font color="#000080">^,</font>copyput<font color="#000080">);
+      </font>showmouse<font color="#000080">;
+      </font><font color="#FF0000"><b>if </b></font>mouseok <font color="#FF0000"><b>then while </b></font>b <font color="#FF0000"><b>and </b></font><font color="#800000">2 </font><font color="#000080">= </font><font color="#800000">2 </font><font color="#FF0000"><b>do</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>repeat until </b></font><font color="#000080">(</font>keypressed<font color="#000080">) </font><font color="#FF0000"><b>or </b></font><font color="#000080">(</font>b<font color="#000080">&gt;</font><font color="#800000">0</font><font color="#000080">);
+    </font>u<font color="#000080">:=</font>false<font color="#000080">;
+    </font><font color="#FF0000"><b>if </b></font>keypressed <font color="#FF0000"><b>then </b></font>c<font color="#000080">:=</font>upcase<font color="#000080">(</font>readkey<font color="#000080">) </font><font color="#FF0000"><b>else
+    if </b></font>b <font color="#FF0000"><b>and </b></font><font color="#800000">2 </font><font color="#000080">= </font><font color="#800000">2 </font><font color="#FF0000"><b>then
+    begin
+      </b></font>c<font color="#000080">:=</font><font color="#800000">'N'</font><font color="#000080">; </font><font color="#FF0000"><b>while </b></font>b <font color="#FF0000"><b>and </b></font><font color="#800000">2 </font><font color="#000080">= </font><font color="#800000">2 </font><font color="#FF0000"><b>do </b></font><font color="#000080">; </font>break<font color="#000080">;
+    </font><font color="#FF0000"><b>end else
+    if </b></font>b <font color="#FF0000"><b>and </b></font><font color="#800000">1 </font><font color="#000080">= </font><font color="#800000">1 </font><font color="#FF0000"><b>then
+    begin
+      if not </b></font>inside<font color="#000080">(</font><font color="#800000">180</font><font color="#000080">,</font><font color="#800000">190</font><font color="#000080">,</font><font color="#800000">460</font><font color="#000080">,</font><font color="#800000">290</font><font color="#000080">) </font><font color="#FF0000"><b>then begin </b></font>c<font color="#000080">:=</font><font color="#800000">'N'</font><font color="#000080">; </font>break<font color="#000080">; </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+      </font><font color="#FF0000"><b>if </b></font>inside<font color="#000080">(</font><font color="#800000">260</font><font color="#000080">,</font><font color="#800000">260</font><font color="#000080">,</font><font color="#800000">335</font><font color="#000080">,</font><font color="#800000">280</font><font color="#000080">) </font><font color="#FF0000"><b>then
+      begin
+        </b></font>hidemouse<font color="#000080">;
+        </font>putimage<font color="#000080">(</font><font color="#800000">260</font><font color="#000080">,</font><font color="#800000">260</font><font color="#000080">,@</font>yesclicked<font color="#000080">^,</font>copyput<font color="#000080">);
+        </font>showmouse<font color="#000080">; </font>u<font color="#000080">:=</font>true<font color="#000080">;
+        </font><font color="#FF0000"><b>while </b></font><font color="#000080">(</font>inside<font color="#000080">(</font><font color="#800000">260</font><font color="#000080">,</font><font color="#800000">260</font><font color="#000080">,</font><font color="#800000">335</font><font color="#000080">,</font><font color="#800000">280</font><font color="#000080">)) </font><font color="#FF0000"><b>and </b></font><font color="#000080">(</font>b <font color="#FF0000"><b>and </b></font><font color="#800000">1 </font><font color="#000080">= </font><font color="#800000">1</font><font color="#000080">) </font><font color="#FF0000"><b>do </b></font><font color="#000080">;
+        </font><font color="#FF0000"><b>if </b></font>inside<font color="#000080">(</font><font color="#800000">260</font><font color="#000080">,</font><font color="#800000">260</font><font color="#000080">,</font><font color="#800000">335</font><font color="#000080">,</font><font color="#800000">280</font><font color="#000080">) </font><font color="#FF0000"><b>then </b></font>c<font color="#000080">:=</font><font color="#800000">'Y'</font><font color="#000080">;
+      </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+      </font><font color="#FF0000"><b>if </b></font>inside<font color="#000080">(</font><font color="#800000">355</font><font color="#000080">,</font><font color="#800000">260</font><font color="#000080">,</font><font color="#800000">435</font><font color="#000080">,</font><font color="#800000">280</font><font color="#000080">) </font><font color="#FF0000"><b>then
+      begin
+        </b></font>hidemouse<font color="#000080">;
+        </font>putimage<font color="#000080">(</font><font color="#800000">355</font><font color="#000080">,</font><font color="#800000">260</font><font color="#000080">,@</font>noclicked<font color="#000080">^,</font>copyput<font color="#000080">);
+        </font>showmouse<font color="#000080">; </font>u<font color="#000080">:=</font>true<font color="#000080">;
+        </font><font color="#FF0000"><b>while </b></font><font color="#000080">(</font>inside<font color="#000080">(</font><font color="#800000">355</font><font color="#000080">,</font><font color="#800000">260</font><font color="#000080">,</font><font color="#800000">435</font><font color="#000080">,</font><font color="#800000">280</font><font color="#000080">)) </font><font color="#FF0000"><b>and </b></font><font color="#000080">(</font>b <font color="#FF0000"><b>and </b></font><font color="#800000">1 </font><font color="#000080">= </font><font color="#800000">1</font><font color="#000080">) </font><font color="#FF0000"><b>do </b></font><font color="#000080">;
+        </font><font color="#FF0000"><b>if </b></font>inside<font color="#000080">(</font><font color="#800000">355</font><font color="#000080">,</font><font color="#800000">260</font><font color="#000080">,</font><font color="#800000">435</font><font color="#000080">,</font><font color="#800000">280</font><font color="#000080">) </font><font color="#FF0000"><b>then </b></font>c<font color="#000080">:=</font><font color="#800000">'N'</font><font color="#000080">;
+      </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>if </b></font>c<font color="#000080">=</font><font color="#800000">#27 </font><font color="#FF0000"><b>then </b></font>c<font color="#000080">:=</font><font color="#800000">'N'</font><font color="#000080">;
+  </font><font color="#FF0000"><b>until </b></font>c <font color="#FF0000"><b>in </b></font><font color="#000080">[</font><font color="#800000">'Y'</font><font color="#000080">,</font><font color="#800000">'N'</font><font color="#000080">];
+  </font><font color="#FF0000"><b>if </b></font>c<font color="#000080">=</font><font color="#800000">'Y' </font><font color="#FF0000"><b>then </b></font>quit<font color="#000080">:=</font>true <font color="#FF0000"><b>else </b></font>quit<font color="#000080">:=</font>false<font color="#000080">;
+  </font>hidemouse<font color="#000080">;
+  </font>putimage<font color="#000080">(</font><font color="#800000">180</font><font color="#000080">,</font><font color="#800000">190</font><font color="#000080">,</font>p<font color="#000080">^,</font>copyput<font color="#000080">);
+  </font>showmouse<font color="#000080">;
+  </font>freemem<font color="#000080">(</font>p<font color="#000080">,</font>s<font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>main<font color="#000080">;
+</font><font color="#FF0000"><b>var
+  </b></font>a<font color="#000080">, </font>n<font color="#000080">, </font>f<font color="#000080">, </font>bt <font color="#000080">: </font>word<font color="#000080">;
+  </font>c           <font color="#000080">: </font>char<font color="#000080">;
+  </font>update      <font color="#000080">: </font>boolean<font color="#000080">;
+  </font>action      <font color="#000080">: </font>byte<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>a<font color="#000080">:=</font><font color="#800000">160</font><font color="#000080">; </font>n<font color="#000080">:=</font><font color="#800000">1</font><font color="#000080">; </font>f<font color="#000080">:=</font><font color="#800000">630</font><font color="#000080">; </font>update<font color="#000080">:=</font>true<font color="#000080">;
+  </font>setfillstyle<font color="#000080">(</font><font color="#800000">1</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">); </font>settextstyle<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">1</font><font color="#000080">);
+  </font>showmouse<font color="#000080">; </font>action<font color="#000080">:=</font><font color="#800000">0</font><font color="#000080">;
+  </font><font color="#FF0000"><b>repeat
+     if </b></font>update <font color="#FF0000"><b>then
+     begin
+        </b></font>hidemouse<font color="#000080">;
+        </font>setfillstyle<font color="#000080">(</font><font color="#800000">1</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">);
+        </font>bar<font color="#000080">(</font><font color="#800000">6</font><font color="#000080">,</font><font color="#800000">26</font><font color="#000080">,</font><font color="#800000">633</font><font color="#000080">,</font><font color="#800000">399</font><font color="#000080">);
+        </font>showstatus<font color="#000080">(</font>a<font color="#000080">,</font>n<font color="#000080">,</font>f<font color="#000080">);
+        </font>drawaxis<font color="#000080">;
+        </font>plot<font color="#000080">(</font>a<font color="#000080">,</font>n<font color="#000080">,(</font><font color="#800000">1</font><font color="#000080">/</font>f<font color="#000080">));
+        </font>showmouse<font color="#000080">;
+     </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+     </font>update<font color="#000080">:=</font>false<font color="#000080">; </font>c<font color="#000080">:=</font><font color="#800000">#0</font><font color="#000080">;
+     </font><font color="#FF0000"><b>while </b></font>keypressed <font color="#FF0000"><b>do </b></font>readkey<font color="#000080">;
+     </font><font color="#FF0000"><b>repeat </b></font>bt<font color="#000080">:=</font>b<font color="#000080">; </font><font color="#FF0000"><b>until </b></font><font color="#000080">(</font>keypressed<font color="#000080">) </font><font color="#FF0000"><b>or </b></font><font color="#000080">(</font>bt<font color="#000080">&gt;</font><font color="#800000">0</font><font color="#000080">);
+     </font><font color="#FF0000"><b>if </b></font>bt <font color="#FF0000"><b>and </b></font><font color="#800000">2 </font><font color="#000080">= </font><font color="#800000">2 </font><font color="#FF0000"><b>then </b></font>action<font color="#000080">:=</font><font color="#800000">7 </font><font color="#FF0000"><b>else
+     if </b></font>bt <font color="#FF0000"><b>and </b></font><font color="#800000">1 </font><font color="#000080">= </font><font color="#800000">1 </font><font color="#FF0000"><b>then
+     begin
+       if </b></font>inside<font color="#000080">(</font><font color="#800000">88</font><font color="#000080">,</font><font color="#800000">430</font><font color="#000080">,</font><font color="#800000">103</font><font color="#000080">,</font><font color="#800000">445</font><font color="#000080">)  </font><font color="#FF0000"><b>then </b></font>action<font color="#000080">:=</font><font color="#800000">1</font><font color="#000080">;
+       </font><font color="#FF0000"><b>if </b></font>inside<font color="#000080">(</font><font color="#800000">88</font><font color="#000080">,</font><font color="#800000">446</font><font color="#000080">,</font><font color="#800000">103</font><font color="#000080">,</font><font color="#800000">471</font><font color="#000080">)  </font><font color="#FF0000"><b>then </b></font>action<font color="#000080">:=</font><font color="#800000">2</font><font color="#000080">;
+       </font><font color="#FF0000"><b>if </b></font>inside<font color="#000080">(</font><font color="#800000">248</font><font color="#000080">,</font><font color="#800000">430</font><font color="#000080">,</font><font color="#800000">263</font><font color="#000080">,</font><font color="#800000">445</font><font color="#000080">) </font><font color="#FF0000"><b>then </b></font>action<font color="#000080">:=</font><font color="#800000">3</font><font color="#000080">;
+       </font><font color="#FF0000"><b>if </b></font>inside<font color="#000080">(</font><font color="#800000">248</font><font color="#000080">,</font><font color="#800000">446</font><font color="#000080">,</font><font color="#800000">263</font><font color="#000080">,</font><font color="#800000">471</font><font color="#000080">) </font><font color="#FF0000"><b>then </b></font>action<font color="#000080">:=</font><font color="#800000">4</font><font color="#000080">;
+       </font><font color="#FF0000"><b>if </b></font>inside<font color="#000080">(</font><font color="#800000">408</font><font color="#000080">,</font><font color="#800000">430</font><font color="#000080">,</font><font color="#800000">423</font><font color="#000080">,</font><font color="#800000">445</font><font color="#000080">) </font><font color="#FF0000"><b>then </b></font>action<font color="#000080">:=</font><font color="#800000">5</font><font color="#000080">;
+       </font><font color="#FF0000"><b>if </b></font>inside<font color="#000080">(</font><font color="#800000">408</font><font color="#000080">,</font><font color="#800000">446</font><font color="#000080">,</font><font color="#800000">423</font><font color="#000080">,</font><font color="#800000">471</font><font color="#000080">) </font><font color="#FF0000"><b>then </b></font>action<font color="#000080">:=</font><font color="#800000">6</font><font color="#000080">;
+     </font><font color="#FF0000"><b>end else
+     begin
+       </b></font>c<font color="#000080">:=</font>readkey<font color="#000080">;
+       </font><font color="#FF0000"><b>case </b></font>c <font color="#FF0000"><b>of
+          </b></font><font color="#800000">#0</font><font color="#000080">: </font><font color="#FF0000"><b>case </b></font>readkey <font color="#FF0000"><b>of
+                </b></font><font color="#800000">#59</font><font color="#000080">: </font>help<font color="#000080">;
+                </font><font color="#800000">#72</font><font color="#000080">: </font>action<font color="#000080">:=</font><font color="#800000">1</font><font color="#000080">;
+                </font><font color="#800000">#75</font><font color="#000080">: </font>action<font color="#000080">:=</font><font color="#800000">4</font><font color="#000080">;
+                </font><font color="#800000">#77</font><font color="#000080">: </font>action<font color="#000080">:=</font><font color="#800000">3</font><font color="#000080">;
+                </font><font color="#800000">#80</font><font color="#000080">: </font>action<font color="#000080">:=</font><font color="#800000">2</font><font color="#000080">;
+              </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+         </font><font color="#800000">'+'</font><font color="#000080">: </font>action<font color="#000080">:=</font><font color="#800000">5</font><font color="#000080">;
+         </font><font color="#800000">'-'</font><font color="#000080">: </font>action<font color="#000080">:=</font><font color="#800000">6</font><font color="#000080">;
+         </font><font color="#800000">#27</font><font color="#000080">: </font>action<font color="#000080">:=</font><font color="#800000">7</font><font color="#000080">;
+       </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+     </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+     </font><font color="#FF0000"><b>case </b></font>action <font color="#FF0000"><b>of
+       </b></font><font color="#800000">1 </font><font color="#000080">: </font><font color="#FF0000"><b>if </b></font>a<font color="#000080">&lt;</font><font color="#800000">180 </font><font color="#FF0000"><b>then
+           begin
+             </b></font>inc<font color="#000080">(</font>a<font color="#000080">); </font>update<font color="#000080">:=</font>true<font color="#000080">;
+             </font>hidemouse<font color="#000080">;
+             </font>putimage<font color="#000080">(</font><font color="#800000">88</font><font color="#000080">,</font><font color="#800000">430</font><font color="#000080">,@</font>scrollup<font color="#000080">^,</font>copyput<font color="#000080">);
+             </font>showmouse<font color="#000080">;
+           </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+       </font><font color="#800000">2 </font><font color="#000080">: </font><font color="#FF0000"><b>if </b></font>a<font color="#000080">&gt;</font><font color="#800000">50  </font><font color="#FF0000"><b>then
+           begin
+             </b></font>dec<font color="#000080">(</font>a<font color="#000080">);  </font>update<font color="#000080">:=</font>true<font color="#000080">;
+             </font>hidemouse<font color="#000080">;
+             </font>putimage<font color="#000080">(</font><font color="#800000">88</font><font color="#000080">,</font><font color="#800000">446</font><font color="#000080">,@</font>scrolldown<font color="#000080">^,</font>copyput<font color="#000080">);
+             </font>showmouse<font color="#000080">;
+           </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+       </font><font color="#800000">3 </font><font color="#000080">: </font><font color="#FF0000"><b>if </b></font>f<font color="#000080">&lt;</font><font color="#800000">990 </font><font color="#FF0000"><b>then
+           begin
+             </b></font>f<font color="#000080">:=</font>f<font color="#000080">+</font><font color="#800000">30</font><font color="#000080">; </font>update<font color="#000080">:=</font>true<font color="#000080">;
+             </font>hidemouse<font color="#000080">;
+             </font>putimage<font color="#000080">(</font><font color="#800000">248</font><font color="#000080">,</font><font color="#800000">430</font><font color="#000080">,@</font>scrollup<font color="#000080">^,</font>copyput<font color="#000080">);
+             </font>showmouse<font color="#000080">;
+           </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+       </font><font color="#800000">4 </font><font color="#000080">: </font><font color="#FF0000"><b>if </b></font>f<font color="#000080">&gt;</font><font color="#800000">30  </font><font color="#FF0000"><b>then
+           begin
+             </b></font>f<font color="#000080">:=</font>f<font color="#000080">-</font><font color="#800000">30</font><font color="#000080">; </font>update<font color="#000080">:=</font>true<font color="#000080">;
+             </font>hidemouse<font color="#000080">;
+             </font>putimage<font color="#000080">(</font><font color="#800000">248</font><font color="#000080">,</font><font color="#800000">446</font><font color="#000080">,@</font>scrolldown<font color="#000080">^,</font>copyput<font color="#000080">);
+             </font>showmouse<font color="#000080">;
+           </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+       </font><font color="#800000">5 </font><font color="#000080">: </font><font color="#FF0000"><b>if </b></font>n<font color="#000080">&lt;</font><font color="#800000">399 </font><font color="#FF0000"><b>then
+           begin
+             </b></font>n<font color="#000080">:=</font>n<font color="#000080">+</font><font color="#800000">2</font><font color="#000080">;  </font>update<font color="#000080">:=</font>true<font color="#000080">;
+             </font>hidemouse<font color="#000080">;
+             </font>putimage<font color="#000080">(</font><font color="#800000">408</font><font color="#000080">,</font><font color="#800000">430</font><font color="#000080">,@</font>scrollup<font color="#000080">^,</font>copyput<font color="#000080">);
+             </font>showmouse<font color="#000080">;
+           </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+       </font><font color="#800000">6 </font><font color="#000080">: </font><font color="#FF0000"><b>if </b></font>n<font color="#000080">&gt;</font><font color="#800000">1   </font><font color="#FF0000"><b>then
+           begin
+             </b></font>n<font color="#000080">:=</font>n<font color="#000080">-</font><font color="#800000">2</font><font color="#000080">;  </font>update<font color="#000080">:=</font>true<font color="#000080">;
+             </font>hidemouse<font color="#000080">;
+             </font>putimage<font color="#000080">(</font><font color="#800000">408</font><font color="#000080">,</font><font color="#800000">446</font><font color="#000080">,@</font>scrolldown<font color="#000080">^,</font>copyput<font color="#000080">);
+             </font>showmouse<font color="#000080">;
+           </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+       </font><font color="#800000">7 </font><font color="#000080">: </font><font color="#FF0000"><b>if </b></font>quit <font color="#FF0000"><b>then </b></font>exit<font color="#000080">;
+     </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+     </font>action<font color="#000080">:=</font><font color="#800000">0</font><font color="#000080">;
+  </font><font color="#FF0000"><b>until </b></font>false<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>done<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>closegraph<font color="#000080">;
+  </font>writeln<font color="#000080">(</font><font color="#800000">'Roby Johanes says : &quot;See you next time !&quot;'#10#13</font><font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>begin
+  </b></font>init<font color="#000080">;
+  </font>setupscreen<font color="#000080">;
+  </font>drawaxis<font color="#000080">;
+  </font>main<font color="#000080">;
+  </font>done<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">.
+
+</font><font color="#008000"><i>{ ---------------------  IMAGES.PAS --------------------- }
+
+{  By  : Roby Johanes
+  http://www.geocities.com/SiliconValley/Park/3230
+  Finished in 1996
+}
+</i></font><font color="#FF0000"><b>unit </b></font>images<font color="#000080">;
+</font><font color="#FF0000"><b>interface
+uses </b></font>graph<font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>VGADriver<font color="#000080">;
+</font><font color="#FF0000"><b>procedure </b></font>QuitPic<font color="#000080">;
+</font><font color="#FF0000"><b>procedure </b></font>YesClicked<font color="#000080">;
+</font><font color="#FF0000"><b>procedure </b></font>NoClicked<font color="#000080">;
+</font><font color="#FF0000"><b>procedure </b></font>Digit0<font color="#000080">;
+</font><font color="#FF0000"><b>procedure </b></font>Digit1<font color="#000080">;
+</font><font color="#FF0000"><b>procedure </b></font>Digit2<font color="#000080">;
+</font><font color="#FF0000"><b>procedure </b></font>Digit3<font color="#000080">;
+</font><font color="#FF0000"><b>procedure </b></font>Digit4<font color="#000080">;
+</font><font color="#FF0000"><b>procedure </b></font>Digit5<font color="#000080">;
+</font><font color="#FF0000"><b>procedure </b></font>Digit6<font color="#000080">;
+</font><font color="#FF0000"><b>procedure </b></font>Digit7<font color="#000080">;
+</font><font color="#FF0000"><b>procedure </b></font>Digit8<font color="#000080">;
+</font><font color="#FF0000"><b>procedure </b></font>Digit9<font color="#000080">;
+</font><font color="#FF0000"><b>procedure </b></font>Scroller<font color="#000080">;
+</font><font color="#FF0000"><b>procedure </b></font>ScrollUp<font color="#000080">;
+</font><font color="#FF0000"><b>procedure </b></font>ScrollDown<font color="#000080">;
+</font><font color="#FF0000"><b>procedure </b></font>PCB<font color="#000080">;
+</font><font color="#FF0000"><b>procedure </b></font>HelpPic<font color="#000080">;
+</font><font color="#FF0000"><b>procedure </b></font>About<font color="#000080">;
+</font><font color="#FF0000"><b>procedure </b></font>Title<font color="#000080">;
+</font><font color="#FF0000"><b>implementation
+
+</b></font><font color="#008000"><i>{ VGA graphic driver routines (BGI) }
+</i></font><font color="#FF0000"><b>procedure </b></font>VGADriver<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;  </font><font color="#008000"><i>{$L EGAVGA.OBJ}
+{ Pictures in object files }
+</i></font><font color="#FF0000"><b>procedure </b></font>QuitPic<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;    </font><font color="#008000"><i>{$L QUIT.OBJ}
+</i></font><font color="#FF0000"><b>procedure </b></font>YesClicked<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">; </font><font color="#008000"><i>{$L YES.OBJ}
+</i></font><font color="#FF0000"><b>procedure </b></font>NoClicked<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;  </font><font color="#008000"><i>{$L NO.OBJ}
+</i></font><font color="#FF0000"><b>procedure </b></font>Digit0<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;     </font><font color="#008000"><i>{$L 0.OBJ}
+</i></font><font color="#FF0000"><b>procedure </b></font>Digit1<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;     </font><font color="#008000"><i>{$L 1.OBJ}
+</i></font><font color="#FF0000"><b>procedure </b></font>Digit2<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;     </font><font color="#008000"><i>{$L 2.OBJ}
+</i></font><font color="#FF0000"><b>procedure </b></font>Digit3<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;     </font><font color="#008000"><i>{$L 3.OBJ}
+</i></font><font color="#FF0000"><b>procedure </b></font>Digit4<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;     </font><font color="#008000"><i>{$L 4.OBJ}
+</i></font><font color="#FF0000"><b>procedure </b></font>Digit5<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;     </font><font color="#008000"><i>{$L 5.OBJ}
+</i></font><font color="#FF0000"><b>procedure </b></font>Digit6<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;     </font><font color="#008000"><i>{$L 6.OBJ}
+</i></font><font color="#FF0000"><b>procedure </b></font>Digit7<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;     </font><font color="#008000"><i>{$L 7.OBJ}
+</i></font><font color="#FF0000"><b>procedure </b></font>Digit8<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;     </font><font color="#008000"><i>{$L 8.OBJ}
+</i></font><font color="#FF0000"><b>procedure </b></font>Digit9<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;     </font><font color="#008000"><i>{$L 9.OBJ}
+</i></font><font color="#FF0000"><b>procedure </b></font>Scroller<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;   </font><font color="#008000"><i>{$L SCROLL.OBJ}
+</i></font><font color="#FF0000"><b>procedure </b></font>ScrollUp<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;   </font><font color="#008000"><i>{$L SCROLLUP.OBJ}
+</i></font><font color="#FF0000"><b>procedure </b></font>ScrollDown<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">; </font><font color="#008000"><i>{$L SCROLLDN.OBJ}
+</i></font><font color="#FF0000"><b>procedure </b></font>PCB<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;        </font><font color="#008000"><i>{$L PCB.OBJ}
+</i></font><font color="#FF0000"><b>procedure </b></font>HelpPic<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;    </font><font color="#008000"><i>{$L HELP.OBJ}
+</i></font><font color="#FF0000"><b>procedure </b></font>About<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;      </font><font color="#008000"><i>{$L ABOUT.OBJ}
+</i></font><font color="#FF0000"><b>procedure </b></font>Title<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;      </font><font color="#008000"><i>{$L TITLE.OBJ}
+
+</i></font><font color="#FF0000"><b>begin
+  if </b></font>registerbgidriver<font color="#000080">(@</font>VGADriver<font color="#000080">)&lt;</font><font color="#800000">0 </font><font color="#FF0000"><b>then </b></font>halt<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">.
+
+</font><font color="#008000"><i>{ ---------------------  CUT ----------------- }
+
+{{------------------------- snip, snip ----------------------------}
+
+ENCODED OBJFILES.ZIP FILE REMOVED.  PLEASE <A HREF="0292.OBJFILES.ZIP">DOWNLOAD</A> EITHER THE 
+ATTACHMENT OR THE COMPLETE ZIP FILE.
+</I>
+</font>
+</code></pre><!--EndFragment--><p align="center"><b>[</b><a href="index.html">Back to GRAPHICS SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0292.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0292.OBJFILES.ZIP">Attachment</a><b>]</b>
+</p></body>
+</html>

@@ -1,0 +1,74 @@
+<html>
+<head><title> "Disable Ctrl-Alt-Del" by GREG VIGNEAULT</title><link rel="STYLESHEET" type="text/css" href="../swagsource.css"></head>
+<body><p align="center">
+<b>[</b><a href="index.html">Back to KEYBOARD SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0068.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0068.CTRLCAD.ZIP">Attachment</a><b>]</b>
+
+</p><!--StartFragment--><pre><code><font color="#008000"><i>(*******************************************************************)
+ </i></font><font color="#FF0000"><b>PROGRAM </b></font>CtrlCAD<font color="#000080">;   </font><font color="#008000"><i>{ CTRLCAD.PAS  Disable Ctrl-Alt-Del             }
+                    { Oct.1992 Greg Vigneault                       }
+
+ </i></font><font color="#FF0000"><b>USES   </b></font>Crt<font color="#000080">,        </font><font color="#008000"><i>{ import ClrScr, KeyPressed, ReadKey            }
+        </i></font>Dos<font color="#000080">;        </font><font color="#008000"><i>{ import GetIntVec, SetIntVec                   }
+
+ </i></font><font color="#FF0000"><b>VAR    </b></font>old09Vector <font color="#000080">: </font>POINTER<font color="#000080">;  </font><font color="#008000"><i>{ to save/restore original ISR      }
+        </i></font>ch          <font color="#000080">: </font>CHAR<font color="#000080">;
+        </font>presses     <font color="#000080">: </font>WORD<font color="#000080">;
+
+ </font><font color="#008000"><i>{ the following mask &amp; count Ctrl-Alt-Del|Ins|Enter keystrokes     }
+ {$L CTRLCAD.OBJ}   { assembly, near calls                          }
+ </i></font><font color="#FF0000"><b>PROCEDURE </b></font>InitTrapCAD<font color="#000080">( </font>oldVector <font color="#000080">: </font>POINTER <font color="#000080">);  </font><font color="#FF0000"><b>EXTERNAL</b></font><font color="#000080">;
+ </font><font color="#FF0000"><b>PROCEDURE </b></font>TrapCAD<font color="#000080">; </font>Interrupt<font color="#000080">;                  </font><font color="#FF0000"><b>EXTERNAL</b></font><font color="#000080">;
+ </font><font color="#FF0000"><b>FUNCTION  </b></font>TriedCAD <font color="#000080">: </font>WORD<font color="#000080">;                     </font><font color="#FF0000"><b>EXTERNAL</b></font><font color="#000080">;
+ </font><font color="#FF0000"><b>PROCEDURE </b></font>ForgetCAD<font color="#000080">;                           </font><font color="#FF0000"><b>EXTERNAL</b></font><font color="#000080">;
+ </font><font color="#FF0000"><b>PROCEDURE </b></font>WarmBoot<font color="#000080">;                            </font><font color="#FF0000"><b>EXTERNAL</b></font><font color="#000080">;
+ </font><font color="#FF0000"><b>PROCEDURE </b></font>ColdBoot<font color="#000080">;                            </font><font color="#FF0000"><b>EXTERNAL</b></font><font color="#000080">;
+
+ </font><font color="#FF0000"><b>BEGIN
+    </b></font><font color="#008000"><i>(* NEVER allow Ctrl-Break while TrapCAD is active ...          *)
+    </i></font>CheckBreak <font color="#000080">:= </font>FALSE<font color="#000080">;            </font><font color="#008000"><i>{ disable Ctrl-Break            }
+
+    </i></font>GetIntVec<font color="#000080">( </font><font color="#800000">9</font><font color="#000080">, </font>old09Vector <font color="#000080">);    </font><font color="#008000"><i>{ get current keyboard ISR      }
+    </i></font>InitTrapCAD<font color="#000080">( </font>old09Vector <font color="#000080">);     </font><font color="#008000"><i>{ pass vector to TrapCAD        }
+    </i></font>SetIntVec<font color="#000080">( </font><font color="#800000">9</font><font color="#000080">, @</font>TrapCAD <font color="#000080">);       </font><font color="#008000"><i>{ enable TrapCAD ISR            }
+
+    </i></font>ForgetCAD<font color="#000080">;                      </font><font color="#008000"><i>{ reset TriedCAD count to 0     }
+    </i></font>presses <font color="#000080">:= </font><font color="#800000">99</font><font color="#000080">;                  </font><font color="#008000"><i>{ any unlikely value            }
+
+    { we'll just count the Ctrl-Alt-Del taps ...                    }
+    </i></font><font color="#FF0000"><b>REPEAT
+        IF </b></font><font color="#000080">(</font>presses <font color="#000080">&lt;&gt; </font>TriedCAD<font color="#000080">)    </font><font color="#008000"><i>{ update only when changed      }
+        </i></font><font color="#FF0000"><b>THEN BEGIN
+             </b></font>presses <font color="#000080">:= </font>TriedCAD<font color="#000080">;
+             </font>ClrScr<font color="#000080">;
+             </font>Write<font color="#000080">(</font><font color="#800000">'Ctrl-Alt-Del pressed '</font><font color="#000080">,</font>presses<font color="#000080">,</font><font color="#800000">' times '</font><font color="#000080">);
+             </font>Write<font color="#000080">(</font><font color="#800000">'[Press ESC to exit]'</font><font color="#000080">);
+        </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+        </font><font color="#FF0000"><b>IF </b></font>KeyPressed <font color="#FF0000"><b>THEN </b></font>ch <font color="#000080">:= </font>ReadKey<font color="#000080">;
+    </font><font color="#FF0000"><b>UNTIL </b></font><font color="#000080">(</font>ch <font color="#000080">= </font><font color="#800000">#27</font><font color="#000080">);
+
+    </font>WriteLn<font color="#000080">; </font>WriteLn<font color="#000080">;
+    </font><font color="#FF0000"><b>REPEAT
+        </b></font>Write<font color="#000080">(</font><font color="#800000">'Would you like to warm boot the system? [Y/N] '</font><font color="#000080">,</font><font color="#800000">#7</font><font color="#000080">);
+        </font>ReadLn<font color="#000080">( </font>ch <font color="#000080">);   </font>ch <font color="#000080">:= </font>UpCase<font color="#000080">( </font>ch <font color="#000080">);
+    </font><font color="#FF0000"><b>UNTIL </b></font>ch <font color="#FF0000"><b>IN </b></font><font color="#000080">[</font><font color="#800000">'Y'</font><font color="#000080">,</font><font color="#800000">'N'</font><font color="#000080">];
+    </font><font color="#FF0000"><b>IF </b></font>ch <font color="#000080">= </font><font color="#800000">'Y' </font><font color="#FF0000"><b>THEN </b></font>WarmBoot<font color="#000080">;      </font><font color="#008000"><i>{ emulate Ctrl-Alt-Del          }
+
+    </i></font>SetIntVec<font color="#000080">( </font><font color="#800000">9</font><font color="#000080">, </font>old09Vector <font color="#000080">);    </font><font color="#008000"><i>{ unload TrapCAD                }
+    </i></font>WriteLn<font color="#000080">; </font>WriteLn<font color="#000080">(</font><font color="#800000">'Ctrl-Alt-Del is now re-enabled!'</font><font color="#000080">);
+    </font>CheckBreak <font color="#000080">:= </font>TRUE<font color="#000080">;             </font><font color="#008000"><i>{ restore Ctrl-Break            }
+</i></font><font color="#FF0000"><b>END</b></font><font color="#000080">.
+</font><font color="#008000"><i>(*******************************************************************)
+
+ENCODED CTRLCAD.OBJ FILE REMOVED.  PLEASE <A HREF="0068.CTRLCAD.ZIP">DOWNLOAD</A> EITHER THE 
+ATTACHMENT OR THE COMPLETE ZIP FILE.
+</I>
+</font>
+</code></pre><!--EndFragment--><p align="center"><b>[</b><a href="index.html">Back to KEYBOARD SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0068.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0068.CTRLCAD.ZIP">Attachment</a><b>]</b>
+</p></body>
+</html>

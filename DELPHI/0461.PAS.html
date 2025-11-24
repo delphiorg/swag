@@ -1,0 +1,97 @@
+<html>
+<head><title> "BIN TO ASCII Unit" by SWAG SUPPORT TEAM</title><link rel="STYLESHEET" type="text/css" href="../swagsource.css"></head>
+<body><p align="center">
+<b>[</b><a href="index.html">Back to DELPHI SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0461.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0461.BINASC.ZIP">Attachment</a><b>]</b>
+
+</p><!--StartFragment--><pre><code><font color="#FF0000"><b>unit </b></font>Binasc<font color="#000080">;
+
+</font><font color="#FF0000"><b>interface
+
+uses
+  </b></font>SysUtils<font color="#000080">, </font>WinTypes<font color="#000080">, </font>WinProcs<font color="#000080">, </font>Messages<font color="#000080">, </font>Classes<font color="#000080">, </font>Graphics<font color="#000080">, </font>Controls<font color="#000080">,
+  </font>Forms<font color="#000080">, </font>Dialogs<font color="#000080">;
+
+</font><font color="#FF0000"><b>type
+  </b></font>TBinAsc <font color="#000080">= </font><font color="#FF0000"><b>class</b></font><font color="#000080">(</font>TComponent<font color="#000080">)
+  </font><font color="#FF0000"><b>private
+    </b></font><font color="#008000"><i>{ Private declarations }
+  </i></font><font color="#FF0000"><b>protected
+    </b></font><font color="#008000"><i>{ Protected declarations }
+  </i></font><font color="#FF0000"><b>public
+    </b></font><font color="#008000"><i>{ Public declarations }
+  </i></font><font color="#FF0000"><b>published
+    </b></font><font color="#008000"><i>{ Published declarations }
+    </i></font><font color="#FF0000"><b>procedure </b></font>BinToAsc<font color="#000080">(</font>fnSource<font color="#000080">, </font>fnDest<font color="#000080">: </font><font color="#FF0000"><b>String</b></font><font color="#000080">);
+    </font><font color="#FF0000"><b>procedure </b></font>AscToBin<font color="#000080">(</font>fnSource<font color="#000080">, </font>fnDest<font color="#000080">: </font><font color="#FF0000"><b>String</b></font><font color="#000080">);
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure Register</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>implementation
+
+procedure </b></font>TBinAsc<font color="#000080">.</font>BinToAsc<font color="#000080">(</font>fnSource<font color="#000080">, </font>fnDest<font color="#000080">: </font><font color="#FF0000"><b>String</b></font><font color="#000080">);
+</font><font color="#FF0000"><b>var
+  </b></font>Src<font color="#000080">, </font>Dst<font color="#000080">: </font><font color="#FF0000"><b>File</b></font><font color="#000080">;
+  </font>OneChar<font color="#000080">: </font>Char<font color="#000080">;
+  </font>S<font color="#000080">: </font><font color="#FF0000"><b>String</b></font><font color="#000080">;
+  </font>Hex<font color="#000080">: </font><font color="#FF0000"><b>Array</b></font><font color="#000080">[</font><font color="#800000">0</font><font color="#000080">..</font><font color="#800000">1</font><font color="#000080">] </font><font color="#FF0000"><b>of </b></font>Char<font color="#000080">;
+  </font>NumRead<font color="#000080">, </font>NumWritten<font color="#000080">: </font>Integer<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>AssignFile<font color="#000080">(</font>Src<font color="#000080">, </font>fnSource<font color="#000080">);
+  </font>ReSet<font color="#000080">(</font>Src<font color="#000080">, </font><font color="#800000">1</font><font color="#000080">);
+  </font>AssignFile<font color="#000080">(</font>Dst<font color="#000080">, </font>fnDest<font color="#000080">);
+  </font>ReWrite<font color="#000080">(</font>Dst<font color="#000080">, </font><font color="#800000">1</font><font color="#000080">);
+  </font><font color="#FF0000"><b>repeat
+    </b></font>BlockRead<font color="#000080">(</font>Src<font color="#000080">, </font>OneChar<font color="#000080">, </font>SizeOf<font color="#000080">(</font>OneChar<font color="#000080">), </font>NumRead<font color="#000080">);
+    </font>S<font color="#000080">:=</font>IntToHex<font color="#000080">(</font>Integer<font color="#000080">(</font>OneChar<font color="#000080">), </font><font color="#800000">2</font><font color="#000080">);
+    </font>StrPCopy<font color="#000080">(</font>Hex<font color="#000080">, </font>S<font color="#000080">);
+    </font>BlockWrite<font color="#000080">(</font>Dst<font color="#000080">, </font>Hex<font color="#000080">, </font>SizeOf<font color="#000080">(</font>Hex<font color="#000080">), </font>NumWritten<font color="#000080">);
+  </font><font color="#FF0000"><b>until </b></font><font color="#000080">(</font>NumRead <font color="#000080">= </font><font color="#800000">0</font><font color="#000080">);
+  </font>System<font color="#000080">.</font>CloseFile<font color="#000080">(</font>Dst<font color="#000080">);
+  </font>System<font color="#000080">.</font>CloseFile<font color="#000080">(</font>Src<font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TBinAsc<font color="#000080">.</font>AscToBin<font color="#000080">(</font>fnSource<font color="#000080">, </font>fnDest<font color="#000080">: </font><font color="#FF0000"><b>String</b></font><font color="#000080">);
+</font><font color="#FF0000"><b>var
+  </b></font>Src<font color="#000080">, </font>Dst<font color="#000080">: </font><font color="#FF0000"><b>File</b></font><font color="#000080">;
+  </font>OneChar<font color="#000080">: </font>Char<font color="#000080">;
+  </font>S<font color="#000080">: </font><font color="#FF0000"><b>String</b></font><font color="#000080">;
+  </font>I<font color="#000080">: </font>Integer<font color="#000080">;
+  </font>Hex<font color="#000080">: </font><font color="#FF0000"><b>Array</b></font><font color="#000080">[</font><font color="#800000">0</font><font color="#000080">..</font><font color="#800000">1</font><font color="#000080">] </font><font color="#FF0000"><b>of </b></font>Char<font color="#000080">;
+  </font>NumRead<font color="#000080">, </font>NumWritten<font color="#000080">: </font>Integer<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>AssignFile<font color="#000080">(</font>Src<font color="#000080">, </font>fnSource<font color="#000080">);
+  </font>ReSet<font color="#000080">(</font>Src<font color="#000080">, </font><font color="#800000">1</font><font color="#000080">);
+  </font>AssignFile<font color="#000080">(</font>Dst<font color="#000080">, </font>fnDest<font color="#000080">);
+  </font>ReWrite<font color="#000080">(</font>Dst<font color="#000080">, </font><font color="#800000">1</font><font color="#000080">);
+  </font><font color="#FF0000"><b>repeat
+    </b></font>BlockRead<font color="#000080">(</font>Src<font color="#000080">, </font>Hex<font color="#000080">, </font>SizeOf<font color="#000080">(</font>Hex<font color="#000080">), </font>NumRead<font color="#000080">);
+    </font>OneChar<font color="#000080">:=</font>Chr<font color="#000080">(</font>StrToInt<font color="#000080">(</font><font color="#800000">'$'</font><font color="#000080">+</font>Copy<font color="#000080">(</font>StrPas<font color="#000080">(</font>Hex<font color="#000080">), </font><font color="#800000">1</font><font color="#000080">, </font><font color="#800000">2</font><font color="#000080">)));
+    </font>BlockWrite<font color="#000080">(</font>Dst<font color="#000080">, </font>OneChar<font color="#000080">, </font>SizeOf<font color="#000080">(</font>OneChar<font color="#000080">), </font>NumWritten<font color="#000080">);
+  </font><font color="#FF0000"><b>until </b></font><font color="#000080">(</font>NumRead <font color="#000080">= </font><font color="#800000">0</font><font color="#000080">);
+  </font>System<font color="#000080">.</font>CloseFile<font color="#000080">(</font>Dst<font color="#000080">);
+  </font>System<font color="#000080">.</font>CloseFile<font color="#000080">(</font>Src<font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure Register</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>RegisterComponents<font color="#000080">(</font><font color="#800000">'Samples'</font><font color="#000080">, [</font>TBinAsc<font color="#000080">]);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">.
+
+</font><font color="#008000"><i>{ { ------------------------- snip, snip ----------------------------}
+
+ENCODED BINASC.DCR FILE REMOVED.  PLEASE <A HREF="0461.BINASC.ZIP">DOWNLOAD</A> EITHER THE 
+ATTACHMENT OR THE COMPLETE ZIP FILE.
+</I>
+</font>
+</code></pre><!--EndFragment--><p align="center"><b>[</b><a href="index.html">Back to DELPHI SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0461.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0461.BINASC.ZIP">Attachment</a><b>]</b>
+</p></body>
+</html>

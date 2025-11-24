@@ -1,0 +1,1181 @@
+<html>
+<head><title> "Stupid Aliens Game" by SCOTT TUNSTALL</title><link rel="STYLESHEET" type="text/css" href="../swagsource.css"></head>
+<body><p align="center">
+<b>[</b><a href="index.html">Back to MISC SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0196.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0196.IMAGES.ZIP">Attachment</a><b>]</b>
+
+</p><!--StartFragment--><pre><code><font color="#008000"><i>{
+PROGRAM NAME : STUPID ALIEN INVADERS FROM ORKNEY (Revision 2)
+
+AUTHOR       : SCOTT TUNSTALL B.Sc
+
+CREATION     : JUNE 1996
+DATE
+
+	       ALL OFFENSIVE CRAP &amp; EXPLETIVES REMOVED
+
+			&quot;Kojak's on the case!&quot;
+
+
+----------------------------------------------------------------------
+
+
+NOTE: THE PCX AND IMAGE FILES THAT THIS GAME USES ARE ATTACHED TO
+THE BOTTOM OF THIS PROGRAM, IN XX3402 FORMAT!!!
+
+EXTRACT THE FILE IMAGES.ZIP USING XX3402, THEN COMPILE THIS FILE
+AND UNZIP THE IMAGES INTO THE ** SAME DIRECTORY ** AS THE EXECUTABLE!!!!
+
+THEN RUN, OF COURSE!!!
+
+
+
+DISCLAIMER
+----------
+
+If this crashes on you, try FORMAT C: and re-install (THAT WAS A JOKE)
+No, instead try unzipping the image files first and compiling with
+TP6 or better.
+
+And don't run this on a P90, see the game flash by, and blame me. Try
+and slow it down yourself you geek! :)
+
+
+
+
+REQUIREMENTS
+------------
+
+NEWGRAPH unit, from June 96 GRAPHICS.SWG - heading &quot;Improved Graphics
+Routines&quot;. Author : Me!
+
+Turbo Pascal 6 or better running TPX.EXE (You may have to change &quot;switches&quot;)
+386 (Or better) processor
+500K memory
+A sense of humour
+Penchant for sheep
+
+
+
+GAME INFO
+---------
+
+Z 	     = Move Ship left
+X 	     = Move Ship Right
+SPACE 	     = Fire Missile
+CTRL-ALT-DEL = Mercy :)
+
+
+
+Included in this game is:
+
+	 o Dave Norrie (P90 man)
+
+	 o Fish (Alright Alan Henderson? :) )
+
+	 o Aliens who don't fire back (makes game more fun)
+
+	 o Orvilles!!!! I HATED THAT DUCK WHEN HE WAS ON TELLY
+	   SO THIS IS MY REVENGE!!! ;)
+
+	 o Sheep
+
+
+
+
+Thanks to Dave Jack for his &quot;inspirational&quot; advice!
+
+
+
+
+
+PARAMETERS -&gt; PROGRAM
+
+
+-speech       If you have a speech synthesiser then use this switch.
+	      Surely EVERYONE must have access to a speech synthesiser
+	      program somehow, they come with soundblasters and you can
+	      get em off the 'Net easy! I use TRAN.EXE anyway.
+
+
+-nofilth      No effect - there aren't any rude words in this game. If you
+	      want the hardcore, uncut all singing all dancing :)
+	      version, send œ4000 used notes in Sterling to:
+
+		       Kojak Van Damme
+		       Somewhere in Dunfermline
+		       Fife
+		       Don't tell the missus
+
+
+-nocrap       Skips the &quot;Lieutenant Kojak Van Damme&quot; bit at the start.
+	      If you want to cut the crap and get straight to the title
+	      proper, then pass this parameter!
+
+
+-realstupid   Makes the aliens sitting ducks!! :)
+	      They don't move AT ALL!
+
+
+
+
+IF YOU LOVE SHEEP
+-----------------
+
+If any of you lot out there are emotionally attached to sheep then this
+game could offend you. Instead, try something like &quot;meeting women&quot;. You
+can participate in this pastime by attending pubs, nightclubs or even
+in the street of your village! If you are a woman and love sheep then
+well...
+
+
+}
+
+
+</i></font><font color="#FF0000"><b>Program </b></font>YaAlienBasts<font color="#000080">;
+
+
+</font><font color="#FF0000"><b>Uses </b></font>Crt<font color="#000080">, </font>Dos<font color="#000080">,</font>NewGraph<font color="#000080">; </font><font color="#008000"><i>{ NEWGRAPH was posted to the SWAG, it's
+			  in the June 96 GRAPHICS.SWG - author:
+			  Scott Tunstall }
+
+
+{$m 4096,0,327680}
+
+
+
+
+
+
+
+</i></font><font color="#FF0000"><b>Const </b></font>SPEECH_SYNTHESISER <font color="#000080">= </font><font color="#800000">'TRAN.EXE'</font><font color="#000080">;           </font><font color="#008000"><i>{ Change if you have
+                                                   a better one }
+
+
+
+
+
+</i></font><font color="#FF0000"><b>Type </b></font>AlienRec <font color="#000080">= </font><font color="#FF0000"><b>Record
+
+     </b></font>AlienType    <font color="#000080">: </font>byte<font color="#000080">;   </font><font color="#008000"><i>{ 0 = Dead, 1 = A Orville, 2 = Normal Alien }
+     </i></font>AlienDying   <font color="#000080">: </font>byte<font color="#000080">;
+
+     </font>AlienX       <font color="#000080">: </font>integer<font color="#000080">;
+     </font>AlienY       <font color="#000080">: </font>integer<font color="#000080">;
+</font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+
+
+
+
+
+</font><font color="#008000"><i>{
+My KOJAKVGA unit (which wasn't placed in the SWAG despite it being
+ultra cool) gets rid of this seg: offs crap, but as y'all are using
+NEWGRAPH (maybe :) )
+}
+
+
+</i></font><font color="#FF0000"><b>Var     </b></font>Title1Seg<font color="#000080">,
+        </font>Title1Ofs<font color="#000080">,
+        </font>Title2Seg<font color="#000080">,
+        </font>Title2Ofs <font color="#000080">: </font>word<font color="#000080">;
+
+        </font>LutherPal<font color="#000080">,
+</font>	Title1Pal<font color="#000080">,
+        </font>Title2Pal          <font color="#000080">: </font>PaletteType<font color="#000080">;
+
+        </font>PlayFieldSeg<font color="#000080">,
+</font>	PlayFieldOfs       <font color="#000080">: </font>word<font color="#000080">;
+
+
+        </font>PlayerPtr<font color="#000080">,
+        </font>MissilePtr<font color="#000080">,
+        </font>FishPtr<font color="#000080">,
+        </font>NorriePtr<font color="#000080">,
+        </font>SheepImg<font color="#000080">,
+        </font>ItsTuckMsg<font color="#000080">,
+        </font>WantAP90Msg<font color="#000080">,
+</font>	LoveOberMsg        <font color="#000080">: </font>pointer<font color="#000080">;
+
+        </font>AlienPtr<font color="#000080">, </font>OrvillePtr<font color="#000080">,
+        </font>DeadAlienPtr<font color="#000080">,
+</font>	AbuseMsg           <font color="#000080">: </font><font color="#FF0000"><b>Array</b></font><font color="#000080">[</font><font color="#800000">0</font><font color="#000080">..</font><font color="#800000">1</font><font color="#000080">] </font><font color="#FF0000"><b>of </b></font>Pointer<font color="#000080">;
+
+        </font>SaySpeech<font color="#000080">,
+        </font>ShowCrap<font color="#000080">,
+        </font>ShowFilth<font color="#000080">,
+        </font>AngelWords<font color="#000080">,
+        </font>AliensMove<font color="#000080">,
+        </font>LaserOn<font color="#000080">,
+        </font>NorrieOn<font color="#000080">,
+        </font>FishOn<font color="#000080">,
+        </font>SheepOn<font color="#000080">,
+        </font>GameOver<font color="#000080">,
+        </font>NextLevel          <font color="#000080">: </font>boolean<font color="#000080">; </font><font color="#008000"><i>{ Before you say it, I know it's
+                                        a waste of RAM OK? }
+        </i></font>Alien<font color="#000080">:
+        </font><font color="#FF0000"><b>Array</b></font><font color="#000080">[</font><font color="#800000">1</font><font color="#000080">..</font><font color="#800000">8</font><font color="#000080">, </font><font color="#800000">1</font><font color="#000080">..</font><font color="#800000">6</font><font color="#000080">] </font><font color="#FF0000"><b>of </b></font>AlienRec<font color="#000080">;
+
+
+        </font>AnimFrame<font color="#000080">,
+        </font>AnimDelay<font color="#000080">,
+</font>	AnimLatch<font color="#000080">,
+        </font>AlienCount         <font color="#000080">: </font>byte<font color="#000080">;
+        </font>AliensPauseVar<font color="#000080">,
+        </font>AlienDirection<font color="#000080">,
+        </font>NorrieTime<font color="#000080">,
+        </font>SheepMessage<font color="#000080">,
+        </font>SheepMessageTime   <font color="#000080">: </font>byte<font color="#000080">;
+
+
+</font>	PlayerX<font color="#000080">,
+</font>	LaserX<font color="#000080">,
+</font>	LaserY             <font color="#000080">: </font>integer<font color="#000080">;
+
+</font>	FishX<font color="#000080">,
+</font>	SheepX             <font color="#000080">: </font>integer<font color="#000080">;
+
+
+
+
+
+
+</font><font color="#008000"><i>{ If these switches give you errors in Tp6, compile with Turbo 7 or
+remove some of 'em! }
+
+
+
+
+{$r-,q-,v-,s-,x+}
+
+
+
+
+
+
+
+</i></font><font color="#FF0000"><b>Procedure </b></font>GetSwitches<font color="#000080">;
+</font><font color="#FF0000"><b>Var </b></font>Count<font color="#000080">: </font>byte<font color="#000080">;
+</font><font color="#FF0000"><b>Begin
+     </b></font>SaySpeech   <font color="#000080">:=</font>False<font color="#000080">;                 </font><font color="#008000"><i>{ Defaults }
+     </i></font>ShowCrap    <font color="#000080">:=</font>True<font color="#000080">;
+     </font>ShowFilth   <font color="#000080">:=</font>True<font color="#000080">;</font>		  <font color="#008000"><i>{ No filth in this game }
+     </i></font>AngelWords  <font color="#000080">:=</font>True<font color="#000080">;
+     </font>AliensMove  <font color="#000080">:=</font>True<font color="#000080">;
+
+
+     </font><font color="#FF0000"><b>If </b></font>ParamCount <font color="#000080">= </font><font color="#800000">0 </font><font color="#FF0000"><b>Then </b></font>exit<font color="#000080">;
+
+
+     </font><font color="#FF0000"><b>For </b></font>Count<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>to </b></font>ParamCount <font color="#FF0000"><b>do
+</b></font>	 <font color="#FF0000"><b>Begin
+</b></font>	 <font color="#FF0000"><b>If </b></font>ParamStr<font color="#000080">(</font>Count<font color="#000080">) = </font><font color="#800000">'-speech' </font><font color="#FF0000"><b>Then
+</b></font>	    SaySpeech<font color="#000080">:=</font>True
+	 <font color="#FF0000"><b>Else
+</b></font>	     <font color="#FF0000"><b>If </b></font>ParamStr<font color="#000080">(</font>Count<font color="#000080">) = </font><font color="#800000">'-nocrap' </font><font color="#FF0000"><b>Then
+</b></font>		ShowCrap<font color="#000080">:=</font>False
+	     <font color="#FF0000"><b>Else
+</b></font>		 <font color="#FF0000"><b>If </b></font>ParamStr<font color="#000080">(</font>Count<font color="#000080">) = </font><font color="#800000">'-nofilth' </font><font color="#FF0000"><b>Then
+</b></font>		    ShowFilth<font color="#000080">:=</font>False
+		 <font color="#FF0000"><b>Else
+</b></font>		     <font color="#FF0000"><b>If </b></font>ParamStr<font color="#000080">(</font>Count<font color="#000080">) = </font><font color="#800000">'-noangelwords' </font><font color="#FF0000"><b>Then
+</b></font>			AngelWords<font color="#000080">:=</font>False
+		     <font color="#FF0000"><b>Else
+</b></font>			 <font color="#FF0000"><b>If </b></font>ParamStr<font color="#000080">(</font>Count<font color="#000080">) =</font><font color="#800000">'-realstupid' </font><font color="#FF0000"><b>Then
+</b></font>			    AliensMove<font color="#000080">:=</font>False<font color="#000080">;
+
+     </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+
+
+
+
+
+
+
+</font><font color="#008000"><i>{
+Load In Title pages, sprites, Messages etc.
+}
+
+
+
+
+
+
+
+</i></font><font color="#FF0000"><b>Procedure </b></font>LoadGraphics<font color="#000080">;
+</font><font color="#FF0000"><b>Begin
+     </b></font>Bitmap<font color="#000080">(</font>Title1Seg<font color="#000080">, </font>Title1Ofs<font color="#000080">);
+     </font>SetSourceBitmapAddr<font color="#000080">(</font>Title1Seg<font color="#000080">, </font>Title1Ofs<font color="#000080">);
+     </font>LoadPCX<font color="#000080">(</font><font color="#800000">'TITLEPGE.PCX'</font><font color="#000080">,</font>Title1Pal<font color="#000080">);
+     </font>Bitmap<font color="#000080">(</font>Title2Seg<font color="#000080">, </font>Title2Ofs<font color="#000080">);
+     </font>SetSourceBitmapAddr<font color="#000080">(</font>Title2Seg<font color="#000080">, </font>Title2Ofs<font color="#000080">);
+     </font>LoadPCX<font color="#000080">(</font><font color="#800000">'2NDTITLE.PCX'</font><font color="#000080">,</font>Title2Pal<font color="#000080">);
+
+     </font>LoadShape<font color="#000080">(</font><font color="#800000">'PLAYER.IMG'   </font><font color="#000080">, </font>PlayerPtr<font color="#000080">);
+     </font>LoadShape<font color="#000080">(</font><font color="#800000">'MISSILE.IMG'  </font><font color="#000080">, </font>MissilePtr<font color="#000080">);
+     </font>LoadShape<font color="#000080">(</font><font color="#800000">'ALIEN1.IMG'   </font><font color="#000080">, </font>AlienPtr<font color="#000080">[</font><font color="#800000">0</font><font color="#000080">]);
+     </font>LoadShape<font color="#000080">(</font><font color="#800000">'ALIEN2.IMG'   </font><font color="#000080">, </font>AlienPtr<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">]);
+     </font>LoadShape<font color="#000080">(</font><font color="#800000">'ORVILLE1.IMG' </font><font color="#000080">, </font>OrvillePtr<font color="#000080">[</font><font color="#800000">0</font><font color="#000080">]);
+     </font>LoadShape<font color="#000080">(</font><font color="#800000">'ORVILLE2.IMG' </font><font color="#000080">, </font>OrvillePtr<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">]);
+     </font>LoadShape<font color="#000080">(</font><font color="#800000">'DEADGUY1.IMG' </font><font color="#000080">, </font>DeadAlienPtr<font color="#000080">[</font><font color="#800000">0</font><font color="#000080">]);
+     </font>LoadShape<font color="#000080">(</font><font color="#800000">'DEADDUCK.IMG' </font><font color="#000080">, </font>DeadAlienPtr<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">]);
+     </font>LoadShape<font color="#000080">(</font><font color="#800000">'FISH.IMG'     </font><font color="#000080">, </font>FishPtr<font color="#000080">);
+     </font>LoadShape<font color="#000080">(</font><font color="#800000">'NORRIE.IMG'   </font><font color="#000080">, </font>NorriePtr<font color="#000080">);
+     </font>LoadShape<font color="#000080">(</font><font color="#800000">'SHEEP.IMG'    </font><font color="#000080">, </font>SheepImg<font color="#000080">);
+
+     </font>LoadShape<font color="#000080">(</font><font color="#800000">'ITS_TUCK.IMG' </font><font color="#000080">, </font>ItsTuckMsg<font color="#000080">);
+     </font>LoadShape<font color="#000080">(</font><font color="#800000">'WANTP90.IMG'  </font><font color="#000080">, </font>WantAP90Msg<font color="#000080">);
+     </font>LoadShape<font color="#000080">(</font><font color="#800000">'LOVEOBER.IMG' </font><font color="#000080">, </font>LoveOberMsg<font color="#000080">);
+
+     </font>Bitmap<font color="#000080">(</font>PlayfieldSeg<font color="#000080">, </font>PlayFieldOfs<font color="#000080">);
+     </font>SetSourceBitmapAddr<font color="#000080">(</font>PlayFieldSeg<font color="#000080">, </font>PlayFieldOfs<font color="#000080">);
+     </font>CCls<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">);
+</font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</font><font color="#FF0000"><b>Procedure </b></font>InitObjects<font color="#000080">;
+</font><font color="#FF0000"><b>Var </b></font>Across<font color="#000080">, </font>Down<font color="#000080">: </font>byte<font color="#000080">;
+
+</font><font color="#FF0000"><b>Begin
+     </b></font>PlayerX<font color="#000080">:=</font><font color="#800000">160</font><font color="#000080">;
+     </font>LaserOn<font color="#000080">:=</font>False<font color="#000080">;
+
+     </font>SheepOn<font color="#000080">:=</font>False<font color="#000080">;
+     </font>FishOn<font color="#000080">:=</font>False<font color="#000080">;
+     </font>NorrieOn<font color="#000080">:=</font>False<font color="#000080">;
+
+
+     </font>GameOver<font color="#000080">:=</font>False<font color="#000080">;
+     </font>NextLevel<font color="#000080">:=</font>False<font color="#000080">;
+
+     </font>AlienCount<font color="#000080">:=</font><font color="#800000">48</font><font color="#000080">;
+     </font>AliensPauseVar<font color="#000080">:=</font>AlienCount<font color="#000080">;
+
+     </font>AnimFrame<font color="#000080">:=</font><font color="#800000">0</font><font color="#000080">;
+     </font>AnimDelay<font color="#000080">:=</font>AlienCount <font color="#FF0000"><b>DIV </b></font><font color="#800000">6</font><font color="#000080">;
+
+     </font>AnimLatch<font color="#000080">:=</font>AnimDelay<font color="#000080">;
+
+
+     </font>AlienDirection<font color="#000080">:=</font><font color="#800000">1</font><font color="#000080">;
+
+     </font><font color="#FF0000"><b>For </b></font>Across<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>to </b></font><font color="#800000">8 </font><font color="#FF0000"><b>do
+         With </b></font>Alien<font color="#000080">[</font>Across<font color="#000080">,</font><font color="#800000">1</font><font color="#000080">] </font><font color="#FF0000"><b>do
+         Begin
+</b></font>	      AlienType<font color="#000080">:=</font><font color="#800000">1</font><font color="#000080">;
+
+              </font>AlienDying<font color="#000080">:=</font><font color="#800000">0</font><font color="#000080">;
+</font>	      AlienX<font color="#000080">:=((</font>Across<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">) * </font><font color="#800000">18</font><font color="#000080">) ;
+              </font>AlienY<font color="#000080">:=</font><font color="#800000">40</font><font color="#000080">;
+         </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+
+     </font><font color="#FF0000"><b>For </b></font>Down<font color="#000080">:=</font><font color="#800000">2 </font><font color="#FF0000"><b>to </b></font><font color="#800000">6 </font><font color="#FF0000"><b>do
+         For </b></font>Across<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>to </b></font><font color="#800000">8 </font><font color="#FF0000"><b>do
+         With </b></font>Alien<font color="#000080">[</font>Across<font color="#000080">,</font>Down<font color="#000080">] </font><font color="#FF0000"><b>do
+         Begin
+              </b></font>AlienType<font color="#000080">:=</font><font color="#800000">2</font><font color="#000080">;
+              </font>AlienDying<font color="#000080">:=</font><font color="#800000">0</font><font color="#000080">;
+              </font>AlienX<font color="#000080">:=((</font>Across<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">) * </font><font color="#800000">18</font><font color="#000080">) ;
+              </font>AlienY<font color="#000080">:=</font><font color="#800000">40</font><font color="#000080">+((</font>Down<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">) * </font><font color="#800000">18</font><font color="#000080">);
+         </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+
+
+
+
+
+
+
+
+
+
+
+
+
+</font><font color="#FF0000"><b>Procedure </b></font>DrawObjects<font color="#000080">;
+</font><font color="#FF0000"><b>Begin
+     If </b></font>NorrieOn <font color="#FF0000"><b>Then
+</b></font>	<font color="#FF0000"><b>Begin
+</b></font>	Blit<font color="#000080">(</font><font color="#800000">40</font><font color="#000080">,</font><font color="#800000">160</font><font color="#000080">,</font>NorriePtr<font color="#000080">^);         </font><font color="#008000"><i>{ Draw Dave Norrie }
+        </i></font><font color="#FF0000"><b>If </b></font>NorrieTime <font color="#000080">&lt; </font><font color="#800000">128 </font><font color="#FF0000"><b>Then         </b></font><font color="#008000"><i>{ Display WANT A P90 ? }
+           </i></font>Blit<font color="#000080">(</font><font color="#800000">16</font><font color="#000080">,</font><font color="#800000">144</font><font color="#000080">,</font>WantAP90Msg<font color="#000080">^)
+        </font><font color="#FF0000"><b>Else
+            </b></font>Blit<font color="#000080">(</font><font color="#800000">16</font><font color="#000080">,</font><font color="#800000">144</font><font color="#000080">,</font>ItsTuckMsg<font color="#000080">^);    </font><font color="#008000"><i>{ Announce Norries Arrival ! }
+     </i></font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+
+
+     </font><font color="#008000"><i>{
+     Draw Fish! Alan Henderson come on down!
+     }
+
+     </i></font><font color="#FF0000"><b>If </b></font>FishOn <font color="#FF0000"><b>Then
+        </b></font>ClipBlit<font color="#000080">(</font>FishX<font color="#000080">,</font><font color="#800000">20</font><font color="#000080">,</font>FishPtr<font color="#000080">^)
+     </font><font color="#FF0000"><b>Else
+         If </b></font>SheepOn <font color="#FF0000"><b>Then
+            Begin
+            </b></font>ClipBlit<font color="#000080">(</font>SheepX<font color="#000080">,</font><font color="#800000">20</font><font color="#000080">,</font>SheepImg<font color="#000080">^);              </font><font color="#008000"><i>{ Draw Sheep }
+            </i></font><font color="#FF0000"><b>If </b></font>SheepMessage <font color="#000080">= </font><font color="#800000">1 </font><font color="#FF0000"><b>Then                    </b></font><font color="#008000"><i>{ Display .. }
+               </i></font>ClipBlock<font color="#000080">(</font>SheepX<font color="#000080">-</font><font color="#800000">40</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font>LoveOberMsg<font color="#000080">^);     </font><font color="#008000"><i>{ I LOVE OBER }
+            </i></font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+
+
+
+
+
+
+
+
+
+
+
+</font><font color="#008000"><i>{ Taito made a killing from Space Invaders.
+
+  It's quite simple to program, actually!
+
+}
+
+
+
+</i></font><font color="#FF0000"><b>Procedure </b></font>DrawAliens<font color="#000080">;
+</font><font color="#FF0000"><b>Var </b></font>Across<font color="#000080">, </font>Down<font color="#000080">: </font>byte<font color="#000080">;
+
+</font><font color="#FF0000"><b>Begin
+     For </b></font>Across<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>to </b></font><font color="#800000">8 </font><font color="#FF0000"><b>do
+         For </b></font>Down<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>to </b></font><font color="#800000">6 </font><font color="#FF0000"><b>do
+         With </b></font>Alien<font color="#000080">[</font>Across<font color="#000080">,</font>Down<font color="#000080">] </font><font color="#FF0000"><b>do
+         Begin
+         If </b></font>AlienType <font color="#000080">&lt;&gt;</font><font color="#800000">0 </font><font color="#FF0000"><b>Then
+            Begin
+            If </b></font><font color="#000080">(</font>AlienDying <font color="#000080">= </font><font color="#800000">0</font><font color="#000080">) </font><font color="#FF0000"><b>Then
+               Begin
+                    Case </b></font>AlienType <font color="#FF0000"><b>Of
+                    </b></font><font color="#800000">1 </font><font color="#000080">: </font>Blit<font color="#000080">(</font>AlienX<font color="#000080">,</font>AlienY<font color="#000080">,</font>OrvillePtr<font color="#000080">[</font>AnimFrame<font color="#000080">]^);
+                    </font><font color="#800000">2 </font><font color="#000080">: </font>Blit<font color="#000080">(</font>AlienX<font color="#000080">,</font>AlienY<font color="#000080">,</font>AlienPtr<font color="#000080">[</font>AnimFrame<font color="#000080">]^);
+                    </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+               </font><font color="#FF0000"><b>End
+            Else
+
+                </b></font><font color="#008000"><i>{
+                  Draw Alien with Halo!
+
+                  }
+
+
+                </i></font><font color="#FF0000"><b>Begin
+                     Case </b></font>AlienType <font color="#FF0000"><b>Of
+                     </b></font><font color="#800000">1 </font><font color="#000080">: </font>ClipBlit<font color="#000080">(</font>AlienX<font color="#000080">, </font>AlienY<font color="#000080">, </font>DeadAlienPtr<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">]^);
+                     </font><font color="#800000">2 </font><font color="#000080">: </font>ClipBlit<font color="#000080">(</font>AlienX<font color="#000080">, </font>AlienY<font color="#000080">, </font>DeadAlienPtr<font color="#000080">[</font><font color="#800000">0</font><font color="#000080">]^);
+                     </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+                </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+
+            </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+         </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+
+
+
+
+
+
+
+
+</font><font color="#008000"><i>{
+Even tho there is only 1 command in here it helps make the
+code more 'modular'
+}
+
+
+
+</i></font><font color="#FF0000"><b>Procedure </b></font>DrawLaser<font color="#000080">;
+</font><font color="#FF0000"><b>Begin
+     </b></font>Blit<font color="#000080">(</font>LaserX<font color="#000080">, </font>LaserY<font color="#000080">, </font>MissilePtr<font color="#000080">^);
+</font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+
+
+
+
+
+
+
+</font><font color="#FF0000"><b>Procedure </b></font>DrawPlayer<font color="#000080">;
+</font><font color="#FF0000"><b>Begin
+     </b></font>Blit<font color="#000080">(</font>PlayerX<font color="#000080">, </font><font color="#800000">192</font><font color="#000080">, </font>PlayerPtr<font color="#000080">^);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+
+
+
+
+
+</font><font color="#008000"><i>{
+All non-essential objects are updated, i.e. Sheep/Fish/Norrie
+}
+
+
+
+</i></font><font color="#FF0000"><b>Procedure </b></font>UpdateCharacters<font color="#000080">;
+</font><font color="#FF0000"><b>Begin
+     If </b></font>NorrieOn <font color="#FF0000"><b>Then
+        Begin
+</b></font>	Dec<font color="#000080">(</font>NorrieTime<font color="#000080">);
+</font>	<font color="#FF0000"><b>If </b></font>NorrieTime<font color="#000080">=</font><font color="#800000">0 </font><font color="#FF0000"><b>Then </b></font>NorrieOn<font color="#000080">:=</font>False<font color="#000080">;
+        </font><font color="#FF0000"><b>End
+     Else
+         If </b></font>Random<font color="#000080">(</font><font color="#800000">500</font><font color="#000080">)=</font><font color="#800000">1 </font><font color="#FF0000"><b>Then
+            Begin
+            </b></font>NorrieOn<font color="#000080">:=</font>True<font color="#000080">;
+            </font>NorrieTime<font color="#000080">:=</font><font color="#800000">200</font><font color="#000080">;
+         </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+
+
+
+
+
+     </font><font color="#FF0000"><b>If </b></font>FishOn <font color="#FF0000"><b>Then
+        Begin
+        </b></font>Inc<font color="#000080">(</font>FishX<font color="#000080">,</font><font color="#800000">1</font><font color="#000080">);           </font><font color="#008000"><i>{ Move fish right }
+</i></font>	<font color="#FF0000"><b>If </b></font>FishX <font color="#000080">&gt;</font><font color="#800000">320 </font><font color="#FF0000"><b>Then
+           </b></font>FishOn<font color="#000080">:=</font>False<font color="#000080">;
+        </font><font color="#FF0000"><b>End
+     Else
+         If Not </b></font>SheepOn <font color="#FF0000"><b>Then
+            Begin
+            If </b></font>Random<font color="#000080">(</font><font color="#800000">20</font><font color="#000080">)=</font><font color="#800000">10 </font><font color="#FF0000"><b>Then
+               Begin
+               </b></font>FishOn<font color="#000080">:=</font>True<font color="#000080">;
+               </font>FishX<font color="#000080">:=-</font><font color="#800000">12</font><font color="#000080">;
+</font>	    <font color="#FF0000"><b>End</b></font><font color="#000080">;
+         </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+
+
+     </font><font color="#008000"><i>{
+     When SheepMessage = 2 that means it's already been displayed
+     }
+
+
+     </i></font><font color="#FF0000"><b>If </b></font>SheepOn <font color="#FF0000"><b>Then
+        Begin
+        If </b></font>SheepMessage<font color="#000080">&lt;&gt;</font><font color="#800000">1 </font><font color="#FF0000"><b>Then
+           Begin
+           </b></font>Dec<font color="#000080">(</font>SheepX<font color="#000080">,</font><font color="#800000">1</font><font color="#000080">);
+           </font><font color="#FF0000"><b>If </b></font>SheepX <font color="#000080">&lt; -</font><font color="#800000">12 </font><font color="#FF0000"><b>Then
+              </b></font>SheepOn<font color="#000080">:=</font>False
+           <font color="#FF0000"><b>Else
+               If </b></font><font color="#000080">(</font>SheepMessage <font color="#000080">&lt;&gt;</font><font color="#800000">2</font><font color="#000080">) </font><font color="#FF0000"><b>And </b></font><font color="#000080">(</font>SheepX <font color="#000080">&lt; </font><font color="#800000">164</font><font color="#000080">) </font><font color="#FF0000"><b>Then
+                  Begin
+</b></font>		  SheepMessage<font color="#000080">:=</font><font color="#800000">1</font><font color="#000080">;
+                  </font>SheepMessageTime<font color="#000080">:=</font><font color="#800000">50</font><font color="#000080">;
+               </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+           </font><font color="#FF0000"><b>End
+        Else
+            if </b></font>SheepMessage <font color="#000080">= </font><font color="#800000">1 </font><font color="#FF0000"><b>Then
+               Begin
+               </b></font>Dec<font color="#000080">(</font>SheepMessageTime<font color="#000080">);
+               </font><font color="#FF0000"><b>If </b></font>SheepMessageTime <font color="#000080">= </font><font color="#800000">0 </font><font color="#FF0000"><b>Then
+                  </b></font>SheepMessage<font color="#000080">:=</font><font color="#800000">2</font><font color="#000080">;
+            </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+</font>	<font color="#FF0000"><b>End
+
+     Else
+         If Not </b></font>FishOn <font color="#FF0000"><b>Then
+            Begin
+</b></font>	    <font color="#FF0000"><b>If </b></font>Random<font color="#000080">(</font><font color="#800000">20</font><font color="#000080">)=</font><font color="#800000">10 </font><font color="#FF0000"><b>Then
+               Begin
+               </b></font>SheepOn<font color="#000080">:=</font>True<font color="#000080">;
+               </font>SheepMessage<font color="#000080">:=</font><font color="#800000">0</font><font color="#000080">;
+               </font>SheepX<font color="#000080">:=</font><font color="#800000">320</font><font color="#000080">;
+            </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+         </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+
+
+
+
+
+
+
+
+
+
+
+
+</font><font color="#FF0000"><b>Function </b></font>UpdateAliensPos<font color="#000080">(</font>IncX<font color="#000080">, </font>IncY<font color="#000080">: </font>integer<font color="#000080">) : </font>boolean<font color="#000080">;
+</font><font color="#FF0000"><b>Var </b></font>Across<font color="#000080">, </font>Down <font color="#000080">: </font>byte<font color="#000080">;
+    </font>IsGameOver   <font color="#000080">: </font>boolean<font color="#000080">;
+
+</font><font color="#FF0000"><b>Begin
+     </b></font>IsGameOver<font color="#000080">:=</font>False<font color="#000080">;
+     </font><font color="#FF0000"><b>For </b></font>Down<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>to </b></font><font color="#800000">6 </font><font color="#FF0000"><b>do
+         For </b></font>Across<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>to </b></font><font color="#800000">8 </font><font color="#FF0000"><b>do
+</b></font>	     <font color="#FF0000"><b>With </b></font>Alien<font color="#000080">[</font>Across<font color="#000080">,</font>Down<font color="#000080">] </font><font color="#FF0000"><b>do
+             Begin
+             If </b></font><font color="#000080">(</font>AlienType <font color="#000080">&lt;&gt; </font><font color="#800000">0</font><font color="#000080">) </font><font color="#FF0000"><b>And </b></font><font color="#000080">(</font>AlienDying <font color="#000080">= </font><font color="#800000">0</font><font color="#000080">) </font><font color="#FF0000"><b>Then
+                Begin
+                </b></font>Inc<font color="#000080">(</font>AlienX<font color="#000080">, </font>IncX<font color="#000080">);
+                </font>Inc<font color="#000080">(</font>AlienY<font color="#000080">, </font>IncY<font color="#000080">);
+                </font><font color="#FF0000"><b>If </b></font>AlienY <font color="#000080">&gt;= </font><font color="#800000">192 </font><font color="#FF0000"><b>Then
+                   </b></font>IsGameOver<font color="#000080">:=</font>True<font color="#000080">;
+                </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+             </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+
+
+     </font>UpdateAliensPos<font color="#000080">:=</font>IsGameOver<font color="#000080">;
+</font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+
+
+
+
+
+
+
+
+</font><font color="#008000"><i>{
+The procedure name gives a small hint as to what it actually does.
+(Unlike some software eh Geoff? :) :) :) )
+
+I couldn't be bothered giving it a name like:
+
+  &quot;Move Aliens about until they hit the bottom of the screen
+  Or get shot to pieces&quot; :)
+}
+
+
+
+</i></font><font color="#FF0000"><b>Procedure </b></font>UpdateAliens<font color="#000080">;
+
+</font><font color="#FF0000"><b>Var </b></font>ChangeDirectionNow<font color="#000080">: </font>boolean<font color="#000080">;
+    </font>Across<font color="#000080">, </font>Down<font color="#000080">,</font>Sway<font color="#000080">: </font>byte<font color="#000080">;
+    </font>NewX<font color="#000080">, </font>NewY <font color="#000080">: </font>integer<font color="#000080">;
+
+
+</font><font color="#FF0000"><b>Begin
+
+
+
+     </b></font>Dec<font color="#000080">(</font>AnimDelay<font color="#000080">);
+     </font><font color="#FF0000"><b>If </b></font>AnimDelay <font color="#000080">= </font><font color="#800000">0 </font><font color="#FF0000"><b>Then
+        Begin
+        If </b></font>AliensPauseVar <font color="#000080">&gt; </font><font color="#800000">6 </font><font color="#FF0000"><b>Then
+           </b></font>AnimDelay<font color="#000080">:=(</font>AliensPauseVar <font color="#FF0000"><b>DIV </b></font><font color="#800000">6</font><font color="#000080">)+</font><font color="#800000">2
+        </font><font color="#FF0000"><b>Else
+            </b></font>AnimDelay<font color="#000080">:=</font><font color="#800000">1</font><font color="#000080">;
+
+        </font><font color="#FF0000"><b>If </b></font>AliensMove <font color="#FF0000"><b>Then
+           Begin
+           </b></font>AnimFrame<font color="#000080">:=</font>AnimFrame <font color="#FF0000"><b>XOR </b></font><font color="#800000">1</font><font color="#000080">;
+
+
+</font><font color="#008000"><i>{ SOMEBODY ** PLEASE ** ADD SOME .WAV PLAYING CODE !! (And a WAV!) }
+
+
+</i></font>	   Sound<font color="#000080">(</font>AnimFrame <font color="#000080">* </font><font color="#800000">40</font><font color="#000080">);                  </font><font color="#008000"><i>{ 20 }
+           </i></font>Delay<font color="#000080">(</font><font color="#800000">25</font><font color="#000080">);
+           </font>NoSound<font color="#000080">;
+
+
+
+        </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+
+
+        </font>ChangeDirectionNow<font color="#000080">:=</font>False<font color="#000080">;
+
+        </font><font color="#FF0000"><b>For </b></font>Down<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>to </b></font><font color="#800000">6 </font><font color="#FF0000"><b>do
+            For </b></font>Across<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>to </b></font><font color="#800000">8 </font><font color="#FF0000"><b>do
+            With </b></font>Alien<font color="#000080">[</font>Across<font color="#000080">,</font>Down<font color="#000080">] </font><font color="#FF0000"><b>do
+            Begin
+            If </b></font><font color="#000080">(</font>AlienType<font color="#000080">&lt;&gt; </font><font color="#800000">0</font><font color="#000080">) </font><font color="#FF0000"><b>And </b></font><font color="#000080">(</font>AlienDying <font color="#000080">= </font><font color="#800000">0</font><font color="#000080">) </font><font color="#FF0000"><b>Then
+               Begin
+
+
+</b></font><font color="#008000"><i>{ Sorry about the extreme nesting, but as I said I didn't intend this
+  code to be examined... I've already spent ages removing the
+  expletives from my code !!! &gt;-| }
+
+
+               </i></font><font color="#FF0000"><b>If </b></font>AliensMove <font color="#FF0000"><b>Then
+                  Begin
+
+                  If </b></font>AlienDirection <font color="#000080">= </font><font color="#800000">0 </font><font color="#FF0000"><b>Then
+                     Begin
+</b></font>		     NewX<font color="#000080">:=</font>integer <font color="#000080">(</font>AlienX<font color="#000080">) - </font><font color="#800000">4</font><font color="#000080">;
+                     </font><font color="#FF0000"><b>If </b></font>NewX <font color="#000080">&lt;= -</font><font color="#800000">1 </font><font color="#FF0000"><b>Then
+                        Begin
+                        </b></font>ChangeDirectionNow<font color="#000080">:=</font>True<font color="#000080">;
+                        </font>Across<font color="#000080">:=</font><font color="#800000">8</font><font color="#000080">;
+                        </font>Down<font color="#000080">:=</font><font color="#800000">6</font><font color="#000080">;
+                        </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+                     </font><font color="#FF0000"><b>End
+                  Else
+                      Begin
+                      </b></font>NewX<font color="#000080">:=</font>integer <font color="#000080">(</font>AlienX<font color="#000080">) + </font><font color="#800000">4</font><font color="#000080">;
+</font>		      <font color="#FF0000"><b>If </b></font>NewX <font color="#000080">&gt;= </font><font color="#800000">304 </font><font color="#FF0000"><b>Then
+</b></font>			 <font color="#FF0000"><b>Begin
+                         </b></font>ChangeDirectionNow<font color="#000080">:=</font>True<font color="#000080">;
+                         </font>Across<font color="#000080">:=</font><font color="#800000">8</font><font color="#000080">;
+                         </font>Down<font color="#000080">:=</font><font color="#800000">6</font><font color="#000080">;
+</font>			 <font color="#FF0000"><b>End</b></font><font color="#000080">;
+                      </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+
+
+</font><font color="#008000"><i>{
+If any aliens have made it to the edge of the screen
+obviously a change of direction is required.
+And of course to move the aliens down one row.
+}
+
+
+                  </i></font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+
+
+               </font><font color="#FF0000"><b>End
+            Else
+
+                </b></font><font color="#008000"><i>{ Alien with halo }
+
+
+                </i></font><font color="#FF0000"><b>If </b></font>AlienType <font color="#000080">&lt;&gt;</font><font color="#800000">0 </font><font color="#FF0000"><b>Then
+                Begin
+                If </b></font>AlienDying <font color="#000080">= </font><font color="#800000">1 </font><font color="#FF0000"><b>Then
+                   begin
+                   </b></font>Dec<font color="#000080">(</font>AlienY<font color="#000080">,</font><font color="#800000">2</font><font color="#000080">);
+
+                   </font><font color="#008000"><i>{
+                   Make alien sway about as he flies to heaven!
+                   }
+
+                   </i></font>Sway<font color="#000080">:=</font>Random<font color="#000080">(</font><font color="#800000">50</font><font color="#000080">) </font><font color="#FF0000"><b>AND </b></font><font color="#800000">3</font><font color="#000080">;
+                   </font><font color="#FF0000"><b>Case </b></font>Sway <font color="#FF0000"><b>Of
+                   </b></font><font color="#800000">0</font><font color="#000080">: </font>Dec<font color="#000080">(</font>AlienX<font color="#000080">,</font><font color="#800000">2</font><font color="#000080">);
+                   </font><font color="#800000">2</font><font color="#000080">: </font>Inc<font color="#000080">(</font>AlienX<font color="#000080">,</font><font color="#800000">2</font><font color="#000080">);
+                   </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+
+
+                   </font><font color="#008000"><i>{
+                   If alien has reached Nirvana then update
+                   dead alien counter
+		   }
+
+
+                   </i></font><font color="#FF0000"><b>If </b></font>AlienY <font color="#000080">&lt;= </font><font color="#800000">4 </font><font color="#FF0000"><b>Then
+                      Begin
+</b></font>		      AlienType<font color="#000080">:=</font><font color="#800000">0</font><font color="#000080">;
+                      </font>Dec<font color="#000080">(</font>AlienCount<font color="#000080">);
+                      </font><font color="#FF0000"><b>If </b></font>AlienCount<font color="#000080">=</font><font color="#800000">0 </font><font color="#FF0000"><b>Then
+                          </b></font>NextLevel<font color="#000080">:=</font>True<font color="#000080">;
+                      </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+                   </font><font color="#FF0000"><b>end
+                end</b></font><font color="#000080">;
+
+            </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+
+
+
+            </font><font color="#FF0000"><b>If </b></font>AliensMove <font color="#FF0000"><b>Then
+            Begin
+                 If </b></font>ChangeDirectionNow <font color="#FF0000"><b>Then
+                    Begin
+                    </b></font>AlienDirection<font color="#000080">:=</font>AlienDirection <font color="#FF0000"><b>XOR </b></font><font color="#800000">1</font><font color="#000080">;
+                    </font>GameOver<font color="#000080">:=</font>UpdateAliensPos<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">16</font><font color="#000080">);
+                    </font><font color="#FF0000"><b>End
+                 Else
+                     Begin
+                     If </b></font>AlienDirection <font color="#000080">= </font><font color="#800000">0 </font><font color="#FF0000"><b>Then
+                        </b></font>UpdateAliensPos<font color="#000080">(-</font><font color="#800000">4</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">)
+                     </font><font color="#FF0000"><b>Else
+                         </b></font>UpdateAliensPos<font color="#000080">(</font><font color="#800000">4</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">);
+                     </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+            </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+
+     </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+
+
+
+
+
+
+
+
+
+
+</font><font color="#008000"><i>{
+This is the laser to alien collision detection routine.
+Tis groovy! (As you chaps can guess, modesty was never my
+weak point)
+}
+
+
+</i></font><font color="#FF0000"><b>Procedure </b></font>UpDateLaser<font color="#000080">;
+</font><font color="#FF0000"><b>Var </b></font>DistX<font color="#000080">, </font>Disty<font color="#000080">: </font>integer<font color="#000080">;
+    </font>Across<font color="#000080">, </font>Down<font color="#000080">: </font>byte<font color="#000080">;
+</font><font color="#FF0000"><b>Begin
+     </b></font>Dec<font color="#000080">(</font>LaserY<font color="#000080">,</font><font color="#800000">4</font><font color="#000080">);
+     </font><font color="#FF0000"><b>If </b></font>LaserY <font color="#000080">&lt;=</font><font color="#800000">20 </font><font color="#FF0000"><b>Then
+</b></font>	<font color="#FF0000"><b>Begin
+</b></font>	LaserOn<font color="#000080">:=</font>False<font color="#000080">;
+</font>	Exit<font color="#000080">;
+     </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+
+
+     </font><font color="#008000"><i>{ Hit any aliens ? }
+
+     </i></font><font color="#FF0000"><b>For </b></font>Down<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>to </b></font><font color="#800000">6 </font><font color="#FF0000"><b>do
+</b></font>	 <font color="#FF0000"><b>For </b></font>Across<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>to </b></font><font color="#800000">8 </font><font color="#FF0000"><b>do
+</b></font>	 <font color="#FF0000"><b>With </b></font>Alien<font color="#000080">[</font>Across<font color="#000080">,</font>Down<font color="#000080">] </font><font color="#FF0000"><b>do
+</b></font>	      <font color="#FF0000"><b>Begin
+</b></font>	      <font color="#FF0000"><b>If </b></font><font color="#000080">(</font>AlienType<font color="#000080">&lt;&gt; </font><font color="#800000">0</font><font color="#000080">) </font><font color="#FF0000"><b>And </b></font><font color="#000080">(</font>AlienDying <font color="#000080">= </font><font color="#800000">0</font><font color="#000080">) </font><font color="#FF0000"><b>Then
+</b></font>		 <font color="#FF0000"><b>Begin
+
+</b></font>		 DistX<font color="#000080">:=</font>Abs<font color="#000080">(</font>AlienX <font color="#000080">- </font>LaserX<font color="#000080">);
+</font>		 DistY<font color="#000080">:=</font>Abs<font color="#000080">(</font>AlienY <font color="#000080">- </font>LaserY<font color="#000080">);
+
+
+</font>		 <font color="#FF0000"><b>If </b></font><font color="#000080">(</font>DistX <font color="#000080">&lt; </font><font color="#800000">8</font><font color="#000080">) </font><font color="#FF0000"><b>And </b></font><font color="#000080">(</font>DistY <font color="#000080">&lt; </font><font color="#800000">6</font><font color="#000080">) </font><font color="#FF0000"><b>Then
+</b></font>		    <font color="#FF0000"><b>Begin
+</b></font>		    LaserOn<font color="#000080">:=</font>False<font color="#000080">;
+</font>		    Dec<font color="#000080">(</font>AliensPauseVar<font color="#000080">);
+</font>		    AlienDying<font color="#000080">:=</font><font color="#800000">1</font><font color="#000080">;
+
+</font><font color="#008000"><i>{
+You know, you could add some code to play .VOC/WAV files here,
+such as Aargh, ieeee etc. For more sound FX ideas, check out
+those old &quot;Commando&quot; magazines, where the enemy dies in various
+awful ways... &quot;Mein leben, I never knew there was a rather large
+machine gun round das corner&quot; :)
+}
+
+
+</i></font>		    Sound<font color="#000080">(</font><font color="#800000">80</font><font color="#000080">);
+</font>		    Delay<font color="#000080">(</font><font color="#800000">10</font><font color="#000080">);
+</font>		    NoSound<font color="#000080">;
+
+</font>		    Down<font color="#000080">:=</font><font color="#800000">6</font><font color="#000080">;
+</font>		    Across<font color="#000080">:=</font><font color="#800000">8</font><font color="#000080">;
+</font>		 <font color="#FF0000"><b>End</b></font><font color="#000080">;
+</font>	      <font color="#FF0000"><b>End</b></font><font color="#000080">;
+</font>	 <font color="#FF0000"><b>End</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+
+
+
+
+
+
+
+
+
+
+</font><font color="#FF0000"><b>Procedure </b></font>UpDatePlayer<font color="#000080">;
+</font><font color="#FF0000"><b>Begin
+     If </b></font>Keypressed <font color="#FF0000"><b>Then
+</b></font>	<font color="#FF0000"><b>Begin
+</b></font>	<font color="#FF0000"><b>Case </b></font>upcase<font color="#000080">(</font>ReadKey<font color="#000080">) </font><font color="#FF0000"><b>Of
+</b></font>	<font color="#800000">'Z' </font><font color="#000080">: </font><font color="#FF0000"><b>If </b></font>PlayerX <font color="#000080">&gt; </font><font color="#800000">0 </font><font color="#FF0000"><b>Then </b></font>Dec<font color="#000080">(</font>PlayerX<font color="#000080">,</font><font color="#800000">2</font><font color="#000080">);
+</font>	<font color="#800000">'X' </font><font color="#000080">: </font><font color="#FF0000"><b>If </b></font>PlayerX <font color="#000080">&lt; </font><font color="#800000">304 </font><font color="#FF0000"><b>Then </b></font>Inc<font color="#000080">(</font>PlayerX<font color="#000080">,</font><font color="#800000">2</font><font color="#000080">);
+</font>	<font color="#800000">' ' </font><font color="#000080">: </font><font color="#FF0000"><b>If Not </b></font>LaserOn <font color="#FF0000"><b>Then
+</b></font>		 <font color="#FF0000"><b>Begin
+</b></font>		 LaserX<font color="#000080">:=</font>PlayerX<font color="#000080">+</font><font color="#800000">3</font><font color="#000080">;
+</font>		 LaserY<font color="#000080">:=</font><font color="#800000">184</font><font color="#000080">;
+</font>		 LaserOn<font color="#000080">:=</font>True<font color="#000080">;
+</font>	      <font color="#FF0000"><b>End</b></font><font color="#000080">;
+</font>	<font color="#FF0000"><b>End</b></font><font color="#000080">;
+
+
+</font>	Mem<font color="#000080">[</font><font color="#800000">$40</font><font color="#000080">:</font><font color="#800000">$1a</font><font color="#000080">]:=</font>Mem<font color="#000080">[</font><font color="#800000">$40</font><font color="#000080">:</font><font color="#800000">$1c</font><font color="#000080">];             </font><font color="#008000"><i>{ Flush key buffer }
+     </i></font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</font><font color="#008000"><i>{
+Change SPEECH_SYNTHESISER constant at top if you have a better
+speech synthesis program on the go.
+
+I use a SoundBlaster Pro myself, but unfortunately I can't get
+Speech Synthesis on the go (without CT-VOICE.DRV anyway)
+}
+
+
+
+</i></font><font color="#FF0000"><b>procedure </b></font>CallTran<font color="#000080">(</font>WhatToSay<font color="#000080">: </font><font color="#FF0000"><b>String</b></font><font color="#000080">);
+</font><font color="#FF0000"><b>Var </b></font>F<font color="#000080">: </font>Text<font color="#000080">;
+
+</font><font color="#FF0000"><b>Begin
+     </b></font>Assign<font color="#000080">(</font>F<font color="#000080">,</font><font color="#800000">'INFILE.TXT'</font><font color="#000080">);
+     </font>ReWrite<font color="#000080">(</font>F<font color="#000080">);
+     </font>Writeln<font color="#000080">(</font>F<font color="#000080">,</font>WhatToSay<font color="#000080">);
+     </font>Close<font color="#000080">(</font>F<font color="#000080">);
+     </font>Delay<font color="#000080">(</font><font color="#800000">1000</font><font color="#000080">);
+     </font>exec<font color="#000080">(</font>SPEECH_SYNTHESISER<font color="#000080">, </font><font color="#800000">'-v INFILE.TXT'</font><font color="#000080">);
+</font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+
+
+
+
+
+
+
+
+</font><font color="#008000"><i>{
+My tribute to DOOM 2 !
+}
+
+
+
+
+</i></font><font color="#FF0000"><b>Procedure </b></font>Disclaimer<font color="#000080">;
+</font><font color="#FF0000"><b>Var </b></font>COunt<font color="#000080">: </font>byte<font color="#000080">;
+    </font>CurrDir<font color="#000080">: </font><font color="#FF0000"><b>string</b></font><font color="#000080">[</font><font color="#800000">80</font><font color="#000080">];
+</font><font color="#FF0000"><b>Begin
+     </b></font>TextMode<font color="#000080">(</font>CO80<font color="#000080">);
+     </font>TextColor<font color="#000080">(</font>YELLOW<font color="#000080">);
+     </font>TextBackground<font color="#000080">(</font>BLACK<font color="#000080">);
+     </font>ClrScr<font color="#000080">;
+
+     </font>TextBackGround<font color="#000080">(</font>BLUE<font color="#000080">);
+
+
+
+     </font>GotoXY<font color="#000080">(</font><font color="#800000">1</font><font color="#000080">,</font><font color="#800000">1</font><font color="#000080">);
+     </font><font color="#FF0000"><b>For </b></font>Count<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>to </b></font><font color="#800000">10 </font><font color="#FF0000"><b>do
+</b></font>	 Write<font color="#000080">(</font><font color="#800000">'        '</font><font color="#000080">);
+
+     </font>GotoXY<font color="#000080">(</font><font color="#800000">1</font><font color="#000080">,</font><font color="#800000">1</font><font color="#000080">);
+     </font>Write<font color="#000080">(</font><font color="#800000">'STUPID INVADERS FROM '</font><font color="#000080">);
+     </font>TextColor<font color="#000080">(</font>LIGHTRED<font color="#000080">);
+     </font>Write<font color="#000080">(</font><font color="#800000">'O**NEY II '</font><font color="#000080">);
+     </font>TextColor<font color="#000080">(</font>YELLOW<font color="#000080">);
+     </font>Write<font color="#000080">(</font><font color="#800000">'(C) 1996 '</font><font color="#000080">);
+     </font>TextColor<font color="#000080">(</font>WHITE<font color="#000080">);
+     </font>Write<font color="#000080">(</font><font color="#800000">'SCOTT TUNSTALL. '</font><font color="#000080">);
+     </font>TextColor<font color="#000080">(</font>YELLOW<font color="#000080">);
+     </font>Write<font color="#000080">(</font><font color="#800000">'Version 1.2.9.(b)'</font><font color="#000080">);
+
+     </font>GotoXY<font color="#000080">(</font><font color="#800000">1</font><font color="#000080">,</font><font color="#800000">4</font><font color="#000080">);
+     </font>TextColor<font color="#000080">(</font>LightGray<font color="#000080">);
+     </font>TextBackground<font color="#000080">(</font>BLACK<font color="#000080">);
+
+     </font><font color="#FF0000"><b>For </b></font>Count<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>to </b></font><font color="#800000">10 </font><font color="#FF0000"><b>do
+         </b></font>Write<font color="#000080">(</font><font color="#800000">'========'</font><font color="#000080">);
+
+     </font>Writeln<font color="#000080">(</font><font color="#800000">'THIS GAME IS ALKYWARE. IF YOU USE IT, SEND BEER TO ME. OR WOMEN..'</font><font color="#000080">);
+     </font>Writeln<font color="#000080">(</font><font color="#800000">'DISTRIBUTE FREELY AMONGST YOUR WORST ENEMIES, GIRLS WHO HAVE GIVEN YOU THE'</font><font color="#000080">);
+     </font>Writeln<font color="#000080">(</font><font color="#800000">'ELBOW FOR AN UGLIER BLOKE (Oh hi Susie!) AND THOSE MATES WHO WON''T BUY A'</font><font color="#000080">);
+     </font>Writeln<font color="#000080">(</font><font color="#800000">'ROUND IN THE PUB.'</font><font color="#000080">);
+
+
+     </font><font color="#FF0000"><b>For </b></font>Count<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>to </b></font><font color="#800000">10 </font><font color="#FF0000"><b>do
+</b></font>	 Write<font color="#000080">(</font><font color="#800000">'========'</font><font color="#000080">);
+
+     </font>Writeln<font color="#000080">;
+     </font>Writeln<font color="#000080">(</font><font color="#800000">'&lt;Press any key&gt;'</font><font color="#000080">);
+
+     </font>ReadKey<font color="#000080">;
+
+
+     </font>ClrScr<font color="#000080">;
+     </font>TextColor<font color="#000080">(</font>LightGray<font color="#000080">);
+     </font>Writeln<font color="#000080">(</font><font color="#800000">'CONTROLS :'</font><font color="#000080">);
+     </font>Writeln<font color="#000080">;
+     </font>Writeln<font color="#000080">(</font><font color="#800000">'Z     = Move Wellwood raider rocket Left'</font><font color="#000080">);
+     </font>Writeln<font color="#000080">(</font><font color="#800000">'X     = Move Rocket Right'</font><font color="#000080">);
+     </font>Writeln<font color="#000080">(</font><font color="#800000">'SPACE = Fire abuse missile :)'</font><font color="#000080">);
+     </font>Writeln<font color="#000080">(</font><font color="#800000">'Q     = Quit the game'</font><font color="#000080">);
+     </font>Writeln<font color="#000080">(</font><font color="#800000">'CTRL + ALT + DEL = Best thing ever ! :)'</font><font color="#000080">);
+     </font>Writeln<font color="#000080">;
+     </font>Writeln<font color="#000080">;
+     </font>TextColor<font color="#000080">(</font>RED <font color="#000080">+ </font>BLINK<font color="#000080">);
+     </font>Writeln<font color="#000080">(</font><font color="#800000">'PRESS ANY KEY TO BEGIN THIS CRAP !!!!'</font><font color="#000080">);
+
+
+     </font><font color="#FF0000"><b>if </b></font>SaySpeech <font color="#FF0000"><b>And </b></font>ShowFilth <font color="#FF0000"><b>Then
+        begin
+        </b></font>CallTran<font color="#000080">(</font><font color="#800000">'DONT PLAY THIS CRAP'</font><font color="#000080">);
+     </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+
+     </font>Readkey<font color="#000080">;
+</font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+
+
+
+
+
+
+
+
+
+</font><font color="#FF0000"><b>Procedure </b></font>ShowTitleScreens<font color="#000080">;
+</font><font color="#FF0000"><b>Var </b></font>ExitTitles<font color="#000080">: </font>boolean<font color="#000080">;
+    </font>Count<font color="#000080">: </font>word<font color="#000080">;
+</font><font color="#FF0000"><b>Begin
+     </b></font>InitVGAMode<font color="#000080">;
+     </font>ExitTitles<font color="#000080">:=</font>False<font color="#000080">;
+     </font><font color="#FF0000"><b>While </b></font>Keypressed <font color="#FF0000"><b>do
+           </b></font>ReadKey<font color="#000080">;
+
+
+     </font><font color="#FF0000"><b>Repeat
+           </b></font>SetAllPalette<font color="#000080">(</font>Title1Pal<font color="#000080">);
+           </font>ShowBitmap<font color="#000080">(</font>Title1Seg<font color="#000080">,</font>Title1Ofs<font color="#000080">);
+           </font><font color="#FF0000"><b>For </b></font>Count<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>to </b></font><font color="#800000">1000 </font><font color="#FF0000"><b>do
+               begin
+</b></font>	       <font color="#FF0000"><b>If </b></font>Keypressed <font color="#FF0000"><b>Then
+                  begin
+                  </b></font>exittitles<font color="#000080">:=</font>true<font color="#000080">;
+                  </font>Count<font color="#000080">:=</font><font color="#800000">1000</font><font color="#000080">;
+                  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+               </font>delay<font color="#000080">(</font><font color="#800000">10</font><font color="#000080">);
+               </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+           </font><font color="#FF0000"><b>if </b></font>exittitles <font color="#000080">= </font>false <font color="#FF0000"><b>Then
+              Begin
+              </b></font>SetAllPalette<font color="#000080">(</font>Title2Pal<font color="#000080">);
+</font>	      ShowBitmap<font color="#000080">(</font>Title2Seg<font color="#000080">, </font>Title2Ofs<font color="#000080">);
+              </font><font color="#FF0000"><b>For </b></font>Count<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>to </b></font><font color="#800000">500 </font><font color="#FF0000"><b>do
+                  begin
+                  If </b></font>Keypressed <font color="#FF0000"><b>Then
+                     begin
+                     </b></font>exittitles<font color="#000080">:=</font>true<font color="#000080">;
+                     </font>Count<font color="#000080">:=</font><font color="#800000">500</font><font color="#000080">;
+                  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+                  </font>delay<font color="#000080">(</font><font color="#800000">10</font><font color="#000080">);
+              </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+           </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+     </font><font color="#FF0000"><b>Until </b></font>exittitles<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</font><font color="#FF0000"><b>Begin
+     </b></font>LoadGraphics<font color="#000080">;
+     </font>GetSwitches<font color="#000080">;                       </font><font color="#008000"><i>{ Any params passed ? }
+
+
+{
+  Has anyone ever told you I look like Jean Claude Van Damme? :)
+  (I wish! Then my woman problems would be solved :) )
+}
+
+     </i></font><font color="#FF0000"><b>If </b></font>ShowCrap <font color="#FF0000"><b>Then                   </b></font><font color="#008000"><i>{ You can skip it by using the -nocrap
+					  switch }
+</i></font>	<font color="#FF0000"><b>Begin
+</b></font>	Disclaimer<font color="#000080">;
+</font>	InitVGAMode<font color="#000080">;
+</font>	SetSourceBitmapAddr<font color="#000080">(</font><font color="#800000">$a000</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">);
+</font>	LoadPCX<font color="#000080">(</font><font color="#800000">'LUTHER.PCX'</font><font color="#000080">,</font>LutherPal<font color="#000080">);
+</font>	SetAllPalette<font color="#000080">(</font>LutherPal<font color="#000080">);
+</font>	Delay<font color="#000080">(</font><font color="#800000">3000</font><font color="#000080">);
+     </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+
+
+
+
+
+     </font><font color="#FF0000"><b>Repeat
+           </b></font>ShowTitleScreens<font color="#000080">;
+
+</font><font color="#008000"><i>{ It's not bad spelling, it's phonetics ya eejit! :) }
+
+           </i></font><font color="#FF0000"><b>If </b></font>SaySpeech <font color="#FF0000"><b>Then
+              </b></font>CallTran<font color="#000080">(</font><font color="#800000">'GET REDY TO DIE, HEWMAN SCUM'</font><font color="#000080">);
+
+           </font>InitVGAMode<font color="#000080">;                  </font><font color="#008000"><i>{ back to normal colours }
+           </i></font>SetSourceBitmapAddr<font color="#000080">(</font>PlayFieldSeg<font color="#000080">, </font>PlayFieldOfs<font color="#000080">);
+
+</font>	   InitObjects<font color="#000080">;
+           </font><font color="#FF0000"><b>Repeat
+                 </b></font>Cls<font color="#000080">;
+</font>		 DrawAliens<font color="#000080">;
+                 </font>DrawObjects<font color="#000080">;
+
+                 </font><font color="#FF0000"><b>If </b></font>LaserOn <font color="#FF0000"><b>Then
+</b></font>		    DrawLaser<font color="#000080">;
+
+                 </font>DrawPlayer<font color="#000080">;
+                 </font>ShowBitmap<font color="#000080">(</font>PlayFieldSeg<font color="#000080">, </font>PlayFieldOfs<font color="#000080">);
+
+                 </font>UpdateCharacters<font color="#000080">;
+
+                 </font>UpdateAliens<font color="#000080">;
+
+</font>		 <font color="#FF0000"><b>If </b></font>LaserOn <font color="#FF0000"><b>Then
+                    </b></font>UpdateLaser<font color="#000080">;       </font><font color="#008000"><i>{ This is the collision detection routine }
+
+                 </i></font>UpdatePlayer<font color="#000080">;
+
+                 </font>Delay<font color="#000080">(</font><font color="#800000">1</font><font color="#000080">);
+
+           </font><font color="#FF0000"><b>Until </b></font>GameOver <font color="#FF0000"><b>OR </b></font>NextLevel<font color="#000080">;       </font><font color="#008000"><i>{ NextLevel ? Is there one!!! }
+
+           </i></font><font color="#FF0000"><b>If </b></font>GameOver <font color="#000080">= </font>True <font color="#FF0000"><b>Then
+              </b></font>CallTran<font color="#000080">(</font><font color="#800000">'HA HA HA YOU LOST!'</font><font color="#000080">);
+
+     </font><font color="#FF0000"><b>Until </b></font>false<font color="#000080">;
+
+</font><font color="#FF0000"><b>End</b></font><font color="#000080">.
+
+
+
+
+
+</font><font color="#008000">
+<i>{------------------------- snip, snip ----------------------------}
+
+ENCODED IMAGES.ZIP FILE REMOVED.  PLEASE <A HREF="0196.IMAGES.ZIP">DOWNLOAD</A> EITHER THE 
+ATTACHMENT OR THE COMPLETE ZIP FILE.
+</i>
+</font>
+</code></pre><!--EndFragment--><p align="center"><b>[</b><a href="index.html">Back to MISC SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0196.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0196.IMAGES.ZIP">Attachment</a><b>]</b>
+</p></body>
+</html>

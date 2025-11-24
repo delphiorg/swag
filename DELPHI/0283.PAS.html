@@ -1,0 +1,77 @@
+<html>
+<head><title> "Add wallpaper to client area of a MDI fo" by SWAG SUPPORT TEAM</title><link rel="STYLESHEET" type="text/css" href="../swagsource.css"></head>
+<body><p align="center">
+<b>[</b><a href="index.html">Back to DELPHI SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0283.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0283.MDI.ZIP">Attachment</a><b>]</b>
+
+</p><!--StartFragment--><pre><code>
+<font color="#008000"><i>{ CODE LOCATED AT THE END !! }
+
+</i></font>HereI are the steps <font color="#FF0000"><b>to </b></font>add a wallpaper <font color="#FF0000"><b>to </b></font>the client area <font color="#FF0000"><b>of of </b></font>a
+MDI parent form<font color="#000080">:
+
+</font><font color="#800000">1</font><font color="#000080">) </font>Create a new project
+<font color="#800000">2</font><font color="#000080">) </font><font color="#FF0000"><b>Set </b></font>the form<font color="#800000">'s FormStyle to fsMDIForm
+3</font><font color="#000080">) </font>Drop an image <font color="#FF0000"><b>on </b></font>the form <font color="#FF0000"><b>and </b></font>select a bitmap into it<font color="#000080">.
+</font><font color="#800000">4</font><font color="#000080">) </font>Find the <font color="#008000"><i>{ Private Declarations } </i></font>comment <font color="#FF0000"><b>in </b></font>the form<font color="#800000">'s
+   </font>definition <font color="#FF0000"><b>and </b></font>add these lines right after it<font color="#000080">:
+
+   </font>FClientInstance<font color="#000080">,
+   </font>FPrevClientProc <font color="#000080">: </font>TFarProc<font color="#000080">;
+   </font><font color="#FF0000"><b>PROCEDURE </b></font>ClientWndProc<font color="#000080">(</font><font color="#FF0000"><b>VAR Message</b></font><font color="#000080">: </font>TMessage<font color="#000080">);
+
+</font><font color="#800000">5</font><font color="#000080">) </font>Find the <font color="#000080">&quot;</font><font color="#FF0000"><b>implementation</b></font><font color="#000080">&quot; </font>line <font color="#FF0000"><b>and </b></font>the <font color="#008000"><i>{$R *.DFM} </i></font>line that
+   follows it<font color="#000080">. </font>After that line<font color="#000080">, </font>enter this code<font color="#000080">:
+
+</font><font color="#FF0000"><b>PROCEDURE </b></font>TForm1<font color="#000080">.</font>ClientWndProc<font color="#000080">(</font><font color="#FF0000"><b>VAR Message</b></font><font color="#000080">: </font>TMessage<font color="#000080">);
+</font><font color="#FF0000"><b>VAR
+  </b></font>MyDC <font color="#000080">: </font>hDC<font color="#000080">;
+  </font>Ro<font color="#000080">, </font>Co <font color="#000080">: </font>Word<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  with Message do
+    case </b></font>Msg <font color="#FF0000"><b>of
+      </b></font>WM_ERASEBKGND<font color="#000080">:
+        </font><font color="#FF0000"><b>begin
+          </b></font>MyDC <font color="#000080">:= </font>TWMEraseBkGnd<font color="#000080">(</font><font color="#FF0000"><b>Message</b></font><font color="#000080">).</font>DC<font color="#000080">;
+          </font><font color="#FF0000"><b>FOR </b></font>Ro <font color="#000080">:= </font><font color="#800000">0 </font><font color="#FF0000"><b>TO </b></font>ClientHeight <font color="#FF0000"><b>DIV </b></font>Image1<font color="#000080">.</font>Picture<font color="#000080">.</font>Height <font color="#FF0000"><b>DO
+            FOR </b></font>Co <font color="#000080">:= </font><font color="#800000">0 </font><font color="#FF0000"><b>TO </b></font>ClientWIDTH <font color="#FF0000"><b>DIV </b></font>Image1<font color="#000080">.</font>Picture<font color="#000080">.</font>Width <font color="#FF0000"><b>DO
+              </b></font>BitBlt<font color="#000080">(</font>MyDC<font color="#000080">, </font>Co<font color="#000080">*</font>Image1<font color="#000080">.</font>Picture<font color="#000080">.</font>Width<font color="#000080">, </font>Ro<font color="#000080">*</font>Image1<font color="#000080">.</font>Picture<font color="#000080">.</font>Height<font color="#000080">,
+                </font>Image1<font color="#000080">.</font>Picture<font color="#000080">.</font>Width<font color="#000080">, </font>Image1<font color="#000080">.</font>Picture<font color="#000080">.</font>Height<font color="#000080">,
+                </font>Image1<font color="#000080">.</font>Picture<font color="#000080">.</font>Bitmap<font color="#000080">.</font>Canvas<font color="#000080">.</font>Handle<font color="#000080">, </font><font color="#800000">0</font><font color="#000080">, </font><font color="#800000">0</font><font color="#000080">, </font>SRCCOPY<font color="#000080">);
+          </font>Result <font color="#000080">:= </font><font color="#800000">1</font><font color="#000080">;
+        </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>else
+      </b></font>Result <font color="#000080">:= </font>CallWindowProc<font color="#000080">(</font>FPrevClientProc<font color="#000080">, </font>ClientHandle<font color="#000080">, </font>Msg<font color="#000080">, </font>wParam<font color="#000080">, </font>lParam<font color="#000080">);
+    </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#800000">6</font><font color="#000080">) </font>Start an OnCreate method <font color="#FF0000"><b>for </b></font>the form <font color="#FF0000"><b>and </b></font>put these lines <font color="#FF0000"><b>in </b></font>it<font color="#000080">:
+
+   </font>FClientInstance <font color="#000080">:= </font>MakeObjectInstance<font color="#000080">(</font>ClientWndProc<font color="#000080">);
+   </font>FPrevClientProc <font color="#000080">:= </font>Pointer<font color="#000080">(</font>GetWindowLong<font color="#000080">(</font>ClientHandle<font color="#000080">, </font>GWL_WNDPROC<font color="#000080">));
+   </font>SetWindowLong<font color="#000080">(</font>ClientHandle<font color="#000080">, </font>GWL_WNDPROC<font color="#000080">, </font>LongInt<font color="#000080">(</font>FClientInstance<font color="#000080">));
+
+</font><font color="#800000">7</font><font color="#000080">) </font>Add a new form <font color="#FF0000"><b>to </b></font>your project <font color="#FF0000"><b>and set </b></font>its FormStyle <font color="#FF0000"><b>to
+   </b></font>fsMDIChild<font color="#000080">.
+
+</font>Now you have a working MDI project <font color="#FF0000"><b>with </b></font><font color="#000080">&quot;</font>wallpaper<font color="#000080">&quot;. </font>The image
+component <font color="#FF0000"><b>is not </b></font>visible<font color="#000080">, </font>but its bitmap <font color="#FF0000"><b>is </b></font>replicated <font color="#FF0000"><b>to </b></font>cover
+the MDI form<font color="#800000">'s client area.
+
+</font>There <font color="#FF0000"><b>is </b></font>still one problem<font color="#000080">; </font>when you minimize the child window its
+icon will be drawn against a gray rectangle<font color="#000080">.
+
+</font><font color="#008000"><i>{{------------------------- snip, snip ----------------------------}
+
+ENCODED MDI.ZIP FILE REMOVED.  PLEASE <A HREF="0283.MDI.ZIP">DOWNLOAD</A> EITHER THE 
+ATTACHMENT OR THE COMPLETE ZIP FILE.
+</i>
+</font>
+</code></pre><!--EndFragment--><p align="center"><b>[</b><a href="index.html">Back to DELPHI SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0283.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0283.MDI.ZIP">Attachment</a><b>]</b>
+</p></body>
+</html>

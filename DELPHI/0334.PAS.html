@@ -1,0 +1,233 @@
+<html>
+<head><title> "Scrollable Label Component" by ENDRE I. SIMAY</title><link rel="STYLESHEET" type="text/css" href="../swagsource.css"></head>
+<body><p align="center">
+<b>[</b><a href="index.html">Back to DELPHI SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0334.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0334.SCROLLBL.ZIP">Attachment</a><b>]</b>
+
+</p><!--StartFragment--><pre><code><font color="#FF0000"><b>unit </b></font>ScrolLbl<font color="#000080">;
+</font><font color="#008000"><i>(********************************************************************
+  TScrollLabel Component FOR Delphi.
+
+  It Is A &quot;Special&quot; Label-Component Developed For
+  Allow To Scroll A Single Lined Caption Text
+  Of A Label.
+  For Correct Function You Should Be Switch The
+  AutoSize Property To False After Building Your Form.
+
+  Author:  Endre I. Simay;
+           Budapest, HUNGARY; 1997.
+
+  Freeware: Feel Free TO Use AND Improve, But Mention The Source
+
+  This Source Is Compatible With Both DELPHI 1.0 &amp; DELPHI 3.0
+*********************************************************************)
+
+</i></font><font color="#FF0000"><b>interface
+
+uses
+  </b></font>SysUtils<font color="#000080">, </font>WinTypes<font color="#000080">, </font>WinProcs<font color="#000080">, </font>Messages<font color="#000080">, </font>Classes<font color="#000080">,
+  </font>Graphics<font color="#000080">, </font>Controls<font color="#000080">, </font>ExtCtrls<font color="#000080">, </font>StdCtrls<font color="#000080">;
+
+</font><font color="#FF0000"><b>type
+  </b></font>TScrlDir<font color="#000080">=(</font>sdLeft<font color="#000080">,</font>sdRight<font color="#000080">);
+
+</font><font color="#FF0000"><b>type
+  </b></font>TScrollLabel <font color="#000080">= </font><font color="#FF0000"><b>class</b></font><font color="#000080">(</font>TCustomLabel<font color="#000080">)
+  </font><font color="#FF0000"><b>private
+    </b></font><font color="#008000"><i>{ Private declarations }
+    </i></font>FRunned<font color="#000080">,
+    </font>FRunTxt<font color="#000080">:</font><font color="#FF0000"><b>String</b></font><font color="#000080">;
+    </font>FTimer<font color="#000080">:</font>TTimer<font color="#000080">;
+    </font>FInterval<font color="#000080">:</font>Word<font color="#000080">;
+    </font>FRunning<font color="#000080">:</font>Boolean<font color="#000080">;
+    </font>FTxtScroll<font color="#000080">:</font>TScrlDir<font color="#000080">;
+    </font>FBigO<font color="#000080">,
+    </font>FMaxChar<font color="#000080">:</font>Integer<font color="#000080">;
+    </font><font color="#FF0000"><b>procedure </b></font>SetScrlDir<font color="#000080">(</font>Sd<font color="#000080">:</font>TScrlDir<font color="#000080">);
+    </font><font color="#FF0000"><b>function </b></font>GetRunTxt<font color="#000080">:</font><font color="#FF0000"><b>String</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>procedure </b></font>SetRunTxt<font color="#000080">(</font>S<font color="#000080">:</font><font color="#FF0000"><b>String</b></font><font color="#000080">);
+    </font><font color="#FF0000"><b>procedure </b></font>CMFontChanged<font color="#000080">(</font><font color="#FF0000"><b>var Message</b></font><font color="#000080">: </font>TMessage<font color="#000080">); </font><font color="#FF0000"><b>message </b></font>CM_FONTCHANGED<font color="#000080">;
+  </font><font color="#FF0000"><b>protected
+    </b></font><font color="#008000"><i>{ Protected declarations }
+  </i></font><font color="#FF0000"><b>public
+    </b></font><font color="#008000"><i>{ Public declarations }
+    </i></font><font color="#FF0000"><b>constructor </b></font>Create<font color="#000080">(</font>AOwner<font color="#000080">: </font>TComponent<font color="#000080">); </font><font color="#FF0000"><b>override</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>destructor </b></font>Destroy<font color="#000080">; </font><font color="#FF0000"><b>override</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>procedure </b></font>ShiftLabelText<font color="#000080">(</font>Sender<font color="#000080">: </font>TObject<font color="#000080">);
+    </font><font color="#FF0000"><b>function </b></font>GetInterval<font color="#000080">:</font>Word<font color="#000080">;
+    </font><font color="#FF0000"><b>procedure </b></font>SetInterval<font color="#000080">(</font>W<font color="#000080">:</font>Word<font color="#000080">);
+    </font><font color="#FF0000"><b>function </b></font>GetRunning<font color="#000080">:</font>Boolean<font color="#000080">;
+    </font><font color="#FF0000"><b>procedure </b></font>SetRunning<font color="#000080">(</font>R<font color="#000080">:</font>Boolean<font color="#000080">);
+    </font><font color="#FF0000"><b>procedure </b></font>TxtRestore<font color="#000080">;
+  </font><font color="#FF0000"><b>published
+    </b></font><font color="#008000"><i>{ Published declarations }
+    </i></font><font color="#FF0000"><b>property </b></font>ScrollDirection<font color="#000080">: </font>TScrlDir <font color="#FF0000"><b>read </b></font>FTxtScroll <font color="#FF0000"><b>write </b></font>SetScrlDir<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>RunText<font color="#000080">: </font><font color="#FF0000"><b>String read </b></font>GetRunTxt <font color="#FF0000"><b>write </b></font>SetRunTxt <font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>Interval<font color="#000080">: </font>Word <font color="#FF0000"><b>read </b></font>GetInterval <font color="#FF0000"><b>write </b></font>SetInterval <font color="#FF0000"><b>Default </b></font><font color="#800000">200</font><font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>Running<font color="#000080">: </font>Boolean <font color="#FF0000"><b>read </b></font>GetRunning <font color="#FF0000"><b>write </b></font>SetRunning <font color="#FF0000"><b>Default </b></font>False<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>Align<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>Alignment<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>AutoSize<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>Color<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>Enabled<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>Font<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>ParentColor<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>ParentFont<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>ParentShowHint<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>ShowHint<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>Transparent<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>Visible<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>OnClick<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>OnDblClick<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>OnMouseDown<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>OnMouseMove<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>OnMouseUp<font color="#000080">;
+ </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure Register</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>implementation
+
+constructor </b></font>TScrollLabel<font color="#000080">.</font>Create<font color="#000080">;
+ </font><font color="#FF0000"><b>begin
+  Inherited </b></font>Create<font color="#000080">(</font>AOwner<font color="#000080">);
+  </font>Parent <font color="#000080">:= </font>TWinControl<font color="#000080">(</font>AOwner<font color="#000080">);
+  </font>Caption<font color="#000080">:=</font>FRunTxt<font color="#000080">;
+  </font>FTimer<font color="#000080">:=</font>TTimer<font color="#000080">.</font>Create<font color="#000080">(</font>Self<font color="#000080">);
+  </font>FInterval<font color="#000080">:=</font><font color="#800000">200</font><font color="#000080">;
+  </font>FTxtScroll<font color="#000080">:=</font>sdLeft<font color="#000080">;
+  </font>Alignment<font color="#000080">:=</font>taCenter<font color="#000080">;
+  </font>AutoSize<font color="#000080">:=</font>True<font color="#000080">;
+  </font>ParentFont<font color="#000080">:=</font>False<font color="#000080">;
+  </font>Transparent<font color="#000080">:=</font>False<font color="#000080">;
+  </font>WordWrap<font color="#000080">:=</font>False<font color="#000080">;
+  </font><font color="#FF0000"><b>With </b></font>Font <font color="#FF0000"><b>do
+   begin
+    </b></font>Color<font color="#000080">:=</font>clBlack<font color="#000080">;
+    </font>Name<font color="#000080">:=</font><font color="#800000">'Arial'</font><font color="#000080">;
+    </font>Pitch<font color="#000080">:=</font>fpDefault<font color="#000080">;
+    </font>Size<font color="#000080">:=</font><font color="#800000">10</font><font color="#000080">;
+    </font>Style<font color="#000080">:=[</font>fsBold<font color="#000080">];
+   </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+  </font>FBigO<font color="#000080">:=</font>Canvas<font color="#000080">.</font>TextWidth<font color="#000080">(</font><font color="#800000">'OWQTEKSZY\'</font><font color="#000080">)</font><font color="#FF0000"><b>div </b></font><font color="#800000">10</font><font color="#000080">;
+  </font><font color="#FF0000"><b>If </b></font>FTimer<font color="#000080">&lt;&gt;</font><font color="#FF0000"><b>NIL then
+   begin
+    </b></font>FTimer<font color="#000080">.</font>OnTimer <font color="#000080">:= </font>ShiftLabelText<font color="#000080">;
+    </font>FTimer<font color="#000080">.</font>Interval <font color="#000080">:= </font>FInterval<font color="#000080">;
+    </font>FTimer<font color="#000080">.</font>Enabled <font color="#000080">:=</font>FRunning<font color="#000080">;
+   </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+ </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>destructor </b></font>TScrollLabel<font color="#000080">.</font>Destroy<font color="#000080">;
+ </font><font color="#FF0000"><b>begin
+  </b></font>FTimer<font color="#000080">.</font>Free<font color="#000080">;
+  </font><font color="#FF0000"><b>inherited </b></font>Destroy<font color="#000080">;
+ </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TScrollLabel<font color="#000080">.</font>SetScrlDir<font color="#000080">(</font>Sd<font color="#000080">:</font>TScrlDir<font color="#000080">);
+ </font><font color="#FF0000"><b>begin
+  </b></font>FTxtScroll<font color="#000080">:=</font>Sd<font color="#000080">;
+ </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TScrollLabel<font color="#000080">.</font>SetInterval<font color="#000080">(</font>W<font color="#000080">:</font>Word<font color="#000080">);
+ </font><font color="#FF0000"><b>begin
+  </b></font>FInterval<font color="#000080">:=</font>W<font color="#000080">;
+  </font>FTimer<font color="#000080">.</font>Interval <font color="#000080">:= </font>FInterval<font color="#000080">;
+ </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>function </b></font>TScrollLabel<font color="#000080">.</font>GetInterval<font color="#000080">:</font>Word<font color="#000080">;
+ </font><font color="#FF0000"><b>begin
+  </b></font>Result<font color="#000080">:=</font>FInterval<font color="#000080">;
+ </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TScrollLabel<font color="#000080">.</font>SetRunning<font color="#000080">(</font>R<font color="#000080">:</font>Boolean<font color="#000080">);
+  </font><font color="#FF0000"><b>begin
+   </b></font>FRunning<font color="#000080">:=</font>R<font color="#000080">;
+   </font>FTimer<font color="#000080">.</font>Enabled<font color="#000080">:=</font>FRunning<font color="#000080">;
+   </font><font color="#FF0000"><b>if not </b></font>R <font color="#FF0000"><b>then </b></font>TxtRestore<font color="#000080">;
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>function </b></font>TScrollLabel<font color="#000080">.</font>GetRunning<font color="#000080">:</font>Boolean<font color="#000080">;
+  </font><font color="#FF0000"><b>begin
+   </b></font>Result<font color="#000080">:=</font>FRunning<font color="#000080">;
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TScrollLabel<font color="#000080">.</font>SetRunTxt<font color="#000080">(</font>S<font color="#000080">:</font><font color="#FF0000"><b>String</b></font><font color="#000080">);
+ </font><font color="#FF0000"><b>begin
+  </b></font>FRunned<font color="#000080">:=</font>S<font color="#000080">;
+  </font>FRunTxt<font color="#000080">:=</font>S<font color="#000080">;
+  </font>Caption<font color="#000080">:=</font>FRunTxt<font color="#000080">;
+ </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>function </b></font>TScrollLabel<font color="#000080">.</font>GetRunTxt<font color="#000080">:</font><font color="#FF0000"><b>String</b></font><font color="#000080">;
+ </font><font color="#FF0000"><b>begin
+  </b></font>Result<font color="#000080">:=</font>FRunTxt<font color="#000080">;
+ </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TScrollLabel<font color="#000080">.</font>ShiftLabelText<font color="#000080">(</font>Sender<font color="#000080">: </font>TObject<font color="#000080">) ;
+   </font><font color="#FF0000"><b>var
+    </b></font>TxtL<font color="#000080">:</font>integer<font color="#000080">;
+    </font>Pc<font color="#000080">:</font>PChar<font color="#000080">;
+   </font><font color="#FF0000"><b>begin
+    </b></font>FBigO<font color="#000080">:=</font>Canvas<font color="#000080">.</font>TextWidth<font color="#000080">(</font><font color="#800000">'OWQTEKSZY\'</font><font color="#000080">)</font><font color="#FF0000"><b>div </b></font><font color="#800000">10</font><font color="#000080">;
+    </font>FMaxChar<font color="#000080">:=</font>Width <font color="#FF0000"><b>div </b></font>FBigO<font color="#000080">;
+    </font>TxtL<font color="#000080">:=</font>Length<font color="#000080">(</font>FRunned<font color="#000080">);
+    </font><font color="#FF0000"><b>Case </b></font>FTxtScroll <font color="#FF0000"><b>of
+    </b></font>sdLeft<font color="#000080">:
+     </font><font color="#FF0000"><b>begin
+      </b></font>FRunned<font color="#000080">:=</font>FRunned<font color="#000080">+</font>FRunned<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">]+</font><font color="#800000">#0</font><font color="#000080">;
+      </font>Pc<font color="#000080">:=@</font>FRunned<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">];
+      </font>FRunned<font color="#000080">:=</font>StrPas<font color="#000080">(</font>Pc<font color="#000080">);
+     </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+    </font>sdRight<font color="#000080">:
+     </font><font color="#FF0000"><b>begin
+      </b></font>FRunned<font color="#000080">:=</font>FRunned<font color="#000080">[</font>TxtL<font color="#000080">]+</font>FRunned<font color="#000080">;
+     </font><font color="#008000"><i>{$IFDEF WIN32}
+      </i></font>SetLength <font color="#000080">(</font>FRunned<font color="#000080">,</font>TxtL<font color="#000080">);
+     </font><font color="#008000"><i>{$ELSE}
+      </i></font>FRunned<font color="#000080">[</font><font color="#800000">0</font><font color="#000080">]:=</font>Chr<font color="#000080">(</font>TxtL<font color="#000080">);
+     </font><font color="#008000"><i>{$ENDIF}
+     </i></font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#008000"><i>{Set the textlength to scrolling region of label}
+    </i></font><font color="#FF0000"><b>if </b></font><font color="#000080">(</font>TxtL<font color="#000080">*</font>FBigO<font color="#000080">) &gt; (</font>FMaxChar <font color="#000080">* </font>FBigO<font color="#000080">)
+     </font><font color="#FF0000"><b>then
+      </b></font>Caption<font color="#000080">:=</font>Copy<font color="#000080">(</font>FRunned<font color="#000080">,</font><font color="#800000">1</font><font color="#000080">,</font>FMaxChar<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">)
+     </font><font color="#FF0000"><b>else
+      </b></font>Caption<font color="#000080">:=</font>FRunned<font color="#000080">;
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TScrollLabel<font color="#000080">.</font>TxtRestore<font color="#000080">;
+ </font><font color="#FF0000"><b>begin
+  </b></font>FRunned<font color="#000080">:=</font>FRunTxt<font color="#000080">;
+  </font>Caption<font color="#000080">:=</font>FRunned<font color="#000080">;
+ </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+ </font><font color="#008000"><i>{This allows font changes to be detected so the label might be adjusted}
+</i></font><font color="#FF0000"><b>procedure </b></font>TScrollLabel<font color="#000080">.</font>CMFontChanged<font color="#000080">(</font><font color="#FF0000"><b>var Message</b></font><font color="#000080">: </font>TMessage<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+  inherited</b></font><font color="#000080">;
+  </font>FBigO<font color="#000080">:=</font>Canvas<font color="#000080">.</font>TextWidth<font color="#000080">(</font><font color="#800000">'OWQTEKSZY\'</font><font color="#000080">)</font><font color="#FF0000"><b>div </b></font><font color="#800000">10</font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure Register</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>RegisterComponents<font color="#000080">(</font><font color="#800000">'MyComps'</font><font color="#000080">, [</font>TScrollLabel<font color="#000080">]);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">.
+
+</font><font color="#008000"><i>{ {------------------------- snip, snip ----------------------------}
+
+ENCODED SCROLLBL.ZIP FILE REMOVED.  PLEASE <A HREF="0334.SCROLLBL.ZIP">DOWNLOAD</A> EITHER THE 
+ATTACHMENT OR THE COMPLETE ZIP FILE.
+</I>
+</font>
+</code></pre><!--EndFragment--><p align="center"><b>[</b><a href="index.html">Back to DELPHI SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0334.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0334.SCROLLBL.ZIP">Attachment</a><b>]</b>
+</p></body>
+</html>

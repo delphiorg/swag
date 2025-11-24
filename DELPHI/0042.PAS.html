@@ -1,0 +1,551 @@
+<html>
+<head><title> "Customizing the Slidebars" by SWAG SUPPORT TEAM</title><link rel="STYLESHEET" type="text/css" href="../swagsource.css"></head>
+<body><p align="center">
+<b>[</b><a href="index.html">Back to DELPHI SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0042.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0042.SLIDEBAR.ZIP">Attachment</a><b>]</b>
+
+</p><!--StartFragment--><pre><code><font color="#FF0000"><b>unit </b></font>SlideBar<font color="#000080">;
+
+</font><font color="#FF0000"><b>interface
+
+</b></font><font color="#008000"><i>{$R SLIDEBAR.RES} { see below for XX3401 code for resource file }
+
+</i></font><font color="#FF0000"><b>uses
+  </b></font>SysUtils<font color="#000080">, </font>WinTypes<font color="#000080">, </font>WinProcs<font color="#000080">, </font>Messages<font color="#000080">, </font>Classes<font color="#000080">, </font>Graphics<font color="#000080">, </font>Controls<font color="#000080">,
+  </font>Forms<font color="#000080">, </font>Dialogs<font color="#000080">, </font>Menus<font color="#000080">;
+
+</font><font color="#FF0000"><b>type
+  </b></font>TBarStyle    <font color="#000080">= (</font>bsLowered<font color="#000080">,</font>bsRaised<font color="#000080">);
+  </font>TOrientation <font color="#000080">= (</font>orVertical<font color="#000080">,</font>orHorizontal<font color="#000080">);
+  </font>TThumbStyle  <font color="#000080">= (</font>tsBar1<font color="#000080">,</font>tsBar2<font color="#000080">,</font>tsBar3<font color="#000080">,</font>tsBar4<font color="#000080">,</font>tsCircle1<font color="#000080">,</font>tsSquare1<font color="#000080">,
+                  </font>tsDiamond1<font color="#000080">,</font>tsDiamond2<font color="#000080">,</font>tsDiamond3<font color="#000080">,</font>tsDiamond4<font color="#000080">);
+  </font>TSlideBar <font color="#000080">= </font><font color="#FF0000"><b>class</b></font><font color="#000080">(</font>TCustomControl<font color="#000080">)
+  </font><font color="#FF0000"><b>private
+    </b></font>FFocusColor              <font color="#000080">: </font>TColor<font color="#000080">;
+    </font>FHandCursor              <font color="#000080">: </font>Boolean<font color="#000080">;
+    </font>FLabels                  <font color="#000080">: </font>TStringList<font color="#000080">;
+    </font>FMax<font color="#000080">,</font>FMin<font color="#000080">,</font>FPosition      <font color="#000080">: </font>Integer<font color="#000080">;
+    </font>FOrientation             <font color="#000080">: </font>TOrientation<font color="#000080">;
+    </font>FStyle                   <font color="#000080">: </font>TBarStyle<font color="#000080">;
+    </font>FThickness               <font color="#000080">: </font>Byte<font color="#000080">;
+    </font>FThumbStyle              <font color="#000080">: </font>TThumbStyle<font color="#000080">;
+    </font>FTicks                   <font color="#000080">: </font>Boolean<font color="#000080">;
+    </font>FOnChange                <font color="#000080">: </font>TNotifyEvent<font color="#000080">;
+    </font>ThumbBmp<font color="#000080">,</font>MaskBmp<font color="#000080">,</font>BkgdBmp <font color="#000080">: </font>TBitmap<font color="#000080">;
+    </font>DragVal<font color="#000080">,</font>HalfTW<font color="#000080">,</font>HalfTH    <font color="#000080">: </font>Integer<font color="#000080">;
+    </font>ThumbRect                <font color="#000080">: </font>TRect<font color="#000080">;
+    </font>TempDC                   <font color="#000080">: </font>HDC<font color="#000080">;
+    </font>HandPointer              <font color="#000080">: </font>HCursor<font color="#000080">;
+    </font>OriginalCursor           <font color="#000080">: </font>HCursor<font color="#000080">;
+    </font><font color="#FF0000"><b>procedure </b></font>SetLabels<font color="#000080">(</font>A<font color="#000080">: </font>TStringList<font color="#000080">);
+    </font><font color="#FF0000"><b>procedure </b></font>SetMax<font color="#000080">(</font>A<font color="#000080">: </font>Integer<font color="#000080">);
+    </font><font color="#FF0000"><b>procedure </b></font>SetMin<font color="#000080">(</font>A<font color="#000080">: </font>Integer<font color="#000080">);
+    </font><font color="#FF0000"><b>procedure </b></font>SetOrientation<font color="#000080">(</font>A<font color="#000080">: </font>TOrientation<font color="#000080">);
+    </font><font color="#FF0000"><b>procedure </b></font>SetPosition<font color="#000080">(</font>A<font color="#000080">: </font>Integer<font color="#000080">);
+    </font><font color="#FF0000"><b>procedure </b></font>SetStyle<font color="#000080">(</font>A<font color="#000080">: </font>TBarStyle<font color="#000080">);
+    </font><font color="#FF0000"><b>procedure </b></font>SetThickness<font color="#000080">(</font>A<font color="#000080">: </font>Byte<font color="#000080">);
+    </font><font color="#FF0000"><b>procedure </b></font>SetThumbStyle<font color="#000080">(</font>A<font color="#000080">: </font>TThumbStyle<font color="#000080">);
+    </font><font color="#FF0000"><b>procedure </b></font>SetTicks<font color="#000080">(</font>A<font color="#000080">: </font>Boolean<font color="#000080">);
+    </font><font color="#FF0000"><b>procedure </b></font>CMEnter<font color="#000080">(</font><font color="#FF0000"><b>var Message</b></font><font color="#000080">: </font>TCMGotFocus<font color="#000080">); </font><font color="#FF0000"><b>message </b></font>CM_ENTER<font color="#000080">;
+    </font><font color="#FF0000"><b>procedure </b></font>CMExit<font color="#000080">(</font><font color="#FF0000"><b>var Message</b></font><font color="#000080">: </font>TCMExit<font color="#000080">); </font><font color="#FF0000"><b>message </b></font>CM_EXIT<font color="#000080">;
+    </font><font color="#FF0000"><b>procedure </b></font>WMGetDlgCode<font color="#000080">(</font><font color="#FF0000"><b>var Message</b></font><font color="#000080">: </font>TWMGetDlgCode<font color="#000080">); </font><font color="#FF0000"><b>message </b></font>WM_GETDLGCODE<font color="#000080">;
+    </font><font color="#FF0000"><b>procedure </b></font>WMSize<font color="#000080">(</font><font color="#FF0000"><b>var Message</b></font><font color="#000080">: </font>TWMSize<font color="#000080">);             </font><font color="#FF0000"><b>message </b></font>WM_SIZE<font color="#000080">;
+    </font><font color="#FF0000"><b>procedure </b></font>KeyDown<font color="#000080">(</font><font color="#FF0000"><b>var </b></font>Key<font color="#000080">: </font>Word<font color="#000080">; </font>Shift<font color="#000080">: </font>TShiftState<font color="#000080">); </font><font color="#FF0000"><b>override</b></font><font color="#000080">;
+  </font><font color="#FF0000"><b>protected
+    </b></font>Dragging                 <font color="#000080">: </font>Boolean<font color="#000080">;
+    </font><font color="#FF0000"><b>procedure </b></font>Paint<font color="#000080">; </font><font color="#FF0000"><b>override</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>procedure </b></font>MouseUp<font color="#000080">(</font>Button<font color="#000080">: </font>TMouseButton<font color="#000080">; </font>Shift<font color="#000080">: </font>TShiftState<font color="#000080">; </font>X<font color="#000080">, </font>Y<font color="#000080">: </font>Integer<font color="#000080">); </font><font color="#FF0000"><b>override</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>procedure </b></font>MouseDown<font color="#000080">(</font>Button<font color="#000080">: </font>TMouseButton<font color="#000080">; </font>Shift<font color="#000080">: </font>TShiftState<font color="#000080">; </font>X<font color="#000080">, </font>Y<font color="#000080">: </font>Integer<font color="#000080">); </font><font color="#FF0000"><b>override</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>procedure </b></font>MouseMove<font color="#000080">(</font>Shift<font color="#000080">: </font>TShiftState<font color="#000080">; </font>X<font color="#000080">, </font>Y<font color="#000080">: </font>Integer<font color="#000080">); </font><font color="#FF0000"><b>override</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>function  </b></font>NewPosition<font color="#000080">(</font>WhereX<font color="#000080">,</font>WhereY<font color="#000080">: </font>Integer<font color="#000080">): </font>Integer<font color="#000080">;
+    </font><font color="#FF0000"><b>function  </b></font>IsVert<font color="#000080">: </font>Boolean<font color="#000080">;
+    </font><font color="#FF0000"><b>procedure </b></font>RemoveThumbBar<font color="#000080">;
+    </font><font color="#FF0000"><b>procedure </b></font>DrawThumbBar<font color="#000080">;
+    </font><font color="#FF0000"><b>procedure </b></font>DrawTrench<font color="#000080">;
+    </font><font color="#FF0000"><b>procedure </b></font>SaveBackground<font color="#000080">;
+    </font><font color="#FF0000"><b>procedure </b></font>WhereIsBar<font color="#000080">;
+    </font><font color="#FF0000"><b>procedure </b></font>SetTLColor<font color="#000080">;
+    </font><font color="#FF0000"><b>procedure </b></font>SetBRColor<font color="#000080">;
+  </font><font color="#FF0000"><b>public
+    constructor </b></font>Create<font color="#000080">(</font>AOwner<font color="#000080">: </font>TComponent<font color="#000080">); </font><font color="#FF0000"><b>override</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>destructor </b></font>Destroy<font color="#000080">; </font><font color="#FF0000"><b>override</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>function </b></font>CurrentLabel<font color="#000080">: </font><font color="#FF0000"><b>String</b></font><font color="#000080">;
+  </font><font color="#FF0000"><b>published
+    property </b></font>Enabled<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>FocusColor<font color="#000080">: </font>TColor <font color="#FF0000"><b>read </b></font>FFocusColor
+                         <font color="#FF0000"><b>write </b></font>FFocusColor <font color="#FF0000"><b>default </b></font>clBlack<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>HandCursor<font color="#000080">: </font>Boolean <font color="#FF0000"><b>read </b></font>FHandCursor
+                         <font color="#FF0000"><b>write </b></font>FHandCursor <font color="#FF0000"><b>default </b></font>True<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>Labels<font color="#000080">: </font>TStringList <font color="#FF0000"><b>read </b></font>FLabels <font color="#FF0000"><b>write </b></font>SetLabels<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>Max<font color="#000080">: </font>Integer <font color="#FF0000"><b>read </b></font>FMax <font color="#FF0000"><b>write </b></font>SetMax <font color="#FF0000"><b>default </b></font><font color="#800000">10</font><font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>Min<font color="#000080">: </font>Integer <font color="#FF0000"><b>read </b></font>FMin <font color="#FF0000"><b>write </b></font>SetMin <font color="#FF0000"><b>default </b></font><font color="#800000">1</font><font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>Orientation<font color="#000080">: </font>TOrientation <font color="#FF0000"><b>read </b></font>FOrientation
+                          <font color="#FF0000"><b>write </b></font>SetOrientation <font color="#FF0000"><b>default </b></font>orHorizontal<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>ParentShowHint<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>Position<font color="#000080">: </font>Integer <font color="#FF0000"><b>read </b></font>FPosition <font color="#FF0000"><b>write </b></font>SetPosition <font color="#FF0000"><b>default </b></font><font color="#800000">1</font><font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>PopupMenu<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>ShowHint<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>Style<font color="#000080">: </font>TBarStyle <font color="#FF0000"><b>read </b></font>FStyle <font color="#FF0000"><b>write </b></font>SetStyle <font color="#FF0000"><b>default </b></font>bsLowered<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>TabStop <font color="#FF0000"><b>default </b></font>True<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>TabOrder<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>Thickness<font color="#000080">: </font>Byte <font color="#FF0000"><b>read </b></font>FThickness <font color="#FF0000"><b>write </b></font>SetThickness <font color="#FF0000"><b>default </b></font><font color="#800000">1</font><font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>ThumbStyle<font color="#000080">: </font>TThumbStyle <font color="#FF0000"><b>read </b></font>FThumbStyle
+                         <font color="#FF0000"><b>write </b></font>SetThumbStyle <font color="#FF0000"><b>default </b></font>tsCircle1<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>Ticks<font color="#000080">: </font>Boolean <font color="#FF0000"><b>read </b></font>FTicks <font color="#FF0000"><b>write </b></font>SetTicks <font color="#FF0000"><b>default </b></font>True<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>Visible<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>OnChange<font color="#000080">: </font>TNotifyEvent <font color="#FF0000"><b>read </b></font>FOnChange <font color="#FF0000"><b>write </b></font>FOnChange<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>OnEnter<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>OnExit<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>OnKeyDown<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>OnKeyPress<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>OnKeyUp<font color="#000080">;
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure Register</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>implementation
+
+function </b></font>MinInt<font color="#000080">(</font>A<font color="#000080">,</font>B<font color="#000080">: </font>Integer<font color="#000080">): </font>Integer<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  If </b></font>A <font color="#000080">&gt; </font>B <font color="#FF0000"><b>Then </b></font>MinInt <font color="#000080">:= </font>B <font color="#FF0000"><b>Else </b></font>MinInt <font color="#000080">:= </font>A<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>function </b></font>MaxInt<font color="#000080">(</font>A<font color="#000080">,</font>B<font color="#000080">: </font>Integer<font color="#000080">): </font>Integer<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  If </b></font>A <font color="#000080">&gt; </font>B <font color="#FF0000"><b>Then </b></font>MaxInt <font color="#000080">:= </font>A <font color="#FF0000"><b>Else </b></font>MaxInt <font color="#000080">:= </font>B<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure Register</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>RegisterComponents<font color="#000080">(</font><font color="#800000">'Standard'</font><font color="#000080">, [</font>TSlideBar<font color="#000080">]);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#008000"><i>(******************
+ TSlideBar Methods
+******************)
+
+</i></font><font color="#FF0000"><b>constructor </b></font>TSlideBar<font color="#000080">.</font>Create<font color="#000080">(</font>AOwner<font color="#000080">: </font>TComponent<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+  inherited </b></font>Create<font color="#000080">(</font>AOwner<font color="#000080">);
+  </font>Height <font color="#000080">:= </font><font color="#800000">15</font><font color="#000080">;
+  </font>Width <font color="#000080">:= </font><font color="#800000">100</font><font color="#000080">;
+  </font>ThumbBmp <font color="#000080">:= </font>TBitmap<font color="#000080">.</font>Create<font color="#000080">;
+  </font>MaskBmp <font color="#000080">:= </font>TBitmap<font color="#000080">.</font>Create<font color="#000080">;
+  </font>BkgdBmp <font color="#000080">:= </font>TBitmap<font color="#000080">.</font>Create<font color="#000080">;
+  </font>HandPointer <font color="#000080">:= </font>LoadCursor<font color="#000080">(</font>HInstance<font color="#000080">, </font><font color="#800000">'HandPointer'</font><font color="#000080">);
+  </font>FFocusColor <font color="#000080">:= </font>clBlack<font color="#000080">;
+  </font>FHandCursor <font color="#000080">:= </font>True<font color="#000080">;
+  </font>FLabels <font color="#000080">:= </font>TStringList<font color="#000080">.</font>Create<font color="#000080">;
+  </font>FMin <font color="#000080">:= </font><font color="#800000">1</font><font color="#000080">;
+  </font>FMax <font color="#000080">:= </font><font color="#800000">10</font><font color="#000080">;
+  </font>FOrientation <font color="#000080">:= </font>orHorizontal<font color="#000080">;
+  </font>FPosition <font color="#000080">:= </font><font color="#800000">1</font><font color="#000080">;
+  </font>FStyle <font color="#000080">:= </font>bsLowered<font color="#000080">;
+  </font>FThickness <font color="#000080">:= </font><font color="#800000">1</font><font color="#000080">;
+  </font>FTicks <font color="#000080">:= </font>True<font color="#000080">;
+  </font>Dragging <font color="#000080">:= </font>False<font color="#000080">;
+  </font>DragVal <font color="#000080">:= </font><font color="#800000">0</font><font color="#000080">;
+  </font>ThumbStyle <font color="#000080">:= </font>tsCircle1<font color="#000080">;
+  </font>TabStop <font color="#000080">:= </font>True<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>destructor </b></font>TSlideBar<font color="#000080">.</font>Destroy<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>FLabels<font color="#000080">.</font>Free<font color="#000080">;
+  </font>ThumbBmp<font color="#000080">.</font>Free<font color="#000080">;
+  </font>MaskBmp<font color="#000080">.</font>Free<font color="#000080">;
+  </font>BkgdBmp<font color="#000080">.</font>Free<font color="#000080">;
+  </font><font color="#FF0000"><b>inherited </b></font>Destroy<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TSlideBar<font color="#000080">.</font>CMEnter<font color="#000080">(</font><font color="#FF0000"><b>var Message</b></font><font color="#000080">: </font>TCMGotFocus<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+  inherited</b></font><font color="#000080">;
+  </font>Refresh<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TSlideBar<font color="#000080">.</font>CMExit<font color="#000080">(</font><font color="#FF0000"><b>var Message</b></font><font color="#000080">: </font>TCMExit<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+  inherited</b></font><font color="#000080">;
+  </font>Refresh<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>function </b></font>TSlideBar<font color="#000080">.</font>IsVert<font color="#000080">: </font>Boolean<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>IsVert <font color="#000080">:= (</font>Orientation <font color="#000080">= </font>orVertical<font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TSlideBar<font color="#000080">.</font>KeyDown<font color="#000080">(</font><font color="#FF0000"><b>var </b></font>Key<font color="#000080">: </font>Word<font color="#000080">; </font>Shift<font color="#000080">: </font>TShiftState<font color="#000080">);
+</font><font color="#FF0000"><b>var
+  </b></font>b <font color="#000080">: </font>Integer<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>b <font color="#000080">:= </font>MaxInt<font color="#000080">(</font><font color="#800000">1</font><font color="#000080">,(</font>Max<font color="#000080">-</font>Min<font color="#000080">) </font><font color="#FF0000"><b>div </b></font><font color="#800000">10</font><font color="#000080">);
+  </font><font color="#FF0000"><b>case </b></font>Key <font color="#FF0000"><b>of
+    </b></font>VK_PRIOR <font color="#000080">: </font><font color="#FF0000"><b>if </b></font><font color="#000080">(</font>Position<font color="#000080">-</font>b<font color="#000080">) &gt; </font>Min <font color="#FF0000"><b>then
+                 </b></font>Position <font color="#000080">:= </font>Position <font color="#000080">- </font>b <font color="#FF0000"><b>else </b></font>Position <font color="#000080">:= </font>Min<font color="#000080">;
+    </font>VK_NEXT  <font color="#000080">: </font><font color="#FF0000"><b>if </b></font><font color="#000080">(</font>Position<font color="#000080">+</font>b<font color="#000080">) &lt; </font>Max <font color="#FF0000"><b>then
+                 </b></font>Position <font color="#000080">:= </font>Position <font color="#000080">+ </font>b <font color="#FF0000"><b>else </b></font>Position <font color="#000080">:= </font>Max<font color="#000080">;
+    </font>VK_END   <font color="#000080">: </font><font color="#FF0000"><b>if </b></font>IsVert <font color="#FF0000"><b>then </b></font>Position <font color="#000080">:= </font>Min <font color="#FF0000"><b>else </b></font>Position <font color="#000080">:= </font>Max<font color="#000080">;
+    </font>VK_HOME  <font color="#000080">: </font><font color="#FF0000"><b>if </b></font>IsVert <font color="#FF0000"><b>then </b></font>Position <font color="#000080">:= </font>Max <font color="#FF0000"><b>else </b></font>Position <font color="#000080">:= </font>Min<font color="#000080">;
+    </font>VK_LEFT  <font color="#000080">: </font><font color="#FF0000"><b>if </b></font>Position <font color="#000080">&gt; </font>Min <font color="#FF0000"><b>then </b></font>Position <font color="#000080">:= </font>Position <font color="#000080">- </font><font color="#800000">1</font><font color="#000080">;
+    </font>VK_UP    <font color="#000080">: </font><font color="#FF0000"><b>if </b></font>Position <font color="#000080">&lt; </font>Max <font color="#FF0000"><b>then </b></font>Position <font color="#000080">:= </font>Position <font color="#000080">+ </font><font color="#800000">1</font><font color="#000080">;
+    </font>VK_RIGHT <font color="#000080">: </font><font color="#FF0000"><b>if </b></font>Position <font color="#000080">&lt; </font>Max <font color="#FF0000"><b>then </b></font>Position <font color="#000080">:= </font>Position <font color="#000080">+ </font><font color="#800000">1</font><font color="#000080">;
+    </font>VK_DOWN  <font color="#000080">: </font><font color="#FF0000"><b>if </b></font>Position <font color="#000080">&gt; </font>Min <font color="#FF0000"><b>then </b></font>Position <font color="#000080">:= </font>Position <font color="#000080">- </font><font color="#800000">1</font><font color="#000080">;
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TSlideBar<font color="#000080">.</font>WMGetDlgCode<font color="#000080">(</font><font color="#FF0000"><b>var Message</b></font><font color="#000080">: </font>TWMGetDlgCode<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+  Message</b></font><font color="#000080">.</font>Result <font color="#000080">:= </font>DLGC_WANTARROWS<font color="#000080">;
+  </font>OriginalCursor <font color="#000080">:= </font>GetClassWord<font color="#000080">(</font>Handle<font color="#000080">, </font>GCW_HCURSOR<font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TSlideBar<font color="#000080">.</font>WMSize<font color="#000080">(</font><font color="#FF0000"><b>var Message</b></font><font color="#000080">: </font>TWMSize<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+  if </b></font>Height <font color="#000080">&gt; </font>Width <font color="#FF0000"><b>then
+    </b></font>Orientation <font color="#000080">:= </font>orVertical <font color="#FF0000"><b>else </b></font>Orientation <font color="#000080">:= </font>orHorizontal<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TSlideBar<font color="#000080">.</font>SetLabels<font color="#000080">(</font>A<font color="#000080">: </font>TStringList<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+  </b></font>FLabels<font color="#000080">.</font>Assign<font color="#000080">(</font>A<font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TSlideBar<font color="#000080">.</font>SetMin<font color="#000080">(</font>A<font color="#000080">: </font>Integer<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+  </b></font>FMin <font color="#000080">:= </font>A<font color="#000080">;
+  </font>Refresh<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TSlideBar<font color="#000080">.</font>SetMax<font color="#000080">(</font>A<font color="#000080">: </font>Integer<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+  </b></font>FMax <font color="#000080">:= </font>A<font color="#000080">;
+  </font>Refresh<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TSlideBar<font color="#000080">.</font>SetOrientation<font color="#000080">(</font>A<font color="#000080">: </font>TOrientation<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+  </b></font>FOrientation <font color="#000080">:= </font>A<font color="#000080">;
+  </font>Refresh<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TSlideBar<font color="#000080">.</font>SetPosition<font color="#000080">(</font>A<font color="#000080">: </font>Integer<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+  if </b></font>csDesigning <font color="#FF0000"><b>in </b></font>ComponentState <font color="#FF0000"><b>then
+    begin
+      if </b></font><font color="#000080">(</font>A <font color="#000080">&gt;= </font>Min<font color="#000080">) </font><font color="#FF0000"><b>and </b></font><font color="#000080">(</font>A <font color="#000080">&lt;= </font>Max<font color="#000080">) </font><font color="#FF0000"><b>Then </b></font>FPosition <font color="#000080">:= </font>A<font color="#000080">;
+      </font>Refresh<font color="#000080">;
+    </font><font color="#FF0000"><b>end
+  else
+    begin
+      </b></font>RemoveThumbBar<font color="#000080">;
+      </font><font color="#FF0000"><b>if </b></font><font color="#000080">(</font>A <font color="#000080">&gt;= </font>Min<font color="#000080">) </font><font color="#FF0000"><b>and </b></font><font color="#000080">(</font>A <font color="#000080">&lt;= </font>Max<font color="#000080">) </font><font color="#FF0000"><b>Then </b></font>FPosition <font color="#000080">:= </font>A<font color="#000080">;
+      </font>WhereIsBar<font color="#000080">;
+      </font>SaveBackground<font color="#000080">;
+      </font>DrawThumbBar<font color="#000080">;
+      </font><font color="#FF0000"><b>if </b></font>Assigned<font color="#000080">(</font>FOnChange<font color="#000080">) </font><font color="#FF0000"><b>then </b></font>FOnChange<font color="#000080">(</font>Self<font color="#000080">);
+    </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TSlideBar<font color="#000080">.</font>SetStyle<font color="#000080">(</font>A<font color="#000080">: </font>TBarStyle<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+  </b></font>FStyle <font color="#000080">:= </font>A<font color="#000080">;
+  </font>Refresh<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TSlideBar<font color="#000080">.</font>SetThickness<font color="#000080">(</font>A<font color="#000080">: </font>Byte<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+  If </b></font><font color="#000080">(</font>A <font color="#000080">&gt; </font><font color="#800000">0</font><font color="#000080">) </font><font color="#FF0000"><b>and </b></font><font color="#000080">(</font>A <font color="#000080">&lt; </font><font color="#800000">6</font><font color="#000080">) </font><font color="#FF0000"><b>then
+    begin </b></font>FThickness <font color="#000080">:= </font>A<font color="#000080">; </font>Refresh<font color="#000080">; </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TSlideBar<font color="#000080">.</font>SetThumbStyle<font color="#000080">(</font>A<font color="#000080">: </font>TThumbStyle<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+  If </b></font>ThumbStyle <font color="#000080">&lt;&gt; </font>A <font color="#FF0000"><b>then
+    begin
+      </b></font>FThumbStyle <font color="#000080">:= </font>A<font color="#000080">;
+      </font><font color="#FF0000"><b>case </b></font>ThumbStyle <font color="#FF0000"><b>of
+        </b></font>tsBar1     <font color="#000080">:   </font>ThumbBmp<font color="#000080">.</font>Handle <font color="#000080">:= </font>LoadBitmap<font color="#000080">(</font>HInstance<font color="#000080">,</font><font color="#800000">'Bar1'</font><font color="#000080">);
+        </font>tsBar2     <font color="#000080">:   </font>ThumbBmp<font color="#000080">.</font>Handle <font color="#000080">:= </font>LoadBitmap<font color="#000080">(</font>HInstance<font color="#000080">,</font><font color="#800000">'Bar2'</font><font color="#000080">);
+        </font>tsBar3     <font color="#000080">:   </font>ThumbBmp<font color="#000080">.</font>Handle <font color="#000080">:= </font>LoadBitmap<font color="#000080">(</font>HInstance<font color="#000080">,</font><font color="#800000">'Bar3'</font><font color="#000080">);
+        </font>tsBar4     <font color="#000080">:   </font>ThumbBmp<font color="#000080">.</font>Handle <font color="#000080">:= </font>LoadBitmap<font color="#000080">(</font>HInstance<font color="#000080">,</font><font color="#800000">'Bar4'</font><font color="#000080">);
+        </font>tsCircle1  <font color="#000080">:   </font>ThumbBmp<font color="#000080">.</font>Handle <font color="#000080">:= </font>LoadBitmap<font color="#000080">(</font>HInstance<font color="#000080">,</font><font color="#800000">'Circle1'</font><font color="#000080">);
+        </font>tsSquare1  <font color="#000080">:   </font>ThumbBmp<font color="#000080">.</font>Handle <font color="#000080">:= </font>LoadBitmap<font color="#000080">(</font>HInstance<font color="#000080">,</font><font color="#800000">'Square1'</font><font color="#000080">);
+        </font>tsDiamond1 <font color="#000080">:   </font>ThumbBmp<font color="#000080">.</font>Handle <font color="#000080">:= </font>LoadBitmap<font color="#000080">(</font>HInstance<font color="#000080">,</font><font color="#800000">'Diamond1'</font><font color="#000080">);
+        </font>tsDiamond2 <font color="#000080">:   </font>ThumbBmp<font color="#000080">.</font>Handle <font color="#000080">:= </font>LoadBitmap<font color="#000080">(</font>HInstance<font color="#000080">,</font><font color="#800000">'Diamond2'</font><font color="#000080">);
+        </font>tsDiamond3 <font color="#000080">:   </font>ThumbBmp<font color="#000080">.</font>Handle <font color="#000080">:= </font>LoadBitmap<font color="#000080">(</font>HInstance<font color="#000080">,</font><font color="#800000">'Diamond3'</font><font color="#000080">);
+        </font>tsDiamond4 <font color="#000080">:   </font>ThumbBmp<font color="#000080">.</font>Handle <font color="#000080">:= </font>LoadBitmap<font color="#000080">(</font>HInstance<font color="#000080">,</font><font color="#800000">'Diamond4'</font><font color="#000080">);
+      </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+      </font><font color="#FF0000"><b>case </b></font>ThumbStyle <font color="#FF0000"><b>of
+        </b></font>tsBar1     <font color="#000080">:   </font>MaskBmp<font color="#000080">.</font>Handle <font color="#000080">:= </font>LoadBitmap<font color="#000080">(</font>HInstance<font color="#000080">,</font><font color="#800000">'Bar1Mask'</font><font color="#000080">);
+        </font>tsBar2     <font color="#000080">:   </font>MaskBmp<font color="#000080">.</font>Handle <font color="#000080">:= </font>LoadBitmap<font color="#000080">(</font>HInstance<font color="#000080">,</font><font color="#800000">'Bar2Mask'</font><font color="#000080">);
+        </font>tsBar3     <font color="#000080">:   </font>MaskBmp<font color="#000080">.</font>Handle <font color="#000080">:= </font>LoadBitmap<font color="#000080">(</font>HInstance<font color="#000080">,</font><font color="#800000">'Bar3Mask'</font><font color="#000080">);
+        </font>tsBar4     <font color="#000080">:   </font>MaskBmp<font color="#000080">.</font>Handle <font color="#000080">:= </font>LoadBitmap<font color="#000080">(</font>HInstance<font color="#000080">,</font><font color="#800000">'Bar4Mask'</font><font color="#000080">);
+        </font>tsCircle1  <font color="#000080">:   </font>MaskBmp<font color="#000080">.</font>Handle <font color="#000080">:= </font>LoadBitmap<font color="#000080">(</font>HInstance<font color="#000080">,</font><font color="#800000">'Circle1Mask'</font><font color="#000080">);
+        </font>tsSquare1  <font color="#000080">:   </font>MaskBmp<font color="#000080">.</font>Handle <font color="#000080">:= </font>LoadBitmap<font color="#000080">(</font>HInstance<font color="#000080">,</font><font color="#800000">'Square1Mask'</font><font color="#000080">);
+        </font>tsDiamond1 <font color="#000080">:   </font>MaskBmp<font color="#000080">.</font>Handle <font color="#000080">:= </font>LoadBitmap<font color="#000080">(</font>HInstance<font color="#000080">,</font><font color="#800000">'Diamond1Mask'</font><font color="#000080">);
+        </font>tsDiamond2 <font color="#000080">:   </font>MaskBmp<font color="#000080">.</font>Handle <font color="#000080">:= </font>LoadBitmap<font color="#000080">(</font>HInstance<font color="#000080">,</font><font color="#800000">'Diamond2Mask'</font><font color="#000080">);
+        </font>tsDiamond3 <font color="#000080">:   </font>MaskBmp<font color="#000080">.</font>Handle <font color="#000080">:= </font>LoadBitmap<font color="#000080">(</font>HInstance<font color="#000080">,</font><font color="#800000">'Diamond3Mask'</font><font color="#000080">);
+        </font>tsDiamond4 <font color="#000080">:   </font>MaskBmp<font color="#000080">.</font>Handle <font color="#000080">:= </font>LoadBitmap<font color="#000080">(</font>HInstance<font color="#000080">,</font><font color="#800000">'Diamond4Mask'</font><font color="#000080">);
+      </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+      </font>HalfTH <font color="#000080">:= </font>ThumbBmp<font color="#000080">.</font>Height <font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">;
+      </font>HalfTW <font color="#000080">:= </font>ThumbBmp<font color="#000080">.</font>Width <font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">;
+      </font>Refresh<font color="#000080">;
+    </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TSlideBar<font color="#000080">.</font>SetTicks<font color="#000080">(</font>A<font color="#000080">: </font>Boolean<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+  </b></font>FTicks <font color="#000080">:= </font>A<font color="#000080">;
+  </font>Refresh<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>function </b></font>TSlideBar<font color="#000080">.</font>CurrentLabel<font color="#000080">: </font><font color="#FF0000"><b>String</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  if </b></font><font color="#000080">((</font>Position<font color="#000080">-</font>Min<font color="#000080">+</font><font color="#800000">1</font><font color="#000080">) &lt;= </font>Labels<font color="#000080">.</font>Count<font color="#000080">) </font><font color="#FF0000"><b>and </b></font><font color="#000080">(</font>Position <font color="#000080">&gt;= </font>Min<font color="#000080">) </font><font color="#FF0000"><b>then
+    </b></font>CurrentLabel <font color="#000080">:= </font>Labels<font color="#000080">[</font>Position<font color="#000080">-</font>Min<font color="#000080">]
+  </font><font color="#FF0000"><b>else
+    </b></font>CurrentLabel <font color="#000080">:= </font><font color="#800000">'&lt;Un-Defined&gt;'</font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>function </b></font>TSlideBar<font color="#000080">.</font>NewPosition<font color="#000080">(</font>WhereX<font color="#000080">,</font>WhereY<font color="#000080">: </font>Integer<font color="#000080">): </font>Integer<font color="#000080">;
+</font><font color="#FF0000"><b>var
+  </b></font>H1<font color="#000080">,</font>W1 <font color="#000080">: </font>Integer<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font><font color="#008000"><i>{Calculate the nearest position to where the mouse is located}
+  </i></font>H1 <font color="#000080">:= </font>Height<font color="#000080">-</font>HalfTH<font color="#000080">;
+  </font>W1 <font color="#000080">:= </font>Width<font color="#000080">-</font>HalfTW<font color="#000080">;
+  </font><font color="#FF0000"><b>if </b></font>IsVert <font color="#FF0000"><b>then
+    </b></font>Result <font color="#000080">:= </font>Round<font color="#000080">(((</font>H1<font color="#000080">-</font>WhereY<font color="#000080">)/</font>H1<font color="#000080">)*(</font>Max<font color="#000080">-</font>Min<font color="#000080">)+</font>Min<font color="#000080">)
+  </font><font color="#FF0000"><b>else
+    </b></font>Result <font color="#000080">:= </font>Round<font color="#000080">((</font>WhereX<font color="#000080">/</font>W1<font color="#000080">)*(</font>Max<font color="#000080">-</font>Min<font color="#000080">)+</font>Min<font color="#000080">);
+  </font>Result <font color="#000080">:= </font>MinInt<font color="#000080">(</font>MaxInt<font color="#000080">(</font>Result<font color="#000080">,</font>Min<font color="#000080">),</font>Max<font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TSlideBar<font color="#000080">.</font>MouseUp<font color="#000080">(</font>Button<font color="#000080">: </font>TMouseButton<font color="#000080">; </font>Shift<font color="#000080">: </font>TShiftState<font color="#000080">; </font>X<font color="#000080">, </font>Y<font color="#000080">: </font>Integer<font color="#000080">);
+</font><font color="#FF0000"><b>var
+  </b></font>A<font color="#000080">,</font>B<font color="#000080">,</font>C<font color="#000080">,</font>D<font color="#000080">,</font>E <font color="#000080">: </font>Integer<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  if </b></font>Button <font color="#000080">&lt;&gt; </font>mbLeft <font color="#FF0000"><b>then </b></font>exit<font color="#000080">;
+  </font>C <font color="#000080">:= </font>Position<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">;
+  </font>D <font color="#000080">:= </font>Position<font color="#000080">;
+  </font>E <font color="#000080">:= </font>Position<font color="#000080">+</font><font color="#800000">1</font><font color="#000080">;
+  </font><font color="#008000"><i>{B is the center of the ThumbBar}
+  </i></font><font color="#FF0000"><b>if </b></font>IsVert <font color="#FF0000"><b>then </b></font>B <font color="#000080">:= </font>ThumbRect<font color="#000080">.</font>Top<font color="#000080">+</font>HalfTH <font color="#FF0000"><b>else </b></font>B <font color="#000080">:= </font>ThumbRect<font color="#000080">.</font>Left<font color="#000080">+</font>HalfTW<font color="#000080">;
+  </font><font color="#FF0000"><b>if </b></font>Dragging <font color="#FF0000"><b>then
+    </b></font>A <font color="#000080">:= </font>NewPosition<font color="#000080">(</font>X<font color="#000080">,</font>Y<font color="#000080">)
+  </font><font color="#FF0000"><b>else
+    if </b></font>IsVert <font color="#FF0000"><b>then
+      if </b></font>Y <font color="#000080">&lt; </font>B <font color="#FF0000"><b>then </b></font>A <font color="#000080">:= </font>E <font color="#FF0000"><b>else if </b></font>Y <font color="#000080">&gt; </font>B <font color="#FF0000"><b>then </b></font>A <font color="#000080">:= </font>C <font color="#FF0000"><b>else </b></font>A <font color="#000080">:= </font>D
+    <font color="#FF0000"><b>else
+      if </b></font>X <font color="#000080">&lt; </font>B <font color="#FF0000"><b>then </b></font>A <font color="#000080">:= </font>C <font color="#FF0000"><b>else if </b></font>X <font color="#000080">&gt; </font>B <font color="#FF0000"><b>then </b></font>A <font color="#000080">:= </font>E <font color="#FF0000"><b>else </b></font>A <font color="#000080">:= </font>D<font color="#000080">;
+  </font>A <font color="#000080">:= </font>MinInt<font color="#000080">(</font>MaxInt<font color="#000080">(</font>A<font color="#000080">,</font>Min<font color="#000080">),</font>Max<font color="#000080">);
+  </font>Dragging <font color="#000080">:= </font>False<font color="#000080">;
+  </font>Position <font color="#000080">:= </font>A<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TSlideBar<font color="#000080">.</font>MouseDown<font color="#000080">(</font>Button<font color="#000080">: </font>TMouseButton<font color="#000080">; </font>Shift<font color="#000080">: </font>TShiftState<font color="#000080">; </font>X<font color="#000080">, </font>Y<font color="#000080">: </font>Integer<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+  </b></font>SetFocus<font color="#000080">;
+  </font>Dragging <font color="#000080">:= </font>PtInRect<font color="#000080">(</font>ThumbRect<font color="#000080">,</font>Point<font color="#000080">(</font>X<font color="#000080">,</font>Y<font color="#000080">));
+  </font><font color="#FF0000"><b>If </b></font>IsVert <font color="#FF0000"><b>then </b></font>DragVal <font color="#000080">:= </font>Y <font color="#FF0000"><b>else </b></font>DragVal <font color="#000080">:= </font>X<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TSlideBar<font color="#000080">.</font>MouseMove<font color="#000080">(</font>Shift<font color="#000080">: </font>TShiftState<font color="#000080">; </font>X<font color="#000080">, </font>Y<font color="#000080">: </font>Integer<font color="#000080">);
+</font><font color="#FF0000"><b>Var
+  </b></font>LastDragVal <font color="#000080">: </font>Integer<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  if </b></font>HandCursor <font color="#FF0000"><b>then
+    </b></font>SetClassWord<font color="#000080">(</font>Handle<font color="#000080">, </font>GCW_HCURSOR<font color="#000080">, </font>HandPointer<font color="#000080">)
+  </font><font color="#FF0000"><b>else
+    </b></font>SetClassWord<font color="#000080">(</font>Handle<font color="#000080">, </font>GCW_HCURSOR<font color="#000080">, </font>OriginalCursor<font color="#000080">);
+  </font><font color="#008000"><i>{Is the left mouse button down and dragging the thumb bar?}
+  </i></font><font color="#FF0000"><b>if </b></font><font color="#000080">(</font>ssLeft <font color="#FF0000"><b>in </b></font>Shift<font color="#000080">) </font><font color="#FF0000"><b>and </b></font>Dragging <font color="#FF0000"><b>then
+    begin
+      </b></font>LastDragVal <font color="#000080">:= </font>DragVal<font color="#000080">;
+      </font><font color="#FF0000"><b>if </b></font>IsVert <font color="#FF0000"><b>then </b></font>DragVal <font color="#000080">:= </font>Y <font color="#FF0000"><b>else </b></font>DragVal <font color="#000080">:= </font>X<font color="#000080">;
+      </font><font color="#008000"><i>{This test eliminates unneccesary repaints}
+      </i></font><font color="#FF0000"><b>if </b></font>DragVal <font color="#000080">&lt;&gt; </font>LastDragVal <font color="#FF0000"><b>then </b></font>Position <font color="#000080">:= </font>NewPosition<font color="#000080">(</font>X<font color="#000080">,</font>Y<font color="#000080">);
+    </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TSlideBar<font color="#000080">.</font>RemoveThumbBar<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font><font color="#008000"><i>{Place the background bitmap where it was last}
+  </i></font>Canvas<font color="#000080">.</font>Draw<font color="#000080">(</font>ThumbRect<font color="#000080">.</font>Left<font color="#000080">,</font>ThumbRect<font color="#000080">.</font>Top<font color="#000080">,</font>BkgdBmp<font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TSlideBar<font color="#000080">.</font>DrawThumbBar<font color="#000080">;
+</font><font color="#FF0000"><b>var
+  </b></font>TmpBmp  <font color="#000080">: </font>TBitMap<font color="#000080">;
+  </font>Rect1   <font color="#000080">: </font>TRect<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  try
+    </b></font><font color="#008000"><i>{Define a rectangle to mark the dimensions of the thumbbar}
+    </i></font>Rect1 <font color="#000080">:= </font>Rect<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font>ThumbBmp<font color="#000080">.</font>Width<font color="#000080">,</font>ThumbBmp<font color="#000080">.</font>Height<font color="#000080">);
+    </font><font color="#008000"><i>{Create a working bitmap}
+    </i></font>TmpBmp <font color="#000080">:= </font>TBitmap<font color="#000080">.</font>Create<font color="#000080">;
+    </font>TmpBmp<font color="#000080">.</font>Height <font color="#000080">:= </font>ThumbBmp<font color="#000080">.</font>Height<font color="#000080">;
+    </font>TmpBmp<font color="#000080">.</font>Width <font color="#000080">:= </font>ThumbBmp<font color="#000080">.</font>Width<font color="#000080">;
+    </font><font color="#008000"><i>{Copy the background area onto the working bitmap}
+    </i></font>TmpBmp<font color="#000080">.</font>Canvas<font color="#000080">.</font>CopyMode <font color="#000080">:= </font>cmSrcCopy<font color="#000080">;
+    </font>TmpBmp<font color="#000080">.</font>Canvas<font color="#000080">.</font>CopyRect<font color="#000080">(</font>Rect1<font color="#000080">,</font>BkgdBmp<font color="#000080">.</font>Canvas<font color="#000080">,</font>Rect1<font color="#000080">);
+    </font><font color="#008000"><i>{Copy the mask onto the working bitmap with SRCAND}
+    </i></font>TmpBmp<font color="#000080">.</font>Canvas<font color="#000080">.</font>CopyMode <font color="#000080">:= </font>cmSrcAnd<font color="#000080">;
+    </font>TmpBmp<font color="#000080">.</font>Canvas<font color="#000080">.</font>CopyRect<font color="#000080">(</font>Rect1<font color="#000080">,</font>MaskBmp<font color="#000080">.</font>Canvas<font color="#000080">,</font>Rect1<font color="#000080">);
+    </font><font color="#008000"><i>{Copy the thumbbar onto the working bitmap with SRCPAINT}
+    </i></font>TmpBmp<font color="#000080">.</font>Canvas<font color="#000080">.</font>CopyMode <font color="#000080">:= </font>cmSrcPaint<font color="#000080">;
+    </font>TmpBmp<font color="#000080">.</font>Canvas<font color="#000080">.</font>CopyRect<font color="#000080">(</font>Rect1<font color="#000080">,</font>ThumbBmp<font color="#000080">.</font>Canvas<font color="#000080">,</font>Rect1<font color="#000080">);
+    </font><font color="#008000"><i>{Now draw the thumb bar}
+    </i></font>Canvas<font color="#000080">.</font>CopyRect<font color="#000080">(</font>ThumbRect<font color="#000080">,</font>TmpBmp<font color="#000080">.</font>Canvas<font color="#000080">,</font>Rect1<font color="#000080">);
+  </font><font color="#FF0000"><b>finally
+    </b></font>TmpBmp<font color="#000080">.</font>Free<font color="#000080">;
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TSlideBar<font color="#000080">.</font>WhereIsBar<font color="#000080">;
+</font><font color="#FF0000"><b>var
+  </b></font>Each          <font color="#000080">: </font>Real<font color="#000080">;
+  </font>ThumbX<font color="#000080">,</font>ThumbY <font color="#000080">: </font>Integer<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font><font color="#008000"><i>{Calculate where to paint the thumb bar - store in ThumbRect}
+  </i></font><font color="#FF0000"><b>if </b></font>IsVert <font color="#FF0000"><b>then
+    begin
+      </b></font>Each <font color="#000080">:= (</font>Height<font color="#000080">-</font>ThumbBmp<font color="#000080">.</font>Height<font color="#000080">)/(</font>Max<font color="#000080">-</font>Min<font color="#000080">);
+      </font><font color="#FF0000"><b>If </b></font>Dragging <font color="#FF0000"><b>then
+        </b></font>ThumbY <font color="#000080">:= </font>DragVal<font color="#000080">-</font>HalfTH
+      <font color="#FF0000"><b>else
+        </b></font>ThumbY <font color="#000080">:= </font>Height<font color="#000080">-</font>Round<font color="#000080">(</font>Each<font color="#000080">*(</font>Position<font color="#000080">-</font>Min<font color="#000080">))-</font>ThumbBmp<font color="#000080">.</font>Height<font color="#000080">;
+      </font>ThumbY <font color="#000080">:= </font>MaxInt<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font>MinInt<font color="#000080">(</font>Height<font color="#000080">-</font>ThumbBmp<font color="#000080">.</font>Height<font color="#000080">,</font>ThumbY<font color="#000080">));
+      </font>ThumbX <font color="#000080">:= (</font>Width<font color="#000080">-</font>ThumbBmp<font color="#000080">.</font>Width<font color="#000080">) </font><font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">;
+    </font><font color="#FF0000"><b>end
+  else
+    begin
+      </b></font>Each <font color="#000080">:= (</font>Width<font color="#000080">-</font>ThumbBmp<font color="#000080">.</font>Width<font color="#000080">)/(</font>Max<font color="#000080">-</font>Min<font color="#000080">);
+      </font><font color="#FF0000"><b>if </b></font>Dragging <font color="#FF0000"><b>then
+        </b></font>ThumbX <font color="#000080">:= </font>DragVal<font color="#000080">-</font>HalfTW
+      <font color="#FF0000"><b>else
+        </b></font>ThumbX <font color="#000080">:= </font>Round<font color="#000080">(</font>Each<font color="#000080">*(</font>Position<font color="#000080">-</font>Min<font color="#000080">));
+      </font>ThumbX <font color="#000080">:= </font>MaxInt<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font>MinInt<font color="#000080">(</font>Width<font color="#000080">-</font>ThumbBmp<font color="#000080">.</font>Width<font color="#000080">,</font>ThumbX<font color="#000080">));
+      </font>ThumbY <font color="#000080">:= (</font>Height<font color="#000080">-</font>ThumbBmp<font color="#000080">.</font>Height<font color="#000080">) </font><font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">;
+    </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+  </font>ThumbRect <font color="#000080">:= </font>Rect<font color="#000080">(</font>ThumbX<font color="#000080">,</font>ThumbY<font color="#000080">,</font>ThumbX<font color="#000080">+</font>ThumbBmp<font color="#000080">.</font>Width<font color="#000080">,</font>ThumbY<font color="#000080">+</font>ThumbBmp<font color="#000080">.</font>Height<font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TSlideBar<font color="#000080">.</font>SetTLColor<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font><font color="#008000"><i>{Set the Top/Left color for the trench. Controls raised or lowered styles}
+  </i></font><font color="#FF0000"><b>With </b></font>Canvas <font color="#FF0000"><b>do
+    if </b></font>Style <font color="#000080">= </font>bsLowered <font color="#FF0000"><b>then </b></font>Pen<font color="#000080">.</font>Color <font color="#000080">:= </font>clGray <font color="#FF0000"><b>else </b></font>Pen<font color="#000080">.</font>Color <font color="#000080">:= </font>clWhite<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TSlideBar<font color="#000080">.</font>SetBRColor<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font><font color="#008000"><i>{Set the Bottom/Right color for the trench. Controls raised or lowered styles}
+  </i></font><font color="#FF0000"><b>With </b></font>Canvas <font color="#FF0000"><b>do
+    if </b></font>Style <font color="#000080">= </font>bsRaised <font color="#FF0000"><b>then </b></font>Pen<font color="#000080">.</font>Color <font color="#000080">:= </font>clGray <font color="#FF0000"><b>else </b></font>Pen<font color="#000080">.</font>Color <font color="#000080">:= </font>clWhite<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TSlideBar<font color="#000080">.</font>DrawTrench<font color="#000080">;
+</font><font color="#FF0000"><b>var
+  </b></font>X1<font color="#000080">,</font>Y1<font color="#000080">,</font>X2<font color="#000080">,</font>Y2 <font color="#000080">: </font>Integer<font color="#000080">;
+  </font>Each        <font color="#000080">: </font>Real<font color="#000080">;
+  </font>Tmp<font color="#000080">,</font>TickPos <font color="#000080">: </font>Integer<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font><font color="#008000"><i>{This procedure simply draws the slot that the thumb bar will travel through}
+  {including the tick-marks. The bar itself is not drawn.}
+  </i></font><font color="#FF0000"><b>with </b></font>Canvas <font color="#FF0000"><b>do begin
+    </b></font><font color="#008000"><i>{Calculate the corners of the trench dependant on orientation}
+    </i></font><font color="#FF0000"><b>if </b></font>IsVert <font color="#FF0000"><b>then
+      begin
+        </b></font>X1 <font color="#000080">:= (</font>Width <font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">) - (</font>Thickness <font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">) - </font><font color="#800000">1</font><font color="#000080">;
+        </font>X2 <font color="#000080">:= </font>X1 <font color="#000080">+ </font>Thickness <font color="#000080">+ </font><font color="#800000">1</font><font color="#000080">;
+        </font>Y1 <font color="#000080">:= </font>HalfTH<font color="#000080">;
+        </font>Y2 <font color="#000080">:= </font>Height<font color="#000080">-</font>ThumbBmp<font color="#000080">.</font>Height<font color="#000080">+</font>Y1<font color="#000080">;
+      </font><font color="#FF0000"><b>end
+    else
+      begin
+        </b></font>X1 <font color="#000080">:= </font>HalfTW<font color="#000080">;
+        </font>X2 <font color="#000080">:= </font>Width<font color="#000080">-</font>ThumbBmp<font color="#000080">.</font>Width<font color="#000080">+</font>X1<font color="#000080">;
+        </font>Y1 <font color="#000080">:= (</font>Height <font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">) - (</font>Thickness <font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">) - </font><font color="#800000">1</font><font color="#000080">;
+        </font>Y2 <font color="#000080">:= </font>Y1 <font color="#000080">+ </font>Thickness <font color="#000080">+ </font><font color="#800000">1</font><font color="#000080">;
+      </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+    </font>Pen<font color="#000080">.</font>Style <font color="#000080">:= </font>psSolid<font color="#000080">;
+    </font><font color="#008000"><i>{Set the color for the Top &amp; Left edges}
+    </i></font>SetTLColor<font color="#000080">;
+    </font>MoveTo<font color="#000080">(</font>X2<font color="#000080">,</font>Y1<font color="#000080">);
+    </font>LineTo<font color="#000080">(</font>X1<font color="#000080">,</font>Y1<font color="#000080">);
+    </font>LineTo<font color="#000080">(</font>X1<font color="#000080">,</font>Y2<font color="#000080">);
+    </font><font color="#008000"><i>{Set the color for the Bottom &amp; Right edges}
+    </i></font>SetBRColor<font color="#000080">;
+    </font>LineTo<font color="#000080">(</font>X2<font color="#000080">,</font>Y2<font color="#000080">);
+    </font>LineTo<font color="#000080">(</font>X2<font color="#000080">,</font>Y1<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">);
+    </font><font color="#008000"><i>{Now do a filled black rectangle in the center if the control has focus}
+    </i></font><font color="#FF0000"><b>with </b></font>brush <font color="#FF0000"><b>do if </b></font>Focused <font color="#FF0000"><b>then </b></font>Color <font color="#000080">:= </font>FocusColor <font color="#FF0000"><b>else </b></font>Color <font color="#000080">:= </font>clSilver<font color="#000080">;
+    </font>Pen<font color="#000080">.</font>Style <font color="#000080">:= </font>psClear<font color="#000080">;
+    </font><font color="#008000"><i>{Draw the focus highlight}
+    </i></font>Rectangle<font color="#000080">(</font>X1<font color="#000080">+</font><font color="#800000">1</font><font color="#000080">,</font>Y1<font color="#000080">+</font><font color="#800000">1</font><font color="#000080">,</font>X2<font color="#000080">+</font><font color="#800000">1</font><font color="#000080">,</font>Y2<font color="#000080">+</font><font color="#800000">1</font><font color="#000080">);
+    </font>Pen<font color="#000080">.</font>Style <font color="#000080">:= </font>psSolid<font color="#000080">;
+    </font><font color="#008000"><i>{Calculate spacing of tick marks}
+    </i></font>Each <font color="#000080">:= </font><font color="#800000">0</font><font color="#000080">;
+    </font><font color="#FF0000"><b>if </b></font>Ticks <font color="#FF0000"><b>then
+      if </b></font><font color="#000080">(</font>Max<font color="#000080">-</font>Min<font color="#000080">) &gt; </font><font color="#800000">0 </font><font color="#FF0000"><b>then
+        if </b></font>IsVert <font color="#FF0000"><b>then
+          </b></font>Each <font color="#000080">:= (</font>Height<font color="#000080">-</font>ThumbBmp<font color="#000080">.</font>Height<font color="#000080">)/(</font>Max<font color="#000080">-</font>Min<font color="#000080">)
+        </font><font color="#FF0000"><b>else
+          </b></font>Each <font color="#000080">:= (</font>Width<font color="#000080">-</font>ThumbBmp<font color="#000080">.</font>Width<font color="#000080">)/(</font>Max<font color="#000080">-</font>Min<font color="#000080">);
+    </font><font color="#008000"><i>{Now draw the tick marks}
+    </i></font><font color="#FF0000"><b>if </b></font>Ticks <font color="#FF0000"><b>then
+      for </b></font>Tmp <font color="#000080">:= </font>Min <font color="#FF0000"><b>to </b></font>Max <font color="#FF0000"><b>do
+        if </b></font>IsVert <font color="#FF0000"><b>then
+          begin
+            </b></font>TickPos <font color="#000080">:= </font>Y2<font color="#000080">-</font>Trunc<font color="#000080">(</font>Each<font color="#000080">*(</font>Tmp<font color="#000080">-</font>Min<font color="#000080">))-</font><font color="#800000">1</font><font color="#000080">;
+            </font><font color="#FF0000"><b>if </b></font>Tmp <font color="#000080">= </font>Max <font color="#FF0000"><b>then </b></font>TickPos <font color="#000080">:= </font>Y1<font color="#000080">;
+            </font>SetTLColor<font color="#000080">; </font>MoveTo<font color="#000080">(</font>X1<font color="#000080">,</font>TickPos<font color="#000080">);   </font>LineTo<font color="#000080">(</font>X1<font color="#000080">-</font><font color="#800000">2</font><font color="#000080">,</font>TickPos<font color="#000080">);
+            </font>SetBRColor<font color="#000080">; </font>MoveTo<font color="#000080">(</font>X1<font color="#000080">,</font>TickPos<font color="#000080">+</font><font color="#800000">1</font><font color="#000080">); </font>LineTo<font color="#000080">(</font>X1<font color="#000080">-</font><font color="#800000">2</font><font color="#000080">,</font>TickPos<font color="#000080">+</font><font color="#800000">1</font><font color="#000080">);
+          </font><font color="#FF0000"><b>end
+        else
+          begin
+            </b></font>TickPos <font color="#000080">:= </font>X1<font color="#000080">+</font>Trunc<font color="#000080">(</font>Each<font color="#000080">*(</font>Tmp<font color="#000080">-</font>Min<font color="#000080">));
+            </font><font color="#FF0000"><b>if </b></font>Tmp <font color="#000080">= </font>Max <font color="#FF0000"><b>then </b></font>TickPos <font color="#000080">:= </font>X2<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">;
+            </font>SetTLColor<font color="#000080">; </font>MoveTo<font color="#000080">(</font>TickPos<font color="#000080">,</font>Y1<font color="#000080">);   </font>LineTo<font color="#000080">(</font>TickPos<font color="#000080">,</font>Y1<font color="#000080">-</font><font color="#800000">2</font><font color="#000080">);
+            </font>SetBRColor<font color="#000080">; </font>MoveTo<font color="#000080">(</font>TickPos<font color="#000080">+</font><font color="#800000">1</font><font color="#000080">,</font>Y1<font color="#000080">); </font>LineTo<font color="#000080">(</font>TickPos<font color="#000080">+</font><font color="#800000">1</font><font color="#000080">,</font>Y1<font color="#000080">-</font><font color="#800000">2</font><font color="#000080">);
+          </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TSlideBar<font color="#000080">.</font>SaveBackground<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font><font color="#008000"><i>{This saves the background image so it can be restored later}
+  </i></font>BkgdBmp<font color="#000080">.</font>Width <font color="#000080">:= </font>ThumbBmp<font color="#000080">.</font>Width<font color="#000080">;
+  </font>BkgdBmp<font color="#000080">.</font>Height <font color="#000080">:= </font>ThumbBmp<font color="#000080">.</font>Height<font color="#000080">;
+  </font>BkgdBmp<font color="#000080">.</font>Canvas<font color="#000080">.</font>CopyRect<font color="#000080">(</font>Rect<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font>ThumbBmp<font color="#000080">.</font>Width<font color="#000080">,</font>ThumbBmp<font color="#000080">.</font>Height<font color="#000080">),
+                          </font>Canvas<font color="#000080">,</font>ThumbRect<font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TSlideBar<font color="#000080">.</font>Paint<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>DrawTrench<font color="#000080">;
+  </font>WhereIsBar<font color="#000080">;
+  </font>SaveBackground<font color="#000080">;
+  </font>DrawThumbBar<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">.
+
+</font><font color="#008000"><i>{ { {------------------------- snip, snip ----------------------------}
+
+ENCODED SLIDEBAR.RES FILE REMOVED.  PLEASE <A HREF="0042.SLIDEBAR.ZIP">DOWNLOAD</A> EITHER THE 
+ATTACHMENT OR THE COMPLETE ZIP FILE.
+
+</i>
+</font>
+</code></pre><!--EndFragment--><p align="center"><b>[</b><a href="index.html">Back to DELPHI SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0042.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0042.SLIDEBAR.ZIP">Attachment</a><b>]</b>
+</p></body>
+</html>

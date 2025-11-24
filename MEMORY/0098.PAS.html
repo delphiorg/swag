@@ -1,0 +1,192 @@
+<html>
+<head><title> "Accessing ALL memory up to 4G in Pascal" by HARRY MARX</title><link rel="STYLESHEET" type="text/css" href="../swagsource.css"></head>
+<body><p align="center">
+<b>[</b><a href="index.html">Back to MEMORY SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0098.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0098.FLATMEM.ZIP">Attachment</a><b>]</b>
+
+</p><!--StartFragment--><pre><code>
+<font color="#000000">PLEASE NOTE <font color="#000080">:
+       </font>This <font color="#FF0000"><b>is </b></font>a LARGE project <font color="#FF0000"><b>of </b></font>the <font color="#FF0000"><b>type not </b></font>normally included <font color="#FF0000"><b>in </b></font>SWAG
+       However<font color="#000080">, </font>we feel that this work <font color="#FF0000"><b>is </b></font>very important <font color="#FF0000"><b>and </b></font>relevant<font color="#000080">, </font><font color="#FF0000"><b>and
+       with </b></font>Harry<font color="#800000">'s permission, we include it here.  To get the ZIP file
+       </font>FLATMEM<font color="#000080">.</font>ZIP<font color="#000080">, </font>cut <font color="#FF0000"><b>out </b></font>the XX3402 code at the <font color="#FF0000"><b>end of </b></font>this document<font color="#000080">,
+       </font><font color="#FF0000"><b>and </b></font>use XX3402 <font color="#FF0000"><b>to </b></font>decode it<font color="#000080">.
+
+       </font>Swag Support Team<font color="#000080">.
+
+
+</font>Documentation <font color="#FF0000"><b>on</b></font><font color="#000080">: </font>FlatMem<font color="#000080">, </font>BASM32 <font color="#FF0000"><b>and </b></font>XMS30<font color="#000080">.
+============================================
+
+</font>Most <font color="#FF0000"><b>of </b></font>the units <font color="#FF0000"><b>do </b></font>have internal documentation<font color="#000080">. </font>I will here only give
+the quick <font color="#FF0000"><b>and </b></font>dirty info <font color="#000080">- </font>i<font color="#000080">.</font>e<font color="#000080">. </font>the least you need <font color="#FF0000"><b>to </b></font>know <font color="#FF0000"><b>in </b></font>order <font color="#FF0000"><b>to </b></font>use
+them<font color="#000080">. </font><font color="#FF0000"><b>If </b></font>you get confused by detail<font color="#000080">, </font>skip directly <font color="#FF0000"><b>to </b></font><font color="#000080">&quot;</font>Conclusion<font color="#000080">&quot;...
+
+</font>Limitation<font color="#000080">:
+----------
+
+</font>No Windows<font color="#000080">(</font>TM<font color="#000080">), </font>no EMM386<font color="#000080">, </font>no QEMM<font color="#000080">. </font>ONLY Himem<font color="#000080">.</font>SYS must be loaded <font color="#FF0000"><b>as </b></font>memory
+manegement<font color="#000080">. </font>Any <font color="#FF0000"><b>of </b></font>the Borland <font color="#800000">7.0 </font>compilers can be used<font color="#000080">. </font>ONLY Turbo<font color="#000080">.</font>EXE
+<font color="#FF0000"><b>and </b></font>TD<font color="#000080">.</font>EXE can be used <font color="#FF0000"><b>to </b></font>run<font color="#000080">/</font>debug this code<font color="#000080">.
+
+</font>FlatMem <font color="#000080">&amp; </font>XMS30<font color="#000080">:
+---------------
+
+</font>FlatMem <font color="#FF0000"><b>is </b></font>a <font color="#FF0000"><b>unit with </b></font>which <font color="#FF0000"><b>to </b></font>access all memory<font color="#000080">, </font>up <font color="#FF0000"><b>to </b></font><font color="#800000">4</font>G<font color="#000080">, </font><font color="#FF0000"><b>with pascal</b></font><font color="#000080">.
+</font>The result <font color="#FF0000"><b>is </b></font>however <font color="#FF0000"><b>not </b></font>entirely seamless<font color="#000080">. </font>This <font color="#FF0000"><b>unit </b></font>creates <font color="#FF0000"><b>and </b></font>assigns
+the GS segment <font color="#FF0000"><b>register</b></font><font color="#000080">, </font>a <font color="#800000">32</font><font color="#000080">-</font>bit segment<font color="#000080">, </font><font color="#FF0000"><b>with </b></font>base address <font color="#800000">00000</font>h<font color="#000080">.
+</font>This means that any <font color="#800000">16</font><font color="#000080">-</font>bit seg<font color="#000080">:</font>ofs pair can be accessed <font color="#FF0000"><b>as </b></font>an offset equal
+<font color="#FF0000"><b>to </b></font>seg<font color="#000080">*</font><font color="#800000">16</font><font color="#000080">+</font>ofs<font color="#000080">, </font>using GS <font color="#FF0000"><b>as </b></font>segment <font color="#FF0000"><b>register</b></font><font color="#000080">. </font><font color="#FF0000"><b>If </b></font>this sounds too complicated<font color="#000080">,
+</font>there are routines <font color="#FF0000"><b>to </b></font>read <font color="#FF0000"><b>or </b></font>write bytes<font color="#000080">, </font>words<font color="#000080">, </font>integers<font color="#000080">, </font>longint<font color="#000080">, </font>real<font color="#000080">,
+</font>extended <font color="#FF0000"><b>and </b></font>strings<font color="#000080">, </font><font color="#FF0000"><b>to and </b></font>from an <font color="#FF0000"><b>absolute </b></font>address<font color="#000080">.
+
+</font>An <font color="#FF0000"><b>absolute </b></font>address <font color="#000080">(</font>also linear<font color="#000080">-,</font>physical<font color="#000080">-</font>address<font color="#000080">) </font><font color="#FF0000"><b>is </b></font>a longint<font color="#000080">. </font><font color="#FF0000"><b>To </b></font>get
+this value <font color="#FF0000"><b>for </b></font>any DOS<font color="#000080">-</font>pointer<font color="#000080">, </font>use the <font color="#FF0000"><b>function </b></font>AbsAddr<font color="#000080">(</font>pointer<font color="#000080">).
+
+</font>Although FlatMem can <font color="#FF0000"><b>function </b></font>without XMS30<font color="#000080">, </font><font color="#FF0000"><b>and </b></font>XMS30 without FlatMem<font color="#000080">,
+</font>you will want <font color="#FF0000"><b>to </b></font>use the two <font color="#FF0000"><b>in </b></font>concert<font color="#000080">. </font><font color="#FF0000"><b>To </b></font>allocate<font color="#000080">/</font>free memory from the
+XMS<font color="#000080">-</font>heap<font color="#000080">, </font>you can use GetMemXMS <font color="#FF0000"><b>and </b></font>FreeMemXMS<font color="#000080">.
+
+</font><font color="#FF0000"><b>To </b></font>read <font color="#FF0000"><b>or </b></font>write <font color="#FF0000"><b>to </b></font>memory allocated <font color="#FF0000"><b>with </b></font>XMS30<font color="#000080">, </font>you can <font color="#FF0000"><b>do </b></font>it <font color="#FF0000"><b>in </b></font>one <font color="#FF0000"><b>of </b></font>two
+possible ways<font color="#000080">. </font><font color="#FF0000"><b>If </b></font>you only use XMS30<font color="#000080">, </font>you will have <font color="#FF0000"><b>to </b></font>shuttle the area
+which you want <font color="#FF0000"><b>to </b></font>access<font color="#000080">, </font><font color="#FF0000"><b>to and </b></font>from DOS memory<font color="#000080">. </font><font color="#FF0000"><b>For </b></font>this you can use
+DOS2XMS<font color="#000080">, </font><font color="#FF0000"><b>and </b></font>XMS2DDOS<font color="#000080">. </font>The data can <font color="#FF0000"><b>then </b></font>be accessed <font color="#FF0000"><b>in </b></font>DOS memory<font color="#000080">, </font><font color="#FF0000"><b>in </b></font>the
+conventional <font color="#FF0000"><b>pascal </b></font>way<font color="#000080">.
+
+</font><font color="#FF0000"><b>To </b></font>read <font color="#FF0000"><b>or </b></font>write directly <font color="#FF0000"><b>to </b></font>XMS<font color="#000080">-</font>memory<font color="#000080">, </font>you will have <font color="#FF0000"><b>to </b></font>use FlatMem<font color="#000080">.
+</font>Since accessing this memory directly implies that you know exactly where
+the data resides<font color="#000080">, </font>you will have <font color="#FF0000"><b>to </b></font><font color="#000080">&quot;</font>lock<font color="#000080">&quot; </font>it<font color="#000080">. </font>Incedently<font color="#000080">, </font>LockXMS returns
+the <font color="#FF0000"><b>absolute </b></font>address <font color="#FF0000"><b>for </b></font>us <font color="#FF0000"><b>to </b></font>be used directly <font color="#FF0000"><b>in </b></font>these routines<font color="#000080">:
+</font>putbyte<font color="#000080">, </font>getbyte<font color="#000080">, </font>putword<font color="#000080">, </font>getword<font color="#000080">...</font>ect<font color="#000080">.
+</font>The last thing <font color="#FF0000"><b>to </b></font>remember about locking memory<font color="#000080">, </font><font color="#FF0000"><b>is </b></font>that it must be unlocked
+before it can be freed<font color="#000080">.
+
+
+</font>BASM32<font color="#000080">:
+------
+
+</font>I you REALLY want <font color="#FF0000"><b>to </b></font>access XMS directly from within an <font color="#FF0000"><b>ASM</b></font><font color="#FF00FF">...</font><font color="#FF0000"><b>END </b></font>block<font color="#000080">,
+</font>this <font color="#FF0000"><b>is </b></font>it<font color="#000080">.
+
+</font>The Build <font color="#FF0000"><b>in Assembler for </b></font>BP can only handle <font color="#800000">'286 code at the most. It does
+</font>however allow us <font color="#FF0000"><b>to </b></font>include operation codes <font color="#FF0000"><b>as </b></font>data<font color="#000080">, </font>right inside the code<font color="#000080">,
+</font><font color="#FF0000"><b>with </b></font>which we can construct <font color="#800000">32</font><font color="#000080">-</font>bit codes<font color="#000080">. </font>The least <font color="#FF0000"><b>of </b></font>the <font color="#800000">32</font><font color="#000080">-</font>bit code you
+would want <font color="#FF0000"><b>to </b></font>use <font color="#FF0000"><b>is </b></font>indexed read <font color="#FF0000"><b>and </b></font>writes<font color="#000080">:
+</font>mov EAX<font color="#000080">, </font>GS<font color="#000080">:[</font>ESI<font color="#000080">]    ....</font><font color="#800000">1
+</font>mov GS<font color="#000080">:[</font>ESI<font color="#000080">],</font>EAX     <font color="#000080">....</font><font color="#800000">2
+</font>Since I <font color="#FF0000"><b>set </b></font>up GS <font color="#FF0000"><b>to </b></font>the <font color="#800000">32</font><font color="#000080">-</font>bit segment<font color="#000080">, </font>we will always want <font color="#FF0000"><b>to override </b></font>the
+<font color="#FF0000"><b>default </b></font>segment <font color="#FF0000"><b>with </b></font>GS<font color="#000080">.
+
+</font>Most <font color="#FF0000"><b>of </b></font>the <font color="#800000">32</font><font color="#000080">-</font>bit instructions are only extentions <font color="#FF0000"><b>of </b></font>their <font color="#800000">16</font><font color="#000080">-</font>bit versions<font color="#000080">.
+</font>You can <font color="#FF0000"><b>in </b></font>most cases extend an instruction <font color="#FF0000"><b>to </b></font>cover <font color="#800000">32</font><font color="#000080">-</font>bits <font color="#FF0000"><b>of </b></font>data<font color="#000080">, </font>by
+merely preceding it <font color="#FF0000"><b>with </b></font>a <font color="#800000">$66</font><font color="#000080">(</font>USE32<font color="#000080">). </font>This constant <font color="#000080">(</font><font color="#FF0000"><b>and </b></font>others<font color="#000080">) </font>are
+defined <font color="#FF0000"><b>in </b></font>BASM32<font color="#000080">. </font><font color="#FF0000"><b>To </b></font>overrige the <font color="#FF0000"><b>default </b></font>segment <font color="#FF0000"><b>with </b></font>GS<font color="#000080">, </font>use GSEG<font color="#000080">.
+</font><font color="#FF0000"><b>To </b></font>make the indexing <font color="#FF0000"><b>register </b></font>also <font color="#800000">32</font><font color="#000080">-</font>bit<font color="#000080">, </font>use INDEX32<font color="#000080">.
+
+</font>Example <font color="#800000">1 </font>can now be encoded <font color="#FF0000"><b>in </b></font>the following way<font color="#000080">:
+
+   </font>db USE32<font color="#000080">, </font>GSEG<font color="#000080">, </font>INDEX32<font color="#000080">, </font>_read<font color="#000080">, </font>_AX<font color="#000080">+</font>_iSI
+
+Notice the sequence <font color="#FF0000"><b>of </b></font>the constants<font color="#000080">. </font>This order <font color="#FF0000"><b>of </b></font>use <font color="#FF0000"><b>is NOT </b></font>open <font color="#FF0000"><b>to
+</b></font>negotiation<font color="#000080">. </font>You MUST use them <font color="#FF0000"><b>in </b></font>this order<font color="#000080">.
+
+</font>A very complex statment could be<font color="#000080">:
+
+   </font>add GS<font color="#000080">:[</font>EBX<font color="#000080">+</font>ESI<font color="#000080">+</font><font color="#800000">0200</font>h<font color="#000080">],</font>ECX
+
+which becomes<font color="#000080">:
+
+   </font>db USE32<font color="#000080">, </font>GSEG<font color="#000080">, </font>INDEX32<font color="#000080">, </font>_add2mem<font color="#000080">, </font>_iBX_iSI <font color="#000080">+ </font>_CX <font color="#000080">+ </font>_DWORD<font color="#000080">; </font>dd <font color="#800000">00000200
+
+</font>There are only made provision <font color="#FF0000"><b>for </b></font>the following types <font color="#FF0000"><b>of </b></font>instructions<font color="#000080">,
+</font>reading from memory into a <font color="#FF0000"><b>register</b></font><font color="#000080">: </font>_read
+writing from a <font color="#FF0000"><b>register to </b></font>memory<font color="#000080">:  </font>_write
+adding a value <font color="#FF0000"><b>in </b></font>memory <font color="#FF0000"><b>to </b></font>a <font color="#FF0000"><b>register</b></font><font color="#000080">: </font>_add2reg
+adding a value <font color="#FF0000"><b>in </b></font>a <font color="#FF0000"><b>register to </b></font>memory<font color="#000080">: </font>_add2mem
+substracting a value <font color="#FF0000"><b>in </b></font>memory <font color="#FF0000"><b>with </b></font>one <font color="#FF0000"><b>in register</b></font><font color="#000080">: </font>_sub2mem
+substracting a value <font color="#FF0000"><b>in </b></font>a <font color="#FF0000"><b>register with </b></font>one <font color="#FF0000"><b>in </b></font>memory<font color="#000080">: </font>_sub2reg<font color="#000080">.
+
+!!!!</font>IMPORTANT WARNING<font color="#000080">!!!!:
+
+</font>ALWAY CHECK THE CODE <font color="#FF0000"><b>WITH </b></font>AN UNASSEMBLER <font color="#FF0000"><b>TO </b></font>SEE <font color="#FF0000"><b>IF </b></font>YOU DID SAY WHAT
+YOU WANTED <font color="#FF0000"><b>TO</b></font><font color="#000080">.
+</font>There are NO checking done <font color="#FF0000"><b>on </b></font>code entered this way <font color="#000080">- </font>NONE<font color="#000080">. </font>I got a runtime
+error once<font color="#000080">, </font>when I didn<font color="#800000">'t:
+</font><font color="#000080">&quot;</font>The memory manager stoped this process since it wanted <font color="#FF0000"><b>to </b></font>write <font color="#FF0000"><b>to </b></font>an area
+used by DoubleSpace<font color="#000080">. </font>Continueing may result <font color="#FF0000"><b>in </b></font>the loss <font color="#FF0000"><b>of </b></font>ALL information
+<font color="#FF0000"><b>on </b></font>your hard disk<font color="#000080">.&quot;
+</font>I was lucky <font color="#000080">- </font>once<font color="#000080">. </font>now I always check<font color="#000080">. </font>Turbo debug <font color="#FF0000"><b>is </b></font>excelent <font color="#FF0000"><b>to do
+</b></font>this <font color="#FF0000"><b>with</b></font><font color="#000080">.
+
+--------------
+</font><font color="#FF0000"><b>In </b></font>Conclusion<font color="#000080">:
+--------------
+
+</font>You can access XMS very easy<font color="#000080">, </font><font color="#FF0000"><b>if </b></font>you follow this few simple steps<font color="#000080">:
+
+</font>Include FLATMEM<font color="#000080">, </font>XMS30 <font color="#FF0000"><b>in </b></font>the <font color="#000080">&quot;</font><font color="#FF0000"><b>uses</b></font><font color="#000080">&quot;-</font>clause <font color="#FF0000"><b>of </b></font>your <font color="#FF0000"><b>program</b></font><font color="#000080">.
+
+</font>Define the neccesary variables<font color="#000080">:
+   </font><font color="#FF0000"><b>var
+      </b></font>my_XMS_var<font color="#000080">:</font>word<font color="#000080">;
+      </font>my_XMS_var_addr<font color="#000080">:</font>longint<font color="#000080">;
+
+   </font><font color="#FF0000"><b>const
+      </b></font>a_longint_amount<font color="#000080">:</font>longint<font color="#000080">=</font><font color="#800000">1024</font><font color="#000080">;
+
+</font><font color="#FF0000"><b>To </b></font>Allocate XMS<font color="#000080">, </font>use<font color="#000080">:
+   </font>my_XMS_var<font color="#000080">:=</font>GETMEMXMS<font color="#000080">(</font>a_longint_amount<font color="#000080">);
+   </font>my_XMS_var_addr<font color="#000080">:=</font>LOCKXMS<font color="#000080">(</font>my_XMS_var<font color="#000080">);
+
+</font><font color="#FF0000"><b>To </b></font>access it <font color="#FF0000"><b>as </b></font>a <font color="#FF0000"><b>string</b></font><font color="#000080">:
+
+   </font>PUTSTR<font color="#000080">(</font><font color="#800000">'Hallo World'</font><font color="#000080">,</font>my_XMS_var_addr<font color="#000080">);
+   </font>WRITELN<font color="#000080">(</font>GETSTR<font color="#000080">(</font>my_XMS_var_addr<font color="#000080">));
+
+</font><font color="#FF0000"><b>To </b></font>free it<font color="#000080">:
+   </font>UNLOCK<font color="#000080">(</font>my_XMS_var<font color="#000080">);
+   </font>FREEMEMXMS<font color="#000080">(</font>my_XMS_var<font color="#000080">);
+
+...</font><font color="#FF0000"><b>and </b></font>that<font color="#800000">'s it.
+
+</font>One last remark<font color="#000080">. </font>Suppose you want <font color="#FF0000"><b>to </b></font>access my_XMS_var <font color="#FF0000"><b>as </b></font>an
+<font color="#FF0000"><b>array</b></font><font color="#000080">[</font><font color="#800000">1</font><font color="#000080">..</font><font color="#800000">4</font><font color="#000080">]:</font><font color="#FF0000"><b>string</b></font><font color="#000080">, </font><font color="#FF0000"><b>and </b></font>you want <font color="#FF0000"><b>to </b></font>read<font color="#000080">/</font>write the n<font color="#800000">'th string, use:
+   </font>my_XMS_var_addr<font color="#000080">+(</font>n<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">)*</font>length<font color="#000080">(</font><font color="#FF0000"><b>string</b></font><font color="#000080">)
+</font><font color="#FF0000"><b>as </b></font>arguement <font color="#FF0000"><b>for </b></font>PUTSTR <font color="#FF0000"><b>and </b></font>GETSTR<font color="#000080">.
+
+
+</font>DISCLAIMER<font color="#000080">:
+----------
+</font>I nor anybody <font color="#FF0000"><b>else </b></font>can take ANY responsibility <font color="#FF0000"><b>for </b></font>ANY damage done<font color="#000080">,
+</font>resulting from<font color="#000080">, </font><font color="#FF0000"><b>or </b></font>linked <font color="#FF0000"><b>to</b></font><font color="#000080">, </font>the use <font color="#FF0000"><b>of </b></font>this code<font color="#000080">.
+(</font>enough CYA<font color="#000080">-</font>ness <font color="#FF0000"><b>for </b></font>me <font color="#000080">:-)
+
+</font><font color="#FF0000"><b>If </b></font>you <font color="#FF0000"><b>do </b></font>find a bug that bytes you<font color="#000080">, </font><font color="#FF0000"><b>do </b></font>tell me<font color="#000080">. </font>I<font color="#800000">'ll try to fix it.
+
+
+</font>BYE
+<font color="#000080">---
+
+</font>You can reach me at<font color="#000080">:
+
+</font>marxh<font color="#000080">@</font>alpha<font color="#000080">.</font>unisa<font color="#000080">.</font>ac<font color="#000080">.</font>za
+<font color="#FF0000"><b>or on </b></font>the <font color="#FF0000"><b>pascal </b></font>discussion list<font color="#000080">: </font><font color="#FF0000"><b>PASCAL</b></font><font color="#000080">-</font>L<font color="#000080">@</font>vm<font color="#000080">.</font>ege<font color="#000080">.</font>edu<font color="#000080">.</font>tr
+
+Harry Marx<font color="#000080">.
+</font>Dept<font color="#000080">. </font>Computer Services <font color="#000080">(</font><font color="#FF0000"><b>Library </b></font>System Development<font color="#000080">)
+</font>UNISA
+<font color="#800000">0003
+</font>South Africa
+
+<font color="#008000"><i>{ ----------------------   XX3402 code for FLATMEM.ZIP ------------- }
+ENCODED FLATMEM.ZIP FILE REMOVED.  PLEASE <A HREF="0098.FLATMEM.ZIP">DOWNLOAD</A> EITHER THE 
+ATTACHMENT OR THE COMPLETE ZIP FILE.</font>
+</i>
+</code></pre><!--EndFragment--><p align="center"><b>[</b><a href="index.html">Back to MEMORY SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0098.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0098.FLATMEM.ZIP">Attachment</a><b>]</b>
+</p></body>
+</html>

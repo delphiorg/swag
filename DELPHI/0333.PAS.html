@@ -1,0 +1,521 @@
+<html>
+<head><title> "Nice Various Button Components" by ENDRE I. SIMAY</title><link rel="STYLESHEET" type="text/css" href="../swagsource.css"></head>
+<body><p align="center">
+<b>[</b><a href="index.html">Back to DELPHI SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0333.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0333.DRAWNBTN.ZIP">Attachment</a><b>]</b>
+
+</p><!--StartFragment--><pre><code><font color="#FF0000"><b>UNIT </b></font>DrawnBtn<font color="#000080">;
+</font><font color="#008000"><i>(********************************************************************
+  TDrawedButton Component For Delphi.
+  It Is A &quot;Blank&quot; Component Defined For Buttons Which Have Different
+  Active Shape Like Triangular Or Card Figure Caro.
+
+  TNArrowButton Component For Delphi.
+  It Was Developed According To TArrowButton Component Authoring
+  Originally By Kent Miller  Frederick, MD (Compuserve: 74113,200)
+
+  TNArrowButton Component Will Give A Similar Triangle Button As
+  TArrowButton Component But It Is INHERITED From A TDrawedButton Class
+  Developed For More Correct Cursor-Image Handling And Support OnMouseMove,
+  PopupMenu, And Others As Left Mouse Button.
+
+  TCaroButton Component For Delphi.
+  It Will Give A Button Which Has Similar Active Shape To
+  Card Figure Caro.
+
+  Author:  Endre I. Simay;
+           Budapest, HUNGARY; 1997.
+
+  Freeware: Feel Free To Use And Improve, But Mention The Source
+
+  This Source Is Compatible With Both DELPHI 1.0 &amp; DELPHI 3.0
+*********************************************************************)
+
+</i></font><font color="#FF0000"><b>INTERFACE
+
+USES
+  </b></font>SysUtils<font color="#000080">, </font>WinTypes<font color="#000080">, </font>WinProcs<font color="#000080">, </font>Messages<font color="#000080">, </font>Classes<font color="#000080">,
+  </font>Graphics<font color="#000080">, </font>Controls<font color="#000080">, </font>Menus<font color="#000080">;
+
+</font><font color="#FF0000"><b>CONST
+  </b></font><font color="#008000"><i>{ offset from border of control to corner of button }
+  </i></font>S_OFFSET <font color="#000080">= </font><font color="#800000">3</font><font color="#000080">;
+
+</font><font color="#FF0000"><b>TYPE
+  </b></font>TDrawedButton <font color="#000080">= </font><font color="#FF0000"><b>Class</b></font><font color="#000080">(</font>TGraphicControl<font color="#000080">)
+  </font><font color="#FF0000"><b>PRIVATE
+    </b></font><font color="#008000"><i>{ Private declarations }
+  </i></font><font color="#FF0000"><b>Protected
+    </b></font><font color="#008000"><i>{ Protected declarations }
+    </i></font>FButtonColor<font color="#000080">: </font>TColor<font color="#000080">;
+    </font>FButtonDown<font color="#000080">: </font>Boolean<font color="#000080">;
+    </font>FRgn<font color="#000080">: </font>HRgn<font color="#000080">;
+    </font>FInnerCursor<font color="#000080">:</font>TCursor<font color="#000080">;
+    </font><font color="#FF0000"><b>PROCEDURE </b></font>FreeRegion<font color="#000080">;
+    </font><font color="#FF0000"><b>PROCEDURE </b></font>MoveButton<font color="#000080">; </font><font color="#FF0000"><b>VIRTUAL</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>PROCEDURE </b></font>SetInnerCursor<font color="#000080">(</font>Value<font color="#000080">: </font>TCursor<font color="#000080">);
+    </font><font color="#FF0000"><b>PROCEDURE </b></font>SetButtonColor<font color="#000080">(</font>Value<font color="#000080">: </font>TColor<font color="#000080">);
+    </font><font color="#FF0000"><b>PROCEDURE </b></font>WMLButtonDown<font color="#000080">(</font><font color="#FF0000"><b>VAR Message</b></font><font color="#000080">: </font>TWMLButtonDown<font color="#000080">);
+                      </font><font color="#FF0000"><b>Message </b></font>WM_LBUTTONDOWN<font color="#000080">;
+    </font><font color="#FF0000"><b>PROCEDURE </b></font>WMLButtonUp<font color="#000080">(</font><font color="#FF0000"><b>VAR Message</b></font><font color="#000080">: </font>TWMLButtonUp<font color="#000080">);
+                      </font><font color="#FF0000"><b>Message </b></font>WM_LBUTTONUP<font color="#000080">;
+    </font><font color="#FF0000"><b>PROCEDURE </b></font>WMRButtonDown<font color="#000080">(</font><font color="#FF0000"><b>VAR Message</b></font><font color="#000080">: </font>TWMRButtonDown<font color="#000080">);
+                      </font><font color="#FF0000"><b>Message </b></font>WM_RBUTTONDOWN<font color="#000080">;
+    </font><font color="#FF0000"><b>PROCEDURE </b></font>WMMButtonDown<font color="#000080">(</font><font color="#FF0000"><b>VAR Message</b></font><font color="#000080">: </font>TWMMButtonDown<font color="#000080">);
+                      </font><font color="#FF0000"><b>Message </b></font>WM_MBUTTONDOWN<font color="#000080">;
+    </font><font color="#FF0000"><b>PROCEDURE </b></font>WMMouseMove<font color="#000080">(</font><font color="#FF0000"><b>VAR Message</b></font><font color="#000080">: </font>TWMMouseMove<font color="#000080">);
+                      </font><font color="#FF0000"><b>Message </b></font>WM_MOUSEMOVE<font color="#000080">;
+  </font><font color="#FF0000"><b>PUBLIC
+    </b></font><font color="#008000"><i>{ Public declarations }
+    </i></font><font color="#FF0000"><b>CONSTRUCTOR </b></font>Create<font color="#000080">(</font>AOwner<font color="#000080">: </font>TComponent<font color="#000080">); </font><font color="#FF0000"><b>Override</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>DESTRUCTOR </b></font>Destroy<font color="#000080">; </font><font color="#FF0000"><b>Override</b></font><font color="#000080">;
+  </font><font color="#FF0000"><b>Published
+    </b></font><font color="#008000"><i>{ Published declarations }
+    </i></font><font color="#FF0000"><b>Property </b></font>ButtonColor<font color="#000080">: </font>TColor <font color="#FF0000"><b>Read </b></font>FButtonColor <font color="#FF0000"><b>Write </b></font>SetButtonColor<font color="#000080">;
+    </font><font color="#FF0000"><b>Property </b></font>Enabled<font color="#000080">;
+    </font><font color="#FF0000"><b>Property </b></font>ParentShowHint<font color="#000080">;
+    </font><font color="#FF0000"><b>Property </b></font>ShowHint<font color="#000080">;
+    </font><font color="#FF0000"><b>Property </b></font>Visible<font color="#000080">;
+    </font><font color="#FF0000"><b>Property </b></font>PopupMenu<font color="#000080">;
+    </font><font color="#FF0000"><b>Property </b></font>InnerCursor<font color="#000080">:</font>TCursor <font color="#FF0000"><b>Read </b></font>FInnerCursor <font color="#FF0000"><b>Write </b></font>SetInnerCursor<font color="#000080">;
+
+    </font><font color="#FF0000"><b>Property </b></font>OnMouseMove<font color="#000080">;
+    </font><font color="#FF0000"><b>Property </b></font>OnClick<font color="#000080">;
+  </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+  </font>TButtonDirection <font color="#000080">= (</font>ArwUP<font color="#000080">, </font>ArwRIGHT<font color="#000080">, </font>ArwLEFT<font color="#000080">, </font>ArwDOWN<font color="#000080">);
+
+  </font>TNArrowButton <font color="#000080">= </font><font color="#FF0000"><b>Class</b></font><font color="#000080">(</font>TDrawedButton<font color="#000080">)
+  </font><font color="#FF0000"><b>PRIVATE
+    </b></font>FDirection<font color="#000080">: </font>TButtonDirection<font color="#000080">;
+    </font>FPnts<font color="#000080">: </font><font color="#FF0000"><b>ARRAY</b></font><font color="#000080">[</font><font color="#800000">1</font><font color="#000080">..</font><font color="#800000">3</font><font color="#000080">] </font><font color="#FF0000"><b>OF </b></font>TPoint<font color="#000080">;
+    </font><font color="#FF0000"><b>PROCEDURE </b></font>SetDirection<font color="#000080">(</font>Value<font color="#000080">: </font>TButtonDirection<font color="#000080">);
+  </font><font color="#FF0000"><b>Protected
+    PROCEDURE </b></font>Paint<font color="#000080">; </font><font color="#FF0000"><b>Override</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>PROCEDURE </b></font>DrawUpArrow<font color="#000080">;
+    </font><font color="#FF0000"><b>PROCEDURE </b></font>DrawRightArrow<font color="#000080">;
+    </font><font color="#FF0000"><b>PROCEDURE </b></font>DrawDownArrow<font color="#000080">;
+    </font><font color="#FF0000"><b>PROCEDURE </b></font>DrawLeftArrow<font color="#000080">;
+    </font><font color="#FF0000"><b>PROCEDURE </b></font>MoveButton<font color="#000080">; </font><font color="#FF0000"><b>Override</b></font><font color="#000080">;
+  </font><font color="#FF0000"><b>PUBLIC
+    CONSTRUCTOR </b></font>Create<font color="#000080">(</font>AOwner<font color="#000080">: </font>TComponent<font color="#000080">); </font><font color="#FF0000"><b>Override</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>DESTRUCTOR </b></font>Destroy<font color="#000080">; </font><font color="#FF0000"><b>Override</b></font><font color="#000080">;
+  </font><font color="#FF0000"><b>Published
+    Property </b></font>ButtonColor<font color="#000080">;
+    </font><font color="#FF0000"><b>Property </b></font>Direction<font color="#000080">: </font>TButtonDirection <font color="#FF0000"><b>Read </b></font>FDirection <font color="#FF0000"><b>Write </b></font>SetDirection<font color="#000080">;
+    </font><font color="#FF0000"><b>Property </b></font>Enabled<font color="#000080">;
+    </font><font color="#FF0000"><b>Property </b></font>ParentShowHint<font color="#000080">;
+    </font><font color="#FF0000"><b>Property </b></font>ShowHint<font color="#000080">;
+    </font><font color="#FF0000"><b>Property </b></font>Visible<font color="#000080">;
+    </font><font color="#FF0000"><b>Property </b></font>PopupMenu<font color="#000080">;
+    </font><font color="#FF0000"><b>Property </b></font>InnerCursor<font color="#000080">;
+
+    </font><font color="#FF0000"><b>Property </b></font>OnMouseMove<font color="#000080">;
+    </font><font color="#FF0000"><b>Property </b></font>OnClick<font color="#000080">;
+  </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+  </font>TCaroButton <font color="#000080">= </font><font color="#FF0000"><b>Class</b></font><font color="#000080">(</font>TDrawedButton<font color="#000080">)
+  </font><font color="#FF0000"><b>PRIVATE
+    </b></font><font color="#008000"><i>{ Private declarations }
+    </i></font>FPnts<font color="#000080">: </font><font color="#FF0000"><b>ARRAY</b></font><font color="#000080">[</font><font color="#800000">1</font><font color="#000080">..</font><font color="#800000">4</font><font color="#000080">] </font><font color="#FF0000"><b>OF </b></font>TPoint<font color="#000080">;
+  </font><font color="#FF0000"><b>Protected
+    </b></font><font color="#008000"><i>{ Protected declarations }
+    </i></font><font color="#FF0000"><b>PROCEDURE </b></font>Paint<font color="#000080">; </font><font color="#FF0000"><b>Override</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>PROCEDURE </b></font>DrawCaro<font color="#000080">;
+    </font><font color="#FF0000"><b>PROCEDURE </b></font>MoveButton<font color="#000080">; </font><font color="#FF0000"><b>Override</b></font><font color="#000080">;
+  </font><font color="#FF0000"><b>PUBLIC
+    </b></font><font color="#008000"><i>{ Public declarations }
+    </i></font><font color="#FF0000"><b>CONSTRUCTOR </b></font>Create<font color="#000080">(</font>AOwner<font color="#000080">: </font>TComponent<font color="#000080">); </font><font color="#FF0000"><b>Override</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>DESTRUCTOR </b></font>Destroy<font color="#000080">; </font><font color="#FF0000"><b>Override</b></font><font color="#000080">;
+
+  </font><font color="#FF0000"><b>Published
+    </b></font><font color="#008000"><i>{ Published declarations }
+    </i></font><font color="#FF0000"><b>Property </b></font>ButtonColor<font color="#000080">;
+    </font><font color="#FF0000"><b>Property </b></font>Enabled<font color="#000080">;
+    </font><font color="#FF0000"><b>Property </b></font>ParentShowHint<font color="#000080">;
+    </font><font color="#FF0000"><b>Property </b></font>ShowHint<font color="#000080">;
+    </font><font color="#FF0000"><b>Property </b></font>Visible<font color="#000080">;
+    </font><font color="#FF0000"><b>Property </b></font>PopupMenu<font color="#000080">;
+    </font><font color="#FF0000"><b>Property </b></font>InnerCursor<font color="#000080">;
+
+    </font><font color="#FF0000"><b>Property </b></font>OnClick<font color="#000080">;
+    </font><font color="#FF0000"><b>Property </b></font>OnMouseMove<font color="#000080">;
+  </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>PROCEDURE Register</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>IMPLEMENTATION
+
+CONSTRUCTOR </b></font>TDrawedButton<font color="#000080">.</font>Create<font color="#000080">(</font>AOwner<font color="#000080">: </font>TComponent<font color="#000080">);
+</font><font color="#FF0000"><b>BEGIN
+ INHERITED </b></font>Create<font color="#000080">(</font>AOwner<font color="#000080">);
+ </font>Parent <font color="#000080">:= </font>TWinControl<font color="#000080">(</font>AOwner<font color="#000080">);
+ </font>FRgn <font color="#000080">:= </font><font color="#800000">0</font><font color="#000080">;
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>DESTRUCTOR </b></font>TDrawedButton<font color="#000080">.</font>Destroy<font color="#000080">;
+</font><font color="#FF0000"><b>BEGIN
+IF </b></font>FRgn <font color="#000080">&lt;&gt; </font><font color="#800000">0 </font><font color="#FF0000"><b>THEN </b></font>FreeRegion<font color="#000080">;
+</font><font color="#FF0000"><b>INHERITED </b></font>Destroy<font color="#000080">;
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>PROCEDURE </b></font>TDrawedButton<font color="#000080">.</font>SetButtonColor<font color="#000080">(</font>Value<font color="#000080">: </font>TColor<font color="#000080">);
+</font><font color="#FF0000"><b>BEGIN
+  IF </b></font>Value <font color="#000080">&lt;&gt; </font>FButtonColor <font color="#FF0000"><b>THEN
+    BEGIN
+      </b></font>FButtonColor <font color="#000080">:= </font>Value<font color="#000080">;
+      </font>Invalidate<font color="#000080">;
+    </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>PROCEDURE </b></font>TDrawedButton<font color="#000080">.</font>FreeRegion<font color="#000080">;
+</font><font color="#FF0000"><b>BEGIN
+  IF </b></font>FRgn <font color="#000080">&lt;&gt; </font><font color="#800000">0 </font><font color="#FF0000"><b>THEN
+    </b></font>DeleteObject<font color="#000080">(</font>FRgn<font color="#000080">);
+  </font>FRgn <font color="#000080">:= </font><font color="#800000">0</font><font color="#000080">;
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>PROCEDURE </b></font>TDrawedButton<font color="#000080">.</font>MoveButton<font color="#000080">;
+</font><font color="#FF0000"><b>BEGIN
+END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>PROCEDURE </b></font>TDrawedButton<font color="#000080">.</font>WMLButtonDown<font color="#000080">(</font><font color="#FF0000"><b>VAR Message</b></font><font color="#000080">: </font>TWMLButtonDown<font color="#000080">);
+</font><font color="#FF0000"><b>BEGIN
+  </b></font><font color="#008000"><i>{ if mouse is clicked on the button make it appear sunken }
+  </i></font><font color="#FF0000"><b>IF NOT </b></font>PtInRegion<font color="#000080">(</font>FRgn<font color="#000080">, </font><font color="#FF0000"><b>Message</b></font><font color="#000080">.</font>XPos<font color="#000080">, </font><font color="#FF0000"><b>Message</b></font><font color="#000080">.</font>YPos<font color="#000080">) </font><font color="#FF0000"><b>THEN
+  BEGIN
+     </b></font>SendMessage<font color="#000080">(</font>Parent<font color="#000080">.</font>Handle<font color="#000080">,</font>WM_LBUTTONDOWN<font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">);
+  </font><font color="#FF0000"><b>END
+ ELSE
+  BEGIN
+   </b></font>FButtonDown <font color="#000080">:= </font>True<font color="#000080">;
+   </font>MoveButton<font color="#000080">;
+   </font><font color="#FF0000"><b>INHERITED</b></font><font color="#000080">;
+  </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>PROCEDURE </b></font>TDrawedButton<font color="#000080">.</font>WMLButtonUp<font color="#000080">(</font><font color="#FF0000"><b>VAR Message</b></font><font color="#000080">: </font>TWMLButtonUp<font color="#000080">);
+</font><font color="#FF0000"><b>BEGIN
+  </b></font><font color="#008000"><i>{ if button is down and mouse is released then
+    make the button appear raised }
+  </i></font><font color="#FF0000"><b>IF NOT </b></font>FButtonDown <font color="#FF0000"><b>THEN
+  BEGIN
+   </b></font>SendMessage<font color="#000080">(</font>Parent<font color="#000080">.</font>Handle<font color="#000080">,</font>WM_LButtonUp<font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">);
+  </font><font color="#FF0000"><b>END
+  ELSE
+  BEGIN
+   </b></font>FButtonDown <font color="#000080">:= </font>False<font color="#000080">;
+   </font>MoveButton<font color="#000080">;
+   </font><font color="#FF0000"><b>IF NOT </b></font>PtInRegion<font color="#000080">(</font>FRgn<font color="#000080">, </font><font color="#FF0000"><b>Message</b></font><font color="#000080">.</font>XPos<font color="#000080">, </font><font color="#FF0000"><b>Message</b></font><font color="#000080">.</font>YPos<font color="#000080">) </font><font color="#FF0000"><b>THEN
+      </b></font>Cursor<font color="#000080">:=</font>Parent<font color="#000080">.</font>Cursor<font color="#000080">;
+   </font><font color="#FF0000"><b>INHERITED</b></font><font color="#000080">;
+  </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>PROCEDURE </b></font>TDrawedButton<font color="#000080">.</font>SetInnerCursor<font color="#000080">(</font>Value<font color="#000080">: </font>TCursor<font color="#000080">);
+</font><font color="#FF0000"><b>BEGIN
+  IF </b></font>Value <font color="#000080">&lt;&gt; </font>FInnerCursor <font color="#FF0000"><b>THEN
+    BEGIN
+      </b></font>FInnerCursor <font color="#000080">:= </font>Value<font color="#000080">;
+    </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>PROCEDURE </b></font>TDrawedButton<font color="#000080">.</font>WMMouseMove<font color="#000080">(</font><font color="#FF0000"><b>VAR Message</b></font><font color="#000080">: </font>TWMMouseMove<font color="#000080">);
+</font><font color="#FF0000"><b>BEGIN
+ </b></font><font color="#008000"><i>{mouse move reaction only on the buttonimage}
+</i></font><font color="#FF0000"><b>IF NOT </b></font>FButtonDown <font color="#FF0000"><b>THEN
+ IF </b></font>PtInRegion<font color="#000080">(</font>FRgn<font color="#000080">, </font><font color="#FF0000"><b>Message</b></font><font color="#000080">.</font>Xpos<font color="#000080">, </font><font color="#FF0000"><b>Message</b></font><font color="#000080">.</font>Ypos<font color="#000080">) </font><font color="#FF0000"><b>THEN
+  BEGIN
+  </b></font><font color="#008000"><i>{set the cursor to the one defined for buttonimage}
+   </i></font>Cursor<font color="#000080">:=</font>FInnerCursor<font color="#000080">;
+   </font><font color="#FF0000"><b>INHERITED
+  END
+ ELSE
+  BEGIN
+  </b></font><font color="#008000"><i>{set the cursor to the one defined for Parent of button}
+   </i></font>Cursor<font color="#000080">:=</font>Parent<font color="#000080">.</font>Cursor<font color="#000080">;
+   </font>SendMessage<font color="#000080">(</font>Parent<font color="#000080">.</font>Handle<font color="#000080">,</font>WM_MouseMove<font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">);
+  </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>PROCEDURE </b></font>TDrawedButton<font color="#000080">.</font>WMRButtonDown<font color="#000080">(</font><font color="#FF0000"><b>VAR Message</b></font><font color="#000080">: </font>TWMRButtonDown<font color="#000080">);
+</font><font color="#FF0000"><b>BEGIN
+  </b></font><font color="#008000"><i>{ if mouse is clicked by right on the button make it appear sunken }
+  </i></font><font color="#FF0000"><b>IF NOT </b></font>PtInRegion<font color="#000080">(</font>FRgn<font color="#000080">, </font><font color="#FF0000"><b>Message</b></font><font color="#000080">.</font>XPos<font color="#000080">, </font><font color="#FF0000"><b>Message</b></font><font color="#000080">.</font>YPos<font color="#000080">) </font><font color="#FF0000"><b>THEN
+   </b></font>SendMessage<font color="#000080">(</font>Parent<font color="#000080">.</font>Handle<font color="#000080">,</font>WM_RButtonDown<font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">)
+   </font><font color="#FF0000"><b>ELSE
+  INHERITED</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>PROCEDURE </b></font>TDrawedButton<font color="#000080">.</font>WMMButtonDown<font color="#000080">(</font><font color="#FF0000"><b>VAR Message</b></font><font color="#000080">: </font>TWMMButtonDown<font color="#000080">);
+</font><font color="#FF0000"><b>BEGIN
+  </b></font><font color="#008000"><i>{ if mouse is clicked by middle on the button make it appear sunken }
+  </i></font><font color="#FF0000"><b>IF NOT </b></font>PtInRegion<font color="#000080">(</font>FRgn<font color="#000080">, </font><font color="#FF0000"><b>Message</b></font><font color="#000080">.</font>XPos<font color="#000080">, </font><font color="#FF0000"><b>Message</b></font><font color="#000080">.</font>YPos<font color="#000080">) </font><font color="#FF0000"><b>THEN
+   </b></font>SendMessage<font color="#000080">(</font>Parent<font color="#000080">.</font>Handle<font color="#000080">,</font>WM_MButtonDown<font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">)
+  </font><font color="#FF0000"><b>ELSE
+  INHERITED</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>CONSTRUCTOR </b></font>TNArrowButton<font color="#000080">.</font>Create<font color="#000080">(</font>AOwner<font color="#000080">: </font>TComponent<font color="#000080">);
+</font><font color="#FF0000"><b>BEGIN
+  INHERITED </b></font>Create<font color="#000080">(</font>AOwner<font color="#000080">);
+  </font>Parent <font color="#000080">:= </font>TWinControl<font color="#000080">(</font>AOwner<font color="#000080">);
+  </font>ControlStyle <font color="#000080">:= [</font>CsClickEvents<font color="#000080">, </font>CsCaptureMouse<font color="#000080">];
+  </font>Width <font color="#000080">:= </font><font color="#800000">33</font><font color="#000080">;
+  </font>Height <font color="#000080">:= </font><font color="#800000">33</font><font color="#000080">;
+  </font>FDirection <font color="#000080">:= </font>ArwDown<font color="#000080">;
+  </font>FButtonColor <font color="#000080">:= </font>ClBlue<font color="#000080">;
+  </font>FRgn <font color="#000080">:= </font><font color="#800000">0</font><font color="#000080">;
+  </font>FButtonDown <font color="#000080">:= </font>False<font color="#000080">;
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>DESTRUCTOR </b></font>TNArrowButton<font color="#000080">.</font>Destroy<font color="#000080">;
+</font><font color="#FF0000"><b>BEGIN
+  IF </b></font>FRgn <font color="#000080">&lt;&gt; </font><font color="#800000">0 </font><font color="#FF0000"><b>THEN
+    </b></font>FreeRegion<font color="#000080">;
+  </font><font color="#FF0000"><b>INHERITED </b></font>Destroy<font color="#000080">;
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>PROCEDURE </b></font>TNArrowButton<font color="#000080">.</font>Paint<font color="#000080">;
+</font><font color="#FF0000"><b>BEGIN
+  INHERITED </b></font>Paint<font color="#000080">;
+  </font>FreeRegion<font color="#000080">;
+  </font><font color="#FF0000"><b>CASE </b></font>FDirection <font color="#FF0000"><b>OF
+    </b></font>ArwUP<font color="#000080">: </font>DrawUpArrow<font color="#000080">;
+    </font>ArwRIGHT<font color="#000080">: </font>DrawRightArrow<font color="#000080">;
+    </font>ArwDOWN<font color="#000080">: </font>DrawDownArrow<font color="#000080">;
+    </font>ArwLEFT<font color="#000080">: </font>DrawLeftArrow<font color="#000080">;
+  </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>PROCEDURE </b></font>TNArrowButton<font color="#000080">.</font>DrawUpArrow<font color="#000080">;
+</font><font color="#FF0000"><b>BEGIN
+  </b></font>Canvas<font color="#000080">.</font>Brush<font color="#000080">.</font>Color <font color="#000080">:= </font>ClBlack<font color="#000080">;
+  </font>Canvas<font color="#000080">.</font>Pen<font color="#000080">.</font>Color <font color="#000080">:= </font>ClBlack<font color="#000080">;
+  </font><font color="#008000"><i>{ create border region for button }
+  </i></font>FPnts<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">] := </font>Point<font color="#000080">(</font>Width <font color="#FF0000"><b>DIV </b></font><font color="#800000">2</font><font color="#000080">, </font>S_OFFSET<font color="#000080">);
+  </font>FPnts<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">] := </font>Point<font color="#000080">(</font>Width <font color="#000080">- </font>S_OFFSET<font color="#000080">, </font>Height <font color="#000080">- </font>S_OFFSET<font color="#000080">);
+  </font>FPnts<font color="#000080">[</font><font color="#800000">3</font><font color="#000080">] := </font>Point<font color="#000080">(</font>S_OFFSET<font color="#000080">, </font>Height <font color="#000080">- </font>S_OFFSET<font color="#000080">);
+  </font><font color="#008000"><i>{ save region to capture mouse clicks }
+  </i></font>FRgn <font color="#000080">:= </font>CreatePolygonRgn<font color="#000080">(</font>FPnts<font color="#000080">, </font><font color="#800000">3</font><font color="#000080">, </font>ALTERNATE<font color="#000080">);
+  </font><font color="#008000"><i>{ draw black border around button }
+  </i></font>FrameRgn<font color="#000080">(</font>Canvas<font color="#000080">.</font>Handle<font color="#000080">, </font>FRgn<font color="#000080">, </font>Canvas<font color="#000080">.</font>Brush<font color="#000080">.</font>Handle<font color="#000080">, </font><font color="#800000">2</font><font color="#000080">, </font><font color="#800000">2</font><font color="#000080">);
+  </font><font color="#008000"><i>{ create region within black border for button }
+  </i></font>Inc<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">].</font>Y<font color="#000080">, </font><font color="#800000">3</font><font color="#000080">);
+  </font>Dec<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">].</font>X<font color="#000080">, </font><font color="#800000">4</font><font color="#000080">);
+  </font>Dec<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">].</font>Y<font color="#000080">, </font><font color="#800000">2</font><font color="#000080">);
+  </font>Inc<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">3</font><font color="#000080">].</font>X<font color="#000080">, </font><font color="#800000">3</font><font color="#000080">);
+  </font>Dec<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">3</font><font color="#000080">].</font>Y<font color="#000080">, </font><font color="#800000">2</font><font color="#000080">);
+  </font>Canvas<font color="#000080">.</font>Brush<font color="#000080">.</font>Color <font color="#000080">:= </font>FButtonColor<font color="#000080">;
+  </font><font color="#008000"><i>{ draw button }
+  </i></font>Canvas<font color="#000080">.</font>Polygon<font color="#000080">(</font>FPnts<font color="#000080">);
+  </font>MoveButton<font color="#000080">;
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>PROCEDURE </b></font>TNArrowButton<font color="#000080">.</font>DrawRightArrow<font color="#000080">;
+</font><font color="#FF0000"><b>BEGIN
+  </b></font>Canvas<font color="#000080">.</font>Brush<font color="#000080">.</font>Color <font color="#000080">:= </font>ClBlack<font color="#000080">;
+  </font>Canvas<font color="#000080">.</font>Pen<font color="#000080">.</font>Color <font color="#000080">:= </font>ClBlack<font color="#000080">;
+  </font>FPnts<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">] := </font>Point<font color="#000080">(</font>S_OFFSET<font color="#000080">, </font>S_OFFSET<font color="#000080">);
+  </font>FPnts<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">] := </font>Point<font color="#000080">(</font>Width <font color="#000080">- </font>S_OFFSET<font color="#000080">, </font>Height <font color="#FF0000"><b>DIV </b></font><font color="#800000">2</font><font color="#000080">);
+  </font>FPnts<font color="#000080">[</font><font color="#800000">3</font><font color="#000080">] := </font>Point<font color="#000080">(</font>S_OFFSET<font color="#000080">, </font>Height <font color="#000080">- </font>S_OFFSET<font color="#000080">);
+  </font>FRgn <font color="#000080">:= </font>CreatePolygonRgn<font color="#000080">(</font>FPnts<font color="#000080">, </font><font color="#800000">3</font><font color="#000080">, </font>ALTERNATE<font color="#000080">);
+  </font>FrameRgn<font color="#000080">(</font>Canvas<font color="#000080">.</font>Handle<font color="#000080">, </font>FRgn<font color="#000080">, </font>Canvas<font color="#000080">.</font>Brush<font color="#000080">.</font>Handle<font color="#000080">, </font><font color="#800000">2</font><font color="#000080">, </font><font color="#800000">2</font><font color="#000080">);
+  </font>Inc<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">].</font>X<font color="#000080">, </font><font color="#800000">2</font><font color="#000080">);
+  </font>Inc<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">].</font>Y<font color="#000080">, </font><font color="#800000">3</font><font color="#000080">);
+  </font>Dec<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">].</font>X<font color="#000080">, </font><font color="#800000">3</font><font color="#000080">);
+  </font>Inc<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">3</font><font color="#000080">].</font>X<font color="#000080">, </font><font color="#800000">2</font><font color="#000080">);
+  </font>Dec<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">3</font><font color="#000080">].</font>Y<font color="#000080">, </font><font color="#800000">3</font><font color="#000080">);
+  </font>Canvas<font color="#000080">.</font>Brush<font color="#000080">.</font>Color <font color="#000080">:= </font>FButtonColor<font color="#000080">;
+  </font>Canvas<font color="#000080">.</font>Polygon<font color="#000080">(</font>FPnts<font color="#000080">);
+  </font>MoveButton<font color="#000080">;
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>PROCEDURE </b></font>TNArrowButton<font color="#000080">.</font>DrawDownArrow<font color="#000080">;
+</font><font color="#FF0000"><b>BEGIN
+  </b></font>Canvas<font color="#000080">.</font>Brush<font color="#000080">.</font>Color <font color="#000080">:= </font>ClBlack<font color="#000080">;
+  </font>Canvas<font color="#000080">.</font>Pen<font color="#000080">.</font>Color <font color="#000080">:= </font>ClBlack<font color="#000080">;
+  </font>FPnts<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">] := </font>Point<font color="#000080">(</font>Width <font color="#000080">- </font>S_OFFSET<font color="#000080">, </font>S_OFFSET<font color="#000080">);
+  </font>FPnts<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">] := </font>Point<font color="#000080">(</font>Width <font color="#FF0000"><b>DIV </b></font><font color="#800000">2</font><font color="#000080">, </font>Height <font color="#000080">- </font>S_OFFSET<font color="#000080">);
+  </font>FPnts<font color="#000080">[</font><font color="#800000">3</font><font color="#000080">] := </font>Point<font color="#000080">(</font>S_OFFSET<font color="#000080">, </font>S_OFFSET<font color="#000080">);
+  </font>FRgn <font color="#000080">:= </font>CreatePolygonRgn<font color="#000080">(</font>FPnts<font color="#000080">, </font><font color="#800000">3</font><font color="#000080">, </font>ALTERNATE<font color="#000080">);
+  </font>FrameRgn<font color="#000080">(</font>Canvas<font color="#000080">.</font>Handle<font color="#000080">, </font>FRgn<font color="#000080">, </font>Canvas<font color="#000080">.</font>Brush<font color="#000080">.</font>Handle<font color="#000080">, </font><font color="#800000">2</font><font color="#000080">, </font><font color="#800000">2</font><font color="#000080">);
+  </font>Dec<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">].</font>X<font color="#000080">, </font><font color="#800000">3</font><font color="#000080">);
+  </font>Inc<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">].</font>Y<font color="#000080">, </font><font color="#800000">2</font><font color="#000080">);
+  </font>Dec<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">].</font>Y<font color="#000080">, </font><font color="#800000">3</font><font color="#000080">);
+  </font>Inc<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">3</font><font color="#000080">].</font>X<font color="#000080">, </font><font color="#800000">2</font><font color="#000080">);
+  </font>Inc<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">3</font><font color="#000080">].</font>Y<font color="#000080">, </font><font color="#800000">2</font><font color="#000080">);
+  </font>Canvas<font color="#000080">.</font>Brush<font color="#000080">.</font>Color <font color="#000080">:= </font>FButtonColor<font color="#000080">;
+  </font>Canvas<font color="#000080">.</font>Polygon<font color="#000080">(</font>FPnts<font color="#000080">);
+  </font>MoveButton<font color="#000080">;
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>PROCEDURE </b></font>TNArrowButton<font color="#000080">.</font>DrawLeftArrow<font color="#000080">;
+</font><font color="#FF0000"><b>BEGIN
+  </b></font>Canvas<font color="#000080">.</font>Brush<font color="#000080">.</font>Color <font color="#000080">:= </font>ClBlack<font color="#000080">;
+  </font>Canvas<font color="#000080">.</font>Pen<font color="#000080">.</font>Color <font color="#000080">:= </font>ClBlack<font color="#000080">;
+  </font>FPnts<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">] := </font>Point<font color="#000080">(</font>Width <font color="#000080">- </font>S_OFFSET<font color="#000080">, </font>S_OFFSET<font color="#000080">);
+  </font>FPnts<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">] := </font>Point<font color="#000080">(</font>Width <font color="#000080">- </font>S_OFFSET<font color="#000080">, </font>Height <font color="#000080">- </font>S_OFFSET<font color="#000080">);
+  </font>FPnts<font color="#000080">[</font><font color="#800000">3</font><font color="#000080">] := </font>Point<font color="#000080">(</font>S_OFFSET<font color="#000080">, </font>Height <font color="#FF0000"><b>DIV </b></font><font color="#800000">2</font><font color="#000080">);
+  </font>FRgn <font color="#000080">:= </font>CreatePolygonRgn<font color="#000080">(</font>FPnts<font color="#000080">, </font><font color="#800000">3</font><font color="#000080">, </font>ALTERNATE<font color="#000080">);
+  </font>FrameRgn<font color="#000080">(</font>Canvas<font color="#000080">.</font>Handle<font color="#000080">, </font>FRgn<font color="#000080">, </font>Canvas<font color="#000080">.</font>Brush<font color="#000080">.</font>Handle<font color="#000080">, </font><font color="#800000">2</font><font color="#000080">, </font><font color="#800000">2</font><font color="#000080">);
+  </font>Dec<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">].</font>X<font color="#000080">, </font><font color="#800000">2</font><font color="#000080">);
+  </font>Inc<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">].</font>Y<font color="#000080">, </font><font color="#800000">3</font><font color="#000080">);
+  </font>Dec<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">].</font>X<font color="#000080">, </font><font color="#800000">2</font><font color="#000080">);
+  </font>Dec<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">].</font>Y<font color="#000080">, </font><font color="#800000">2</font><font color="#000080">);
+  </font>Inc<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">3</font><font color="#000080">].</font>X<font color="#000080">, </font><font color="#800000">3</font><font color="#000080">);
+  </font>Canvas<font color="#000080">.</font>Brush<font color="#000080">.</font>Color <font color="#000080">:= </font>FButtonColor<font color="#000080">;
+  </font>Canvas<font color="#000080">.</font>Polygon<font color="#000080">(</font>FPnts<font color="#000080">);
+  </font>MoveButton<font color="#000080">;
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>PROCEDURE </b></font>TNArrowButton<font color="#000080">.</font>MoveButton<font color="#000080">;
+</font><font color="#FF0000"><b>BEGIN
+  INHERITED </b></font>MoveButton<font color="#000080">;
+  </font><font color="#FF0000"><b>IF NOT </b></font>FButtonDown <font color="#FF0000"><b>THEN  </b></font><font color="#008000"><i>{ button is in up position }
+    </i></font><font color="#FF0000"><b>WITH </b></font>Canvas <font color="#FF0000"><b>DO
+      BEGIN
+        </b></font><font color="#008000"><i>{ draw lines around button for raised look }
+        </i></font>Pen<font color="#000080">.</font>Color <font color="#000080">:= </font>ClBlack<font color="#000080">;
+        </font>MoveTo<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">].</font>X<font color="#000080">, </font>FPnts<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">].</font>Y<font color="#000080">);
+        </font>LineTo<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">].</font>X<font color="#000080">, </font>FPnts<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">].</font>Y<font color="#000080">);
+        </font>MoveTo<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">].</font>X<font color="#000080">, </font>FPnts<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">].</font>Y<font color="#000080">);
+        </font>LineTo<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">3</font><font color="#000080">].</font>X<font color="#000080">, </font>FPnts<font color="#000080">[</font><font color="#800000">3</font><font color="#000080">].</font>Y<font color="#000080">);
+        </font>Pen<font color="#000080">.</font>Color <font color="#000080">:= </font>ClWhite<font color="#000080">;
+        </font>MoveTo<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">].</font>X<font color="#000080">, </font>FPnts<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">].</font>Y<font color="#000080">);
+        </font>LineTo<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">3</font><font color="#000080">].</font>X<font color="#000080">, </font>FPnts<font color="#000080">[</font><font color="#800000">3</font><font color="#000080">].</font>Y<font color="#000080">);
+      </font><font color="#FF0000"><b>END
+  ELSE  </b></font><font color="#008000"><i>{ button is in down position }
+    </i></font><font color="#FF0000"><b>WITH </b></font>Canvas <font color="#FF0000"><b>DO
+      BEGIN
+        </b></font><font color="#008000"><i>{ draw lines around button for sunken look }
+        </i></font>Pen<font color="#000080">.</font>Color <font color="#000080">:= </font>ClBlack<font color="#000080">;
+        </font>MoveTo<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">].</font>X<font color="#000080">, </font>FPnts<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">].</font>Y<font color="#000080">);
+        </font>LineTo<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">3</font><font color="#000080">].</font>X<font color="#000080">, </font>FPnts<font color="#000080">[</font><font color="#800000">3</font><font color="#000080">].</font>Y<font color="#000080">);
+        </font>Pen<font color="#000080">.</font>Color <font color="#000080">:= </font>FButtonColor<font color="#000080">;
+        </font>MoveTo<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">].</font>X<font color="#000080">, </font>FPnts<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">].</font>Y<font color="#000080">);
+        </font>LineTo<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">].</font>X<font color="#000080">, </font>FPnts<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">].</font>Y<font color="#000080">);
+        </font>MoveTo<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">].</font>X<font color="#000080">, </font>FPnts<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">].</font>Y<font color="#000080">);
+        </font>LineTo<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">3</font><font color="#000080">].</font>X<font color="#000080">, </font>FPnts<font color="#000080">[</font><font color="#800000">3</font><font color="#000080">].</font>Y<font color="#000080">);
+      </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>PROCEDURE </b></font>TNArrowButton<font color="#000080">.</font>SetDirection<font color="#000080">(</font>Value<font color="#000080">: </font>TButtonDirection<font color="#000080">);
+</font><font color="#FF0000"><b>BEGIN
+  IF </b></font>Value <font color="#000080">&lt;&gt; </font>FDirection <font color="#FF0000"><b>THEN
+    BEGIN
+      </b></font>FDirection <font color="#000080">:= </font>Value<font color="#000080">;
+      </font>Invalidate<font color="#000080">;
+    </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>CONSTRUCTOR </b></font>TCaroButton<font color="#000080">.</font>Create<font color="#000080">(</font>AOwner<font color="#000080">: </font>TComponent<font color="#000080">);
+</font><font color="#FF0000"><b>BEGIN
+  INHERITED </b></font>Create<font color="#000080">(</font>AOwner<font color="#000080">);
+  </font>Parent <font color="#000080">:= </font>TWinControl<font color="#000080">(</font>AOwner<font color="#000080">);
+  </font>ControlStyle <font color="#000080">:= [</font>CsClickEvents<font color="#000080">, </font>CsCaptureMouse<font color="#000080">];
+  </font>Width <font color="#000080">:= </font><font color="#800000">25</font><font color="#000080">;
+  </font>Height <font color="#000080">:= </font><font color="#800000">40</font><font color="#000080">;
+  </font>FButtonColor <font color="#000080">:= </font>ClMaroon<font color="#000080">;
+  </font>FRgn <font color="#000080">:= </font><font color="#800000">0</font><font color="#000080">;
+  </font>FButtonDown <font color="#000080">:= </font>False<font color="#000080">;
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>DESTRUCTOR </b></font>TCaroButton<font color="#000080">.</font>Destroy<font color="#000080">;
+</font><font color="#FF0000"><b>BEGIN
+  IF </b></font>FRgn <font color="#000080">&lt;&gt; </font><font color="#800000">0 </font><font color="#FF0000"><b>THEN
+    </b></font>FreeRegion<font color="#000080">;
+  </font><font color="#FF0000"><b>INHERITED </b></font>Destroy<font color="#000080">;
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>PROCEDURE </b></font>TCaroButton<font color="#000080">.</font>Paint<font color="#000080">;
+</font><font color="#FF0000"><b>BEGIN
+  INHERITED </b></font>Paint<font color="#000080">;
+  </font>FreeRegion<font color="#000080">;
+  </font>DRawCaro<font color="#000080">;
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>PROCEDURE </b></font>TCaroButton<font color="#000080">.</font>DrawCaro<font color="#000080">;
+</font><font color="#FF0000"><b>BEGIN
+  </b></font>Canvas<font color="#000080">.</font>Brush<font color="#000080">.</font>Color <font color="#000080">:= </font>ClBlack<font color="#000080">;
+  </font>Canvas<font color="#000080">.</font>Pen<font color="#000080">.</font>Color <font color="#000080">:= </font>ClBlack<font color="#000080">;
+
+  </font><font color="#008000"><i>{ create border region for button }
+  </i></font>FPnts<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">] := </font>Point<font color="#000080">(</font>Width <font color="#FF0000"><b>DIV </b></font><font color="#800000">2</font><font color="#000080">, </font>S_OFFSET<font color="#000080">);
+  </font>FPnts<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">] := </font>Point<font color="#000080">(</font>Width <font color="#000080">- </font>S_OFFSET<font color="#000080">, </font>Height <font color="#FF0000"><b>DIV </b></font><font color="#800000">2 </font><font color="#000080">);
+  </font>FPnts<font color="#000080">[</font><font color="#800000">3</font><font color="#000080">] := </font>Point<font color="#000080">(</font>Width <font color="#FF0000"><b>DIV </b></font><font color="#800000">2</font><font color="#000080">, </font>Height<font color="#000080">-</font>S_OFFSET<font color="#000080">);
+  </font>FPnts<font color="#000080">[</font><font color="#800000">4</font><font color="#000080">] := </font>Point<font color="#000080">(</font>S_OFFSET<font color="#000080">,</font>Height <font color="#FF0000"><b>DIV </b></font><font color="#800000">2</font><font color="#000080">);
+
+  </font><font color="#008000"><i>{ save region to capture mouse clicks }
+  </i></font>FRgn <font color="#000080">:= </font>CreatePolygonRgn<font color="#000080">(</font>FPnts<font color="#000080">, </font><font color="#800000">4</font><font color="#000080">, </font>ALTERNATE<font color="#000080">);
+
+  </font><font color="#008000"><i>{ draw black border around button }
+  </i></font>FrameRgn<font color="#000080">(</font>Canvas<font color="#000080">.</font>Handle<font color="#000080">, </font>FRgn<font color="#000080">, </font>Canvas<font color="#000080">.</font>Brush<font color="#000080">.</font>Handle<font color="#000080">, </font><font color="#800000">2</font><font color="#000080">, </font><font color="#800000">2</font><font color="#000080">);
+
+  </font><font color="#008000"><i>{ create region within black border for button }
+  </i></font>Inc<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">].</font>Y<font color="#000080">, </font><font color="#800000">3</font><font color="#000080">);
+  </font>Dec<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">].</font>X<font color="#000080">, </font><font color="#800000">3</font><font color="#000080">);
+  </font>Dec<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">3</font><font color="#000080">].</font>X<font color="#000080">, </font><font color="#800000">1</font><font color="#000080">);
+  </font>Dec<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">3</font><font color="#000080">].</font>Y<font color="#000080">, </font><font color="#800000">2</font><font color="#000080">);
+  </font>Inc<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">4</font><font color="#000080">].</font>X<font color="#000080">, </font><font color="#800000">2</font><font color="#000080">);
+  </font>Inc<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">4</font><font color="#000080">].</font>Y<font color="#000080">, </font><font color="#800000">1</font><font color="#000080">);
+  </font>Canvas<font color="#000080">.</font>Brush<font color="#000080">.</font>Color <font color="#000080">:= </font>FButtonColor<font color="#000080">;
+
+  </font><font color="#008000"><i>{ draw button }
+  </i></font>Canvas<font color="#000080">.</font>Polygon<font color="#000080">(</font>FPnts<font color="#000080">);
+  </font>MoveButton<font color="#000080">;
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>PROCEDURE </b></font>TCaroButton<font color="#000080">.</font>MoveButton<font color="#000080">;
+</font><font color="#FF0000"><b>BEGIN
+INHERITED </b></font>MoveButton<font color="#000080">;
+  </font><font color="#FF0000"><b>IF NOT </b></font>FButtonDown <font color="#FF0000"><b>THEN  </b></font><font color="#008000"><i>{ button is in up position }
+    </i></font><font color="#FF0000"><b>WITH </b></font>Canvas <font color="#FF0000"><b>DO
+      BEGIN
+        </b></font><font color="#008000"><i>{ draw lines around button for raised look }
+        </i></font>Pen<font color="#000080">.</font>Color <font color="#000080">:= </font>ClBlack<font color="#000080">;
+        </font>MoveTo<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">].</font>X<font color="#000080">, </font>FPnts<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">].</font>Y<font color="#000080">);
+        </font>LineTo<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">].</font>X<font color="#000080">, </font>FPnts<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">].</font>Y<font color="#000080">);
+        </font>MoveTo<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">].</font>X<font color="#000080">, </font>FPnts<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">].</font>Y<font color="#000080">);
+        </font>LineTo<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">3</font><font color="#000080">].</font>X<font color="#000080">, </font>FPnts<font color="#000080">[</font><font color="#800000">3</font><font color="#000080">].</font>Y<font color="#000080">);
+        </font>Pen<font color="#000080">.</font>Color <font color="#000080">:= </font>ClWhite<font color="#000080">;
+        </font>MoveTo<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">].</font>X<font color="#000080">, </font>FPnts<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">].</font>Y<font color="#000080">);
+        </font>LineTo<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">4</font><font color="#000080">].</font>X<font color="#000080">, </font>FPnts<font color="#000080">[</font><font color="#800000">4</font><font color="#000080">].</font>Y<font color="#000080">);
+      </font><font color="#FF0000"><b>END
+  ELSE  </b></font><font color="#008000"><i>{ button is in down position }
+    </i></font><font color="#FF0000"><b>WITH </b></font>Canvas <font color="#FF0000"><b>DO
+      BEGIN
+        </b></font><font color="#008000"><i>{ draw lines around button for sunken look }
+        </i></font>Pen<font color="#000080">.</font>Color <font color="#000080">:= </font>ClBlack<font color="#000080">;
+        </font>MoveTo<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">].</font>X<font color="#000080">, </font>FPnts<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">].</font>Y<font color="#000080">);
+        </font>LineTo<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">4</font><font color="#000080">].</font>X<font color="#000080">, </font>FPnts<font color="#000080">[</font><font color="#800000">4</font><font color="#000080">].</font>Y<font color="#000080">);
+        </font>Pen<font color="#000080">.</font>Color <font color="#000080">:= </font>FButtonColor<font color="#000080">;
+        </font>MoveTo<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">].</font>X<font color="#000080">, </font>FPnts<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">].</font>Y<font color="#000080">);
+        </font>LineTo<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">].</font>X<font color="#000080">, </font>FPnts<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">].</font>Y<font color="#000080">);
+        </font>MoveTo<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">].</font>X<font color="#000080">, </font>FPnts<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">].</font>Y<font color="#000080">);
+        </font>LineTo<font color="#000080">(</font>FPnts<font color="#000080">[</font><font color="#800000">3</font><font color="#000080">].</font>X<font color="#000080">, </font>FPnts<font color="#000080">[</font><font color="#800000">3</font><font color="#000080">].</font>Y<font color="#000080">);
+      </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>PROCEDURE Register</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>BEGIN
+ </b></font>RegisterComponents<font color="#000080">(</font><font color="#800000">'MyComps'</font><font color="#000080">, [</font>TNArrowButton<font color="#000080">]);
+ </font>RegisterComponents<font color="#000080">(</font><font color="#800000">'MyComps'</font><font color="#000080">, [</font>TCaroButton<font color="#000080">]);
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">.
+
+</font><font color="#008000"><i>{{ ------------------------- snip, snip ----------------------------}
+
+ENCODED DRAWNBTN.ZIP FILE REMOVED.  PLEASE <A HREF="0333.DRAWNBTN.ZIP">DOWNLOAD</A> EITHER THE 
+ATTACHMENT OR THE COMPLETE ZIP FILE.
+</i>
+</font>
+</code></pre><!--EndFragment--><p align="center"><b>[</b><a href="index.html">Back to DELPHI SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0333.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0333.DRAWNBTN.ZIP">Attachment</a><b>]</b>
+</p></body>
+</html>

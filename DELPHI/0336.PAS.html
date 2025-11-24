@@ -1,0 +1,342 @@
+<html>
+<head><title> "An interface to the IDE's text buffer" by MARTIN WALDENBURG</title><link rel="STYLESHEET" type="text/css" href="../swagsource.css"></head>
+<body><p align="center">
+<b>[</b><a href="index.html">Back to DELPHI SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0336.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0336.MWIDEEXP.ZIP">Attachment</a><b>]</b>
+</p><!--StartFragment--><pre><code><font color="#008000"><i>{+--------------------------------------------------------------------------+
+ | Class:       TIDEStream
+ | Created:     8.97
+ | Author:      Martin Waldenburg
+ | Copyright    1997, all rights reserved.
+ | Description: A simple and effective interface to the IDE's text buffer
+ | Version:     1.0
+ | Status:      FreeWare
+ | Disclaimer:
+ | This is provided as is, expressly without a warranty of any kind.
+ | You use it at your own risc.
+ +--------------------------------------------------------------------------+}
+</i></font><font color="#FF0000"><b>unit </b></font>mwIDEStream<font color="#000080">;  </font><font color="#008000"><i>{ demo program below !! }
+
+</i></font><font color="#FF0000"><b>interface
+
+uses
+  </b></font>Windows<font color="#000080">, 
+  </font>SysUtils<font color="#000080">, 
+  </font>Messages<font color="#000080">, 
+  </font>Classes<font color="#000080">,
+  </font>ToolIntf<font color="#000080">,
+  </font>EditIntf<font color="#000080">,
+  </font>ExptIntf<font color="#000080">;
+
+</font><font color="#FF0000"><b>type
+  </b></font>TIDEStream <font color="#000080">= </font><font color="#FF0000"><b>class</b></font><font color="#000080">(</font>TMemoryStream<font color="#000080">)
+  </font><font color="#FF0000"><b>private
+    </b></font>fStreamTextLen<font color="#000080">:</font>Longint<font color="#000080">;
+    </font><font color="#FF0000"><b>function </b></font>GetAsPChar<font color="#000080">:</font>PChar<font color="#000080">;
+  </font><font color="#FF0000"><b>protected
+  public
+    constructor </b></font>Create<font color="#000080">;
+    </font><font color="#FF0000"><b>destructor </b></font>Destroy<font color="#000080">; </font><font color="#FF0000"><b>override</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>procedure </b></font>WriteText<font color="#000080">(</font>Text<font color="#000080">: </font>PChar<font color="#000080">);
+    </font><font color="#FF0000"><b>property </b></font>Capacity<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>AsPChar<font color="#000080">:</font>PChar <font color="#FF0000"><b>read </b></font>GetAsPChar<font color="#000080">;
+    </font><font color="#FF0000"><b>function </b></font>GetText<font color="#000080">:</font>PChar<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>StreamTextLen<font color="#000080">:</font>Longint <font color="#FF0000"><b>read </b></font>fStreamTextLen<font color="#000080">;
+  </font><font color="#FF0000"><b>published
+  end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>var
+  </b></font>fToolServices <font color="#000080">: </font>TIToolServices<font color="#000080">;
+  </font>fModuleInterface<font color="#000080">: </font>TIModuleInterface<font color="#000080">;
+  </font>fEditorInterface<font color="#000080">: </font>TIEditorInterface<font color="#000080">;
+  </font>ActualReader<font color="#000080">: </font>TIEditReader<font color="#000080">;
+  </font>ActualWriter<font color="#000080">: </font>TIEditWriter<font color="#000080">;
+
+</font><font color="#FF0000"><b>implementation
+
+function </b></font>GetProjectName<font color="#000080">: </font><font color="#FF0000"><b>String</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>Result<font color="#000080">:= </font>fToolServices<font color="#000080">.</font>GetProjectName<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;  </font><font color="#008000"><i>{ GetProjectName }
+
+</i></font><font color="#FF0000"><b>function </b></font>GetCurrentFile<font color="#000080">: </font><font color="#FF0000"><b>String</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>Result<font color="#000080">:= </font>fToolServices<font color="#000080">.</font>GetCurrentFile<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;   </font><font color="#008000"><i>{ GetCurrentFile }
+
+</i></font><font color="#FF0000"><b>function </b></font>GetToolServieces<font color="#000080">:</font>TIToolServices<font color="#000080">;
+</font><font color="#FF0000"><b>var
+  </b></font>FileExt<font color="#000080">: </font><font color="#FF0000"><b>String</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>fToolServices<font color="#000080">:= </font>ExptIntf<font color="#000080">.</font>ToolServices<font color="#000080">;
+ </font><font color="#FF0000"><b>if </b></font>GetProjectName <font color="#000080">= </font><font color="#800000">'' </font><font color="#FF0000"><b>then raise </b></font>exception<font color="#000080">.</font>create<font color="#000080">(</font><font color="#800000">'Sorry, a project must be open'</font><font color="#000080">);
+   </font>FileExt<font color="#000080">:= </font>ExtractFileExt<font color="#000080">(</font>GetCurrentFile<font color="#000080">);
+  </font><font color="#FF0000"><b>if </b></font>FileExt <font color="#000080">= </font><font color="#800000">'.dfm' </font><font color="#FF0000"><b>then raise </b></font>exception<font color="#000080">.</font>create<font color="#000080">(</font><font color="#800000">'Sorry, must be a PAS or DPR file'</font><font color="#000080">);
+
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;  </font><font color="#008000"><i>{ GetToolServieces }
+
+</i></font><font color="#FF0000"><b>procedure </b></font>GetEditReader<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>GetToolServieces<font color="#000080">;
+  </font>fModuleInterface<font color="#000080">:= </font>fToolServices<font color="#000080">.</font>GetModuleInterface<font color="#000080">(</font>GetCurrentFile<font color="#000080">);
+  </font>fEditorInterface<font color="#000080">:= </font>fModuleInterface<font color="#000080">.</font>GetEditorInterface<font color="#000080">;
+  </font>ActualReader<font color="#000080">:= </font>fEditorInterface<font color="#000080">.</font>CreateReader<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;  </font><font color="#008000"><i>{ GetEditReader }
+
+</i></font><font color="#FF0000"><b>procedure </b></font>GetEditWriter<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>GetToolServieces<font color="#000080">;
+  </font>fModuleInterface<font color="#000080">:= </font>fToolServices<font color="#000080">.</font>GetModuleInterface<font color="#000080">(</font>GetCurrentFile<font color="#000080">);
+  </font>fEditorInterface<font color="#000080">:= </font>fModuleInterface<font color="#000080">.</font>GetEditorInterface<font color="#000080">;
+  </font>ActualWriter<font color="#000080">:= </font>fEditorInterface<font color="#000080">.</font>CreateWriter<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;  </font><font color="#008000"><i>{ GetEditWriter }
+
+</i></font><font color="#FF0000"><b>procedure </b></font>FreeEditReader<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>ActualReader<font color="#000080">.</font>Free<font color="#000080">;
+  </font>fEditorInterface<font color="#000080">.</font>Free<font color="#000080">;
+  </font>fModuleInterface<font color="#000080">.</font>Free<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;  </font><font color="#008000"><i>{ GetEditorInterface }
+
+</i></font><font color="#FF0000"><b>procedure </b></font>FreeEditWriter<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>ActualWriter<font color="#000080">.</font>Free<font color="#000080">;
+  </font>fEditorInterface<font color="#000080">.</font>Free<font color="#000080">;
+  </font>fModuleInterface<font color="#000080">.</font>Free<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;  </font><font color="#008000"><i>{ GetEditorInterface }
+
+</i></font><font color="#FF0000"><b>destructor </b></font>TIDEStream<font color="#000080">.</font>Destroy<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  inherited </b></font>Destroy<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;  </font><font color="#008000"><i>{ Destroy }
+
+</i></font><font color="#FF0000"><b>constructor </b></font>TIDEStream<font color="#000080">.</font>Create<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  inherited </b></font>Create<font color="#000080">;
+  </font>fStreamTextLen<font color="#000080">:= </font><font color="#800000">0</font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;  </font><font color="#008000"><i>{ Create }
+
+</i></font><font color="#FF0000"><b>function </b></font>TIDEStream<font color="#000080">.</font>GetAsPChar<font color="#000080">:</font>PChar<font color="#000080">;
+</font><font color="#FF0000"><b>const
+  </b></font>TheEnd<font color="#000080">: </font>Char <font color="#000080">= </font><font color="#800000">#0</font><font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>Position<font color="#000080">:= </font>Size<font color="#000080">;
+  </font>Write<font color="#000080">(</font>TheEnd<font color="#000080">, </font><font color="#800000">1</font><font color="#000080">);
+  </font>SetPointer<font color="#000080">(</font>Memory<font color="#000080">, </font>Size <font color="#000080">-</font><font color="#800000">1</font><font color="#000080">);
+  </font>Result<font color="#000080">:= </font>Memory<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;  </font><font color="#008000"><i>{ GetAsPChar }
+
+</i></font><font color="#FF0000"><b>function </b></font>TIDEStream<font color="#000080">.</font>GetText<font color="#000080">:</font>PChar<font color="#000080">;
+</font><font color="#FF0000"><b>const
+  </b></font>BuffLen <font color="#000080">= </font><font color="#800000">16383</font><font color="#000080">;
+</font><font color="#FF0000"><b>var
+  </b></font>TextBuffer<font color="#000080">: </font>PChar<font color="#000080">;
+  </font>Readed<font color="#000080">, </font>BuffPos<font color="#000080">: </font>LongInt<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>Clear<font color="#000080">;
+  </font>GetMem<font color="#000080">(</font>TextBuffer<font color="#000080">, </font>BuffLen <font color="#000080">+</font><font color="#800000">1</font><font color="#000080">);
+  </font>BuffPos<font color="#000080">:= </font><font color="#800000">0</font><font color="#000080">;
+  </font>GetEditReader<font color="#000080">;
+  </font><font color="#FF0000"><b>try
+    repeat
+      </b></font>Readed<font color="#000080">:= </font>ActualReader<font color="#000080">.</font>GetText<font color="#000080">(</font>BuffPos<font color="#000080">, </font>TextBuffer<font color="#000080">, </font>Bufflen<font color="#000080">);
+      </font>Write<font color="#000080">(</font>TextBuffer<font color="#000080">^, </font>Readed<font color="#000080">);
+      </font>inc<font color="#000080">(</font>BuffPos<font color="#000080">, </font>Readed<font color="#000080">);
+    </font><font color="#FF0000"><b>until </b></font>Readed <font color="#000080">&lt; </font>BuffLen<font color="#000080">;
+  </font><font color="#FF0000"><b>finally
+  </b></font>FreeEditReader<font color="#000080">;
+  </font>FreeMem<font color="#000080">(</font>TextBuffer<font color="#000080">, </font>BuffLen <font color="#000080">+</font><font color="#800000">1</font><font color="#000080">);
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+  </font>fStreamTextLen<font color="#000080">:= </font>Size<font color="#000080">;
+  </font>Result<font color="#000080">:= </font>AsPchar<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TIDEStream<font color="#000080">.</font>WriteText<font color="#000080">(</font>Text<font color="#000080">: </font>PChar<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+  </b></font>GetEditWriter<font color="#000080">;
+  </font><font color="#FF0000"><b>try
+    </b></font>ActualWriter<font color="#000080">.</font>CopyTo<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">);
+    </font>ActualWriter<font color="#000080">.</font>DeleteTo<font color="#000080">(</font>fStreamTextLen <font color="#000080">-</font><font color="#800000">1</font><font color="#000080">);
+    </font>ActualWriter<font color="#000080">.</font>Insert<font color="#000080">(</font>Text<font color="#000080">);
+  </font><font color="#FF0000"><b>finally
+    </b></font>FreeEditWriter<font color="#000080">;
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">.
+
+</font><font color="#FF0000"><b>unit </b></font>mwIDEExpert<font color="#000080">;
+</font><font color="#008000"><i>{+--------------------------------------------------------------------------+
+ | Unit:        mwIDEExpert
+ | Created:     8.97
+ | Author:      Martin Waldenburg
+ | Copyright    1997, all rights reserved.
+ | Description: A simple demo for TIDEStream
+ | Version:     1.0
+ | Status:      FreeWare
+ | Disclaimer:
+ | This is provided as is, expressly without a warranty of any kind.
+ | You use it at your own risc.
+ +--------------------------------------------------------------------------+}
+
+</i></font><font color="#FF0000"><b>interface  </b></font><font color="#008000"><i>{ DFM file is included below - use XX34 to extract it }
+
+</i></font><font color="#FF0000"><b>uses
+  </b></font>SysUtils<font color="#000080">, </font>WinTypes<font color="#000080">, </font>WinProcs<font color="#000080">, </font>Messages<font color="#000080">, </font>Classes<font color="#000080">, </font>Graphics<font color="#000080">, </font>Controls<font color="#000080">,
+  </font>Forms<font color="#000080">, </font>Dialogs<font color="#000080">, </font>ExptIntf<font color="#000080">, </font>ToolIntf<font color="#000080">, </font>mwIDEStream<font color="#000080">, </font>StdCtrls<font color="#000080">;
+
+</font><font color="#FF0000"><b>type
+  </b></font>TForm1 <font color="#000080">= </font><font color="#FF0000"><b>class</b></font><font color="#000080">(</font>TForm<font color="#000080">)
+    </font>Button1<font color="#000080">: </font>TButton<font color="#000080">;
+    </font>Edit1<font color="#000080">: </font>TEdit<font color="#000080">;
+    </font>Edit2<font color="#000080">: </font>TEdit<font color="#000080">;
+    </font>Label1<font color="#000080">: </font>TLabel<font color="#000080">;
+    </font>Label2<font color="#000080">: </font>TLabel<font color="#000080">;
+    </font><font color="#FF0000"><b>procedure </b></font>Button1Click<font color="#000080">(</font>Sender<font color="#000080">: </font>TObject<font color="#000080">);
+  </font><font color="#FF0000"><b>private
+    </b></font><font color="#008000"><i>{ private declarations }
+  </i></font><font color="#FF0000"><b>public
+    </b></font><font color="#008000"><i>{ public declarations }
+  </i></font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+  </font>TMyIDEExpertExpert <font color="#000080">= </font><font color="#FF0000"><b>class</b></font><font color="#000080">(</font>TIExpert<font color="#000080">)
+  </font><font color="#FF0000"><b>private
+    </b></font>MenuItem<font color="#000080">: </font>TIMenuItemIntf<font color="#000080">;
+  </font><font color="#FF0000"><b>protected
+    procedure </b></font>OnClick<font color="#000080">( </font>Sender<font color="#000080">: </font>TIMenuItemIntf<font color="#000080">); </font><font color="#FF0000"><b>virtual</b></font><font color="#000080">;
+  </font><font color="#FF0000"><b>public
+    constructor </b></font>Create<font color="#000080">; </font><font color="#FF0000"><b>virtual</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>destructor </b></font>Destroy<font color="#000080">; </font><font color="#FF0000"><b>override</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>function </b></font>GetName<font color="#000080">: </font><font color="#FF0000"><b>string</b></font><font color="#000080">; </font><font color="#FF0000"><b>override</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>function </b></font>GetAuthor<font color="#000080">: </font><font color="#FF0000"><b>string</b></font><font color="#000080">; </font><font color="#FF0000"><b>override</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>function </b></font>GetStyle<font color="#000080">: </font>TExpertStyle<font color="#000080">; </font><font color="#FF0000"><b>override</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>function </b></font>GetIDString<font color="#000080">: </font><font color="#FF0000"><b>string</b></font><font color="#000080">; </font><font color="#FF0000"><b>override</b></font><font color="#000080">;
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure Register</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>implementation
+
+</b></font><font color="#008000"><i>{$R *.DFM}
+
+</i></font><font color="#FF0000"><b>procedure Register</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>RegisterLibraryExpert<font color="#000080">(</font>TMyIDEExpertExpert<font color="#000080">.</font>Create<font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#008000"><i>{ TMyIDEExpertExpert code }
+</i></font><font color="#FF0000"><b>function </b></font>TMyIDEExpertExpert<font color="#000080">.</font>GetName<font color="#000080">: </font><font color="#FF0000"><b>String</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>Result <font color="#000080">:= </font><font color="#800000">'MyIDEExpertExpert'
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>function </b></font>TMyIDEExpertExpert<font color="#000080">.</font>GetAuthor<font color="#000080">: </font><font color="#FF0000"><b>String</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>Result <font color="#000080">:= </font><font color="#800000">'Martin_Waldenburg'</font><font color="#000080">; </font><font color="#008000"><i>{ author }
+</i></font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>function </b></font>TMyIDEExpertExpert<font color="#000080">.</font>GetStyle<font color="#000080">: </font>TExpertStyle<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>Result <font color="#000080">:= </font>esAddIn<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>function </b></font>TMyIDEExpertExpert<font color="#000080">.</font>GetIDString<font color="#000080">: </font><font color="#FF0000"><b>String</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>Result <font color="#000080">:= </font><font color="#800000">'private.MyIDEExpertExpert'</font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>constructor </b></font>TMyIDEExpertExpert<font color="#000080">.</font>Create<font color="#000080">;
+</font><font color="#FF0000"><b>var
+  </b></font>Main<font color="#000080">: </font>TIMainMenuIntf<font color="#000080">;
+  </font>ReferenceMenuItem<font color="#000080">: </font>TIMenuItemIntf<font color="#000080">;
+  </font>Menu<font color="#000080">: </font>TIMenuItemIntf<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  inherited </b></font>Create<font color="#000080">;
+  </font>MenuItem <font color="#000080">:= </font><font color="#FF0000"><b>nil</b></font><font color="#000080">;
+  </font><font color="#FF0000"><b>if </b></font>ToolServices <font color="#000080">&lt;&gt; </font><font color="#FF0000"><b>nil then begin </b></font><font color="#008000"><i>{ I'm an expert! }
+    </i></font>Main <font color="#000080">:= </font>ToolServices<font color="#000080">.</font>GetMainMenu<font color="#000080">;
+    </font><font color="#FF0000"><b>if </b></font>Main <font color="#000080">&lt;&gt; </font><font color="#FF0000"><b>nil then begin </b></font><font color="#008000"><i>{ we've got the main menu! }
+      </i></font><font color="#FF0000"><b>try 
+        </b></font><font color="#008000"><i>{ add the menu of your choice }
+        </i></font>ReferenceMenuItem <font color="#000080">:= </font>Main<font color="#000080">.</font>FindMenuItem<font color="#000080">(</font><font color="#800000">'ToolsOptionsItem'</font><font color="#000080">);
+        </font><font color="#FF0000"><b>if </b></font>ReferenceMenuItem <font color="#000080">&lt;&gt; </font><font color="#FF0000"><b>nil then
+        try
+          </b></font>Menu <font color="#000080">:= </font>ReferenceMenuItem<font color="#000080">.</font>GetParent<font color="#000080">;
+          </font><font color="#FF0000"><b>if </b></font>Menu <font color="#000080">&lt;&gt; </font><font color="#FF0000"><b>nil then
+          try
+            </b></font>MenuItem <font color="#000080">:= </font>Menu<font color="#000080">.</font>InsertItem<font color="#000080">(</font>ReferenceMenuItem<font color="#000080">.</font>GetIndex<font color="#000080">+</font><font color="#800000">1</font><font color="#000080">,
+                              </font><font color="#800000">'MyIDEExpert'</font><font color="#000080">,
+                              </font><font color="#800000">'MyIDEExpertExpertItem'</font><font color="#000080">,</font><font color="#800000">''</font><font color="#000080">,
+                              </font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,
+                              [</font>mfEnabled<font color="#000080">, </font>mfVisible<font color="#000080">], </font>OnClick<font color="#000080">);
+          </font><font color="#FF0000"><b>finally
+            </b></font>Menu<font color="#000080">.</font>DestroyMenuItem<font color="#000080">;
+          </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+        </font><font color="#FF0000"><b>finally
+          </b></font>ReferenceMenuItem<font color="#000080">.</font>DestroyMenuItem<font color="#000080">;
+        </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+      </font><font color="#FF0000"><b>finally
+        </b></font>Main<font color="#000080">.</font>Free<font color="#000080">;
+      </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>destructor </b></font>TMyIDEExpertExpert<font color="#000080">.</font>Destroy<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  if </b></font>MenuItem <font color="#000080">&lt;&gt; </font><font color="#FF0000"><b>nil then
+    </b></font>MenuItem<font color="#000080">.</font>DestroyMenuItem<font color="#000080">;
+  </font><font color="#FF0000"><b>inherited </b></font>Destroy<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;</font><font color="#008000"><i>{Destroy}
+
+</i></font><font color="#FF0000"><b>procedure </b></font>TMyIDEExpertExpert<font color="#000080">.</font>OnClick<font color="#000080">( </font>Sender<font color="#000080">: </font>TIMenuItemIntf<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+  with </b></font>TForm1<font color="#000080">.</font>Create<font color="#000080">(</font>Application<font color="#000080">) </font><font color="#FF0000"><b>do
+    try
+      </b></font><font color="#008000"><i>{ do your processing here }
+      </i></font>ShowModal<font color="#000080">;
+    </font><font color="#FF0000"><b>finally
+      </b></font>Free<font color="#000080">;
+    </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#008000"><i>{ TForm1 code }
+
+</i></font><font color="#FF0000"><b>procedure </b></font>TForm1<font color="#000080">.</font>Button1Click<font color="#000080">(</font>Sender<font color="#000080">: </font>TObject<font color="#000080">);
+</font><font color="#FF0000"><b>var
+  </b></font>IDEStream<font color="#000080">: </font>TIDEStream<font color="#000080">;
+  </font>StreamText<font color="#000080">, </font>UText<font color="#000080">, </font>UFind<font color="#000080">, </font>fReplace<font color="#000080">: </font><font color="#FF0000"><b>String</b></font><font color="#000080">;
+  </font>FindLen<font color="#000080">, </font>P<font color="#000080">: </font>LongInt<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>IDEStream<font color="#000080">:= </font>TIDEStream<font color="#000080">.</font>Create<font color="#000080">;
+  </font>StreamText<font color="#000080">:= </font>IDEStream<font color="#000080">.</font>GetText<font color="#000080">;
+  </font>UText<font color="#000080">:= </font>UpperCase<font color="#000080">(</font>StreamText<font color="#000080">);
+  </font>UFind<font color="#000080">:= </font>UpperCase<font color="#000080">(</font>Trim<font color="#000080">(</font>Edit1<font color="#000080">.</font>Text<font color="#000080">));
+  </font>fReplace<font color="#000080">:= </font>Trim<font color="#000080">(</font>Edit2<font color="#000080">.</font>Text<font color="#000080">);
+  </font>FindLen<font color="#000080">:= </font>Length<font color="#000080">(</font>UFind<font color="#000080">);
+  </font>P<font color="#000080">:= </font>Pos<font color="#000080">(</font>UFind<font color="#000080">, </font>UText<font color="#000080">);
+  </font><font color="#FF0000"><b>if </b></font>P <font color="#000080">&lt;&gt; </font><font color="#800000">0 </font><font color="#FF0000"><b>then
+  begin
+    </b></font>Delete<font color="#000080">(</font>StreamText<font color="#000080">, </font>P<font color="#000080">, </font>FindLen<font color="#000080">);
+    </font>Insert<font color="#000080">(</font>fReplace<font color="#000080">, </font>StreamText<font color="#000080">, </font>P<font color="#000080">);
+    </font>IDEStream<font color="#000080">.</font>WriteText<font color="#000080">(</font>PChar<font color="#000080">(</font>StreamText<font color="#000080">));
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+  </font>IDEStream<font color="#000080">.</font>Free<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">.
+
+</font><font color="#008000"><i>{{------------------------- snip, snip ----------------------------}
+
+ENCODED MWIDEEXP.DFM FILE REMOVED.  PLEASE <A HREF="0336.MWIDEEXP.ZIP">DOWNLOAD</A> EITHER THE 
+ATTACHMENT OR THE COMPLETE ZIP FILE.
+</I>
+</font>
+</code></pre><!--EndFragment--><p align="center"><b>[</b><a href="index.html">Back to DELPHI SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0336.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0336.MWIDEEXP.ZIP">Attachment</a><b>]</b>
+</p></body>
+</html>

@@ -1,0 +1,518 @@
+<html>
+<head><title> "tToolButton Control for Delphi" by MATTHEW CSULIK</title><link rel="STYLESHEET" type="text/css" href="../swagsource.css"></head>
+<body><p align="center">
+<b>[</b><a href="index.html">Back to DELPHI SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0273.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0273.ATTACH.ZIP">Attachment</a><b>]</b>
+
+</p><!--StartFragment--><pre><code><font color="#008000"><i>{
+Hello again!
+
+I send to You a toolbar button component, which looks like the Explorer
+3.0's toolbar button. Resource file and a number of button images are included.
+These need to extracted using XX3402.  See below for more information.
+
+This component made under Delphi 2.0, and NOT tested with Delphi 1.0 (but I
+think it works under 1.0).
+
+Kind regards
+        Matthew Csulik
+        matthew-c@usa.net
+
+---------------------------------------------------------
+-                                                       -
+-  ToolButton.pas                                       -
+-  **************                                       -
+-  This component and it's bitmaps are completely FREE. -
+-                                                       -
+---------------------------------------------------------
+
+{usage:                                                                        }
+{ just assign three bitmap (included) to the Color, Disabled, and Mono bitmaps;}
+{ set the right color for transparentcolor;                                    }
+{ and USE IT!                                                                  }
+
+</i></font><font color="#FF0000"><b>unit </b></font>Toolbutton<font color="#000080">;
+
+</font><font color="#FF0000"><b>interface
+
+</b></font><font color="#008000"><i>{ written by Matthew }
+{ matthew-c@usa.net  }
+
+</i></font><font color="#FF0000"><b>uses
+   </b></font>Windows<font color="#000080">, </font>Messages<font color="#000080">, </font>SysUtils<font color="#000080">, </font>Classes<font color="#000080">, </font>Graphics<font color="#000080">, </font>Controls<font color="#000080">;
+
+</font><font color="#FF0000"><b>type
+   </b></font>TToolButtonState <font color="#000080">= (</font>tbsUp<font color="#000080">, </font>tbsDown<font color="#000080">);
+   </font>TToolButtonStyle <font color="#000080">= (</font>tstTextBitmap<font color="#000080">, </font>tstBitmap<font color="#000080">);
+   </font>TMouseState <font color="#000080">= (</font>msIn<font color="#000080">, </font>msOut<font color="#000080">);
+
+   </font>TToolButton <font color="#000080">= </font><font color="#FF0000"><b>class</b></font><font color="#000080">(</font>TGraphicControl<font color="#000080">)
+   </font><font color="#FF0000"><b>private
+      </b></font>State<font color="#000080">: </font>TToolButtonState<font color="#000080">;
+      </font>MouseState<font color="#000080">: </font>TMouseState<font color="#000080">;
+      </font>FStyle<font color="#000080">: </font>TToolButtonStyle<font color="#000080">;
+      </font>FColorBitmap<font color="#000080">, </font>FMonoBitmap<font color="#000080">, </font>FDisabledBitmap<font color="#000080">: </font>TBitmap<font color="#000080">;
+      </font>FTransparentColor<font color="#000080">: </font>TColor<font color="#000080">;
+      </font><font color="#FF0000"><b>procedure </b></font>SetColorBitmap<font color="#000080">(</font>Value<font color="#000080">: </font>TBitmap<font color="#000080">);
+      </font><font color="#FF0000"><b>procedure </b></font>SetMonoBitmap<font color="#000080">(</font>Value<font color="#000080">: </font>TBitmap<font color="#000080">);
+      </font><font color="#FF0000"><b>procedure </b></font>SetDisabledBitmap<font color="#000080">(</font>Value<font color="#000080">: </font>TBitmap<font color="#000080">);
+      </font><font color="#FF0000"><b>procedure </b></font>SetStyle<font color="#000080">(</font>Value<font color="#000080">: </font>TToolButtonStyle<font color="#000080">);
+      </font><font color="#FF0000"><b>procedure </b></font>SetTransparentColor<font color="#000080">(</font>Value<font color="#000080">: </font>TColor<font color="#000080">);
+      </font><font color="#FF0000"><b>procedure </b></font>CMMouseEnter<font color="#000080">(</font><font color="#FF0000"><b>var Message</b></font><font color="#000080">: </font>TMessage<font color="#000080">);
+         </font><font color="#FF0000"><b>message </b></font>CM_MOUSEENTER<font color="#000080">;
+      </font><font color="#FF0000"><b>procedure </b></font>CMMouseLeave<font color="#000080">(</font><font color="#FF0000"><b>var Message</b></font><font color="#000080">: </font>TMessage<font color="#000080">);
+         </font><font color="#FF0000"><b>message </b></font>CM_MOUSELEAVE<font color="#000080">;
+      </font><font color="#FF0000"><b>procedure </b></font>CMEnabledChanged<font color="#000080">(</font><font color="#FF0000"><b>var Message</b></font><font color="#000080">: </font>TMessage<font color="#000080">);
+         </font><font color="#FF0000"><b>message </b></font>CM_ENABLEDCHANGED<font color="#000080">;
+      </font><font color="#FF0000"><b>procedure </b></font>CMSysColorChange<font color="#000080">(</font><font color="#FF0000"><b>var Message</b></font><font color="#000080">: </font>TMessage<font color="#000080">);
+</font>      	 <font color="#FF0000"><b>message </b></font>CM_SYSCOLORCHANGE<font color="#000080">;
+      </font><font color="#FF0000"><b>procedure </b></font>CMTextChanged<font color="#000080">(</font><font color="#FF0000"><b>var Message</b></font><font color="#000080">: </font>TMessage<font color="#000080">);
+</font>      	 <font color="#FF0000"><b>message </b></font>CM_TEXTCHANGED<font color="#000080">;
+   </font><font color="#FF0000"><b>protected
+      procedure </b></font>Paint<font color="#000080">; </font><font color="#FF0000"><b>override</b></font><font color="#000080">;
+   </font><font color="#FF0000"><b>public
+      constructor </b></font>Create<font color="#000080">(</font>AOwner<font color="#000080">: </font>TComponent<font color="#000080">); </font><font color="#FF0000"><b>override</b></font><font color="#000080">;
+      </font><font color="#FF0000"><b>destructor </b></font>Destroy<font color="#000080">; </font><font color="#FF0000"><b>override</b></font><font color="#000080">;
+      </font><font color="#FF0000"><b>procedure </b></font>Click<font color="#000080">; </font><font color="#FF0000"><b>override</b></font><font color="#000080">;
+      </font><font color="#FF0000"><b>procedure </b></font>DblClick<font color="#000080">; </font><font color="#FF0000"><b>override</b></font><font color="#000080">;
+      </font><font color="#FF0000"><b>procedure </b></font>MouseDown<font color="#000080">(</font>Button<font color="#000080">: </font>TMouseButton<font color="#000080">; </font>Shift<font color="#000080">: </font>TShiftState<font color="#000080">;
+         </font>X<font color="#000080">, </font>Y<font color="#000080">: </font>integer<font color="#000080">); </font><font color="#FF0000"><b>override</b></font><font color="#000080">;
+      </font><font color="#FF0000"><b>procedure </b></font>MouseMove<font color="#000080">(</font>Shift<font color="#000080">: </font>TShiftState<font color="#000080">; </font>X<font color="#000080">, </font>Y<font color="#000080">: </font>Integer<font color="#000080">);
+         </font><font color="#FF0000"><b>override</b></font><font color="#000080">;
+      </font><font color="#FF0000"><b>procedure </b></font>MouseUp<font color="#000080">(</font>Button<font color="#000080">: </font>TMouseButton<font color="#000080">; </font>Shift<font color="#000080">: </font>TShiftState<font color="#000080">;
+         </font>X<font color="#000080">, </font>Y<font color="#000080">: </font>integer<font color="#000080">); </font><font color="#FF0000"><b>override</b></font><font color="#000080">;
+   </font><font color="#FF0000"><b>published
+      property </b></font>Caption<font color="#000080">;
+      </font><font color="#FF0000"><b>property </b></font>ColorBitmap<font color="#000080">: </font>TBitmap <font color="#FF0000"><b>read </b></font>FColorBitmap <font color="#FF0000"><b>write </b></font>SetColorBitmap<font color="#000080">;
+      </font><font color="#FF0000"><b>property </b></font>DisabledBitmap<font color="#000080">: </font>TBitmap <font color="#FF0000"><b>read </b></font>FDisabledBitmap <font color="#FF0000"><b>write
+</b></font>SetDisabledBitmap<font color="#000080">;
+      </font><font color="#FF0000"><b>property </b></font>MonoBitmap<font color="#000080">: </font>TBitmap <font color="#FF0000"><b>read </b></font>FMonoBitmap <font color="#FF0000"><b>write </b></font>SetMonoBitmap<font color="#000080">;
+      </font><font color="#FF0000"><b>property </b></font>TransparentColor<font color="#000080">: </font>TColor <font color="#FF0000"><b>read </b></font>FTransparentColor <font color="#FF0000"><b>write
+</b></font>SetTransparentColor <font color="#FF0000"><b>default </b></font>clOlive<font color="#000080">;
+      </font><font color="#FF0000"><b>property </b></font>Style<font color="#000080">: </font>TToolButtonStyle <font color="#FF0000"><b>read </b></font>FStyle <font color="#FF0000"><b>write </b></font>SetStyle<font color="#000080">;
+      </font><font color="#FF0000"><b>property </b></font>Enabled<font color="#000080">;
+      </font><font color="#FF0000"><b>property </b></font>ParentShowHint<font color="#000080">;
+      </font><font color="#FF0000"><b>property </b></font>ShowHint<font color="#000080">;
+      </font><font color="#FF0000"><b>property </b></font>Visible<font color="#000080">;
+      </font><font color="#FF0000"><b>property </b></font>OnClick<font color="#000080">;
+      </font><font color="#FF0000"><b>property </b></font>OnMouseDown<font color="#000080">;
+      </font><font color="#FF0000"><b>property </b></font>OnMouseMove<font color="#000080">;
+      </font><font color="#FF0000"><b>property </b></font>OnMouseUp<font color="#000080">;
+   </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure Register</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>implementation
+
+constructor </b></font>TToolButton<font color="#000080">.</font>Create<font color="#000080">(</font>AOwner<font color="#000080">: </font>TComponent<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+   inherited </b></font>Create<font color="#000080">(</font>AOwner<font color="#000080">);
+   </font>FTransparentColor<font color="#000080">:= </font>clOlive<font color="#000080">;
+   </font>FColorBitmap<font color="#000080">:= </font>TBitmap<font color="#000080">.</font>Create<font color="#000080">;
+   </font>FMonoBitmap<font color="#000080">:= </font>TBitmap<font color="#000080">.</font>Create<font color="#000080">;
+   </font>FDisabledBitmap<font color="#000080">:= </font>TBitmap<font color="#000080">.</font>Create<font color="#000080">;
+   </font>Caption<font color="#000080">:= </font>Name<font color="#000080">;
+   </font>State<font color="#000080">:= </font>tbsUp<font color="#000080">;
+   </font>Style<font color="#000080">:= </font>tstTextBitmap<font color="#000080">;
+   </font>MouseState<font color="#000080">:= </font>msOut<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>destructor </b></font>TToolButton<font color="#000080">.</font>Destroy<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+   </b></font>FColorBitmap<font color="#000080">.</font>Free<font color="#000080">;
+   </font>FMonoBitmap<font color="#000080">.</font>Free<font color="#000080">;
+   </font>FDisabledBitmap<font color="#000080">.</font>Free<font color="#000080">;
+   </font><font color="#FF0000"><b>inherited </b></font>Destroy<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TToolButton<font color="#000080">.</font>Paint<font color="#000080">;
+</font><font color="#FF0000"><b>var
+   </b></font>CX<font color="#000080">,</font>CY<font color="#000080">: </font>integer<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+   </b></font>CX<font color="#000080">:= </font>Width <font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">;
+   </font>CY<font color="#000080">:= </font>Height <font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">;
+   </font><font color="#FF0000"><b>if </b></font>csDesigning <font color="#FF0000"><b>in </b></font>ComponentState <font color="#FF0000"><b>then
+   begin
+      with inherited </b></font>Canvas <font color="#FF0000"><b>do
+      begin
+         </b></font>Pen<font color="#000080">.</font>Style <font color="#000080">:= </font>psDash<font color="#000080">;
+         </font>Brush<font color="#000080">.</font>Style <font color="#000080">:= </font>bsClear<font color="#000080">;
+         </font>Rectangle<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">, </font><font color="#800000">0</font><font color="#000080">, </font>Width<font color="#000080">, </font>Height<font color="#000080">);
+         </font>Brush<font color="#000080">.</font>Color<font color="#000080">:= </font>clBtnFace<font color="#000080">;
+</font>	 FillRect<font color="#000080">(</font>Rect<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font>Width<font color="#000080">,</font>Height<font color="#000080">));
+         </font><font color="#FF0000"><b>if </b></font>Style <font color="#000080">= </font>tstTextBitmap <font color="#FF0000"><b>then
+         begin
+            </b></font>BrushCopy<font color="#000080">(</font>Rect<font color="#000080">(</font>CX<font color="#000080">-(</font>MonoBitmap<font color="#000080">.</font>Width <font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">),</font>CY<font color="#000080">-(</font>MonoBitmap<font color="#000080">.</font>Height
+<font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">)-</font><font color="#800000">10</font><font color="#000080">,
+</font>	       CX<font color="#000080">+(</font>MonoBitmap<font color="#000080">.</font>Width <font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">),</font>CY<font color="#000080">+(</font>MonoBitmap<font color="#000080">.</font>Height <font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">)-</font><font color="#800000">10</font><font color="#000080">),
+</font>	          MonoBitmap<font color="#000080">, </font>Rect<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font>MonoBitmap<font color="#000080">.</font>Width<font color="#000080">,</font>MonoBitmap<font color="#000080">.</font>Height<font color="#000080">),
+</font>TransparentColor<font color="#000080">);
+</font>	    Font<font color="#000080">.</font>Color<font color="#000080">:= </font>clBlack<font color="#000080">;
+</font>	    Font<font color="#000080">.</font>Name<font color="#000080">:= </font><font color="#800000">'MS Sans Serif'</font><font color="#000080">;
+</font>	    Font<font color="#000080">.</font>Size<font color="#000080">:= </font><font color="#800000">8</font><font color="#000080">;
+</font>	    Font<font color="#000080">.</font>Style<font color="#000080">:= [];
+</font>	    TextOut<font color="#000080">(</font>CX<font color="#000080">-(</font>TextWidth<font color="#000080">(</font>Caption<font color="#000080">) </font><font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">),</font>CY<font color="#000080">+</font><font color="#800000">5</font><font color="#000080">,</font>Caption<font color="#000080">);
+         </font><font color="#FF0000"><b>end
+         else
+         begin
+            </b></font>BrushCopy<font color="#000080">(</font>Rect<font color="#000080">(</font>CX<font color="#000080">-(</font>MonoBitmap<font color="#000080">.</font>Width <font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">),</font>CY<font color="#000080">-(</font>MonoBitmap<font color="#000080">.</font>Height
+<font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">),
+</font>	       CX<font color="#000080">+(</font>MonoBitmap<font color="#000080">.</font>Width <font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">),</font>CY<font color="#000080">+(</font>MonoBitmap<font color="#000080">.</font>Height <font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">)),
+</font>	       MonoBitmap<font color="#000080">, </font>Rect<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font>MonoBitmap<font color="#000080">.</font>Width<font color="#000080">,</font>MonoBitmap<font color="#000080">.</font>Height<font color="#000080">),
+</font>TransparentColor<font color="#000080">);
+         </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+      </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+   </font><font color="#FF0000"><b>end
+   else
+   begin
+      with inherited </b></font>Canvas <font color="#FF0000"><b>do
+      begin
+         </b></font>Brush<font color="#000080">.</font>Style <font color="#000080">:= </font>bsClear<font color="#000080">;
+         </font>Brush<font color="#000080">.</font>Color<font color="#000080">:= </font>clBtnFace<font color="#000080">;
+</font>	 FillRect<font color="#000080">(</font>Rect<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font>Width<font color="#000080">,</font>Height<font color="#000080">));
+      </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+      </font><font color="#FF0000"><b>if </b></font>Enabled <font color="#FF0000"><b>then
+      begin
+         if </b></font><font color="#000080">(</font>State <font color="#000080">= </font>tbsUp<font color="#000080">) </font><font color="#FF0000"><b>and </b></font><font color="#000080">(</font>MouseState <font color="#000080">= </font>msOut<font color="#000080">) </font><font color="#FF0000"><b>then
+         begin
+            with </b></font>Canvas <font color="#FF0000"><b>do
+            begin
+               </b></font>Brush<font color="#000080">.</font>Style<font color="#000080">:= </font>bsClear<font color="#000080">;
+               </font>Brush<font color="#000080">.</font>Color<font color="#000080">:= </font>clBtnFace<font color="#000080">;
+</font>	       <font color="#FF0000"><b>if </b></font>Style <font color="#000080">= </font>tstTextBitmap <font color="#FF0000"><b>then
+               begin
+                  </b></font>BrushCopy<font color="#000080">(</font>Rect<font color="#000080">(</font>CX<font color="#000080">-(</font>MonoBitmap<font color="#000080">.</font>Width <font color="#FF0000"><b>div
+</b></font><font color="#800000">2</font><font color="#000080">),</font>CY<font color="#000080">-(</font>MonoBitmap<font color="#000080">.</font>Height <font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">)-</font><font color="#800000">10</font><font color="#000080">,
+                     </font>CX<font color="#000080">+(</font>MonoBitmap<font color="#000080">.</font>Width <font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">),</font>CY<font color="#000080">+(</font>MonoBitmap<font color="#000080">.</font>Height <font color="#FF0000"><b>div
+</b></font><font color="#800000">2</font><font color="#000080">)-</font><font color="#800000">10</font><font color="#000080">),
+                        </font>MonoBitmap<font color="#000080">,
+</font>Rect<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font>MonoBitmap<font color="#000080">.</font>Width<font color="#000080">,</font>MonoBitmap<font color="#000080">.</font>Height<font color="#000080">), </font>TransparentColor<font color="#000080">);
+                  </font>Font<font color="#000080">.</font>Color<font color="#000080">:= </font>clBlack<font color="#000080">;
+                  </font>Font<font color="#000080">.</font>Name<font color="#000080">:= </font><font color="#800000">'MS Sans Serif'</font><font color="#000080">;
+                  </font>Font<font color="#000080">.</font>Size<font color="#000080">:= </font><font color="#800000">8</font><font color="#000080">;
+                  </font>Font<font color="#000080">.</font>Style<font color="#000080">:= [];
+                  </font>TextOut<font color="#000080">(</font>CX<font color="#000080">-(</font>TextWidth<font color="#000080">(</font>Caption<font color="#000080">) </font><font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">),</font>CY<font color="#000080">+</font><font color="#800000">5</font><font color="#000080">,</font>Caption<font color="#000080">);
+</font> 	       <font color="#FF0000"><b>end
+               else
+               begin
+                  </b></font>BrushCopy<font color="#000080">(</font>Rect<font color="#000080">(</font>CX<font color="#000080">-(</font>MonoBitmap<font color="#000080">.</font>Width <font color="#FF0000"><b>div
+</b></font><font color="#800000">2</font><font color="#000080">),</font>CY<font color="#000080">-(</font>MonoBitmap<font color="#000080">.</font>Height <font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">),
+                     </font>CX<font color="#000080">+(</font>MonoBitmap<font color="#000080">.</font>Width <font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">),</font>CY<font color="#000080">+(</font>MonoBitmap<font color="#000080">.</font>Height <font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">)),
+                        </font>MonoBitmap<font color="#000080">,
+</font>Rect<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font>MonoBitmap<font color="#000080">.</font>Width<font color="#000080">,</font>MonoBitmap<font color="#000080">.</font>Height<font color="#000080">), </font>TransparentColor<font color="#000080">);
+               </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+            </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+         </font><font color="#FF0000"><b>end
+         else if </b></font><font color="#000080">(</font>State <font color="#000080">= </font>tbsUp<font color="#000080">) </font><font color="#FF0000"><b>and </b></font><font color="#000080">(</font>MouseState <font color="#000080">= </font>msIn<font color="#000080">) </font><font color="#FF0000"><b>then
+         begin
+            with </b></font>Canvas <font color="#FF0000"><b>do
+            begin
+</b></font>	       FillRect<font color="#000080">(</font>Rect<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font>Width<font color="#000080">,</font>Height<font color="#000080">));
+</font>	       Pen<font color="#000080">.</font>Color<font color="#000080">:= </font>clbtnHighlight<font color="#000080">;
+               </font>Polyline<font color="#000080">([</font>Point<font color="#000080">(</font>Width<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">),</font>Point<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">),</font>Point<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font>Height<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">)]);
+               </font>Pen<font color="#000080">.</font>Color<font color="#000080">:= </font>clbtnShadow<font color="#000080">;
+               </font>Polyline<font color="#000080">([</font>Point<font color="#000080">(</font>Width<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">,</font><font color="#800000">1</font><font color="#000080">),</font>Point<font color="#000080">(</font>Width<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">,</font>Height<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">),</font>Point<font color="#000080">(</font><font color="#800000">1</font><font color="#000080">,</font>He
+ight<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">)]);
+               </font>Brush<font color="#000080">.</font>Style<font color="#000080">:= </font>bsClear<font color="#000080">;
+               </font>Brush<font color="#000080">.</font>Color<font color="#000080">:= </font>clBtnFace<font color="#000080">;
+</font>	       <font color="#FF0000"><b>if </b></font>Style <font color="#000080">= </font>tstTextBitmap <font color="#FF0000"><b>then
+               begin
+                  </b></font>BrushCopy<font color="#000080">(</font>Rect<font color="#000080">(</font>CX<font color="#000080">-(</font>ColorBitmap<font color="#000080">.</font>Width <font color="#FF0000"><b>div
+</b></font><font color="#800000">2</font><font color="#000080">),</font>CY<font color="#000080">-(</font>ColorBitmap<font color="#000080">.</font>Height <font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">)-</font><font color="#800000">10</font><font color="#000080">,
+                     </font>CX<font color="#000080">+(</font>ColorBitmap<font color="#000080">.</font>Width <font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">),</font>CY<font color="#000080">+(</font>ColorBitmap<font color="#000080">.</font>Height <font color="#FF0000"><b>div
+</b></font><font color="#800000">2</font><font color="#000080">)-</font><font color="#800000">10</font><font color="#000080">),
+                        </font>ColorBitmap<font color="#000080">,
+</font>Rect<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font>ColorBitmap<font color="#000080">.</font>Width<font color="#000080">,</font>ColorBitmap<font color="#000080">.</font>Height<font color="#000080">), </font>TransparentColor<font color="#000080">);
+                  </font>Font<font color="#000080">.</font>Color<font color="#000080">:= </font>clBlack<font color="#000080">;
+                  </font>Font<font color="#000080">.</font>Name<font color="#000080">:= </font><font color="#800000">'MS Sans Serif'</font><font color="#000080">;
+                  </font>Font<font color="#000080">.</font>Size<font color="#000080">:= </font><font color="#800000">8</font><font color="#000080">;
+                  </font>Font<font color="#000080">.</font>Style<font color="#000080">:= [];
+                  </font>TextOut<font color="#000080">(</font>CX<font color="#000080">-(</font>TextWidth<font color="#000080">(</font>Caption<font color="#000080">) </font><font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">),</font>CY<font color="#000080">+</font><font color="#800000">5</font><font color="#000080">,</font>Caption<font color="#000080">);
+</font>	       <font color="#FF0000"><b>end
+               else
+               begin
+                  </b></font>BrushCopy<font color="#000080">(</font>Rect<font color="#000080">(</font>CX<font color="#000080">-(</font>ColorBitmap<font color="#000080">.</font>Width <font color="#FF0000"><b>div
+</b></font><font color="#800000">2</font><font color="#000080">),</font>CY<font color="#000080">-(</font>ColorBitmap<font color="#000080">.</font>Height <font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">),
+                     </font>CX<font color="#000080">+(</font>ColorBitmap<font color="#000080">.</font>Width <font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">),</font>CY<font color="#000080">+(</font>ColorBitmap<font color="#000080">.</font>Height <font color="#FF0000"><b>div
+</b></font><font color="#800000">2</font><font color="#000080">)),
+                        </font>ColorBitmap<font color="#000080">,
+</font>Rect<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font>ColorBitmap<font color="#000080">.</font>Width<font color="#000080">,</font>ColorBitmap<font color="#000080">.</font>Height<font color="#000080">), </font>TransparentColor<font color="#000080">);
+               </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+            </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+         </font><font color="#FF0000"><b>end
+         else if </b></font><font color="#000080">(</font>State <font color="#000080">= </font>tbsDown<font color="#000080">) </font><font color="#FF0000"><b>and </b></font><font color="#000080">(</font>MouseState <font color="#000080">= </font>msIn<font color="#000080">) </font><font color="#FF0000"><b>then
+         begin
+            with </b></font>Canvas <font color="#FF0000"><b>do
+            begin
+               </b></font>Brush<font color="#000080">.</font>Style<font color="#000080">:= </font>bsClear<font color="#000080">;
+               </font>Brush<font color="#000080">.</font>Color<font color="#000080">:= </font>clBtnFace<font color="#000080">;
+</font>	       FillRect<font color="#000080">(</font>Rect<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font>Width<font color="#000080">,</font>Height<font color="#000080">));
+</font>	       Pen<font color="#000080">.</font>Color<font color="#000080">:= </font>clbtnShadow<font color="#000080">;
+               </font>Polyline<font color="#000080">([</font>Point<font color="#000080">(</font>Width<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">),</font>Point<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">),</font>Point<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font>Height<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">)]);
+               </font>Pen<font color="#000080">.</font>Color<font color="#000080">:= </font>clbtnHighlight<font color="#000080">;
+               </font>Polyline<font color="#000080">([</font>Point<font color="#000080">(</font>Width<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">,</font><font color="#800000">1</font><font color="#000080">),</font>Point<font color="#000080">(</font>Width<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">,</font>Height<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">),</font>Point<font color="#000080">(</font><font color="#800000">1</font><font color="#000080">,</font>He
+ight<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">)]);
+</font>	       <font color="#FF0000"><b>if </b></font>Style <font color="#000080">= </font>tstTextBitmap <font color="#FF0000"><b>then
+               begin
+                  </b></font>BrushCopy<font color="#000080">(</font>Rect<font color="#000080">(</font>CX<font color="#000080">-(</font>ColorBitmap<font color="#000080">.</font>Width <font color="#FF0000"><b>div
+</b></font><font color="#800000">2</font><font color="#000080">)+</font><font color="#800000">1</font><font color="#000080">,</font>CY<font color="#000080">-(</font>ColorBitmap<font color="#000080">.</font>Height <font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">)-</font><font color="#800000">9</font><font color="#000080">,
+                     </font>CX<font color="#000080">+(</font>ColorBitmap<font color="#000080">.</font>Width <font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">)+</font><font color="#800000">1</font><font color="#000080">,</font>CY<font color="#000080">+(</font>ColorBitmap<font color="#000080">.</font>Height
+<font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">)-</font><font color="#800000">9</font><font color="#000080">),
+                        </font>ColorBitmap<font color="#000080">,
+</font>Rect<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font>ColorBitmap<font color="#000080">.</font>Width<font color="#000080">,</font>ColorBitmap<font color="#000080">.</font>Height<font color="#000080">), </font>TransparentColor<font color="#000080">);
+                  </font>Font<font color="#000080">.</font>Color<font color="#000080">:= </font>clBlack<font color="#000080">;
+                  </font>Font<font color="#000080">.</font>Name<font color="#000080">:= </font><font color="#800000">'MS Sans Serif'</font><font color="#000080">;
+                  </font>Font<font color="#000080">.</font>Size<font color="#000080">:= </font><font color="#800000">8</font><font color="#000080">;
+                  </font>Font<font color="#000080">.</font>Style<font color="#000080">:= [];
+                  </font>TextOut<font color="#000080">(</font>CX<font color="#000080">-(</font>TextWidth<font color="#000080">(</font>Caption<font color="#000080">) </font><font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">)+</font><font color="#800000">1</font><font color="#000080">,</font>CY<font color="#000080">+</font><font color="#800000">6</font><font color="#000080">,</font>Caption<font color="#000080">);
+</font>	       <font color="#FF0000"><b>end
+               else
+               begin
+                  </b></font>BrushCopy<font color="#000080">(</font>Rect<font color="#000080">(</font>CX<font color="#000080">-(</font>ColorBitmap<font color="#000080">.</font>Width <font color="#FF0000"><b>div
+</b></font><font color="#800000">2</font><font color="#000080">)+</font><font color="#800000">1</font><font color="#000080">,</font>CY<font color="#000080">-(</font>ColorBitmap<font color="#000080">.</font>Height <font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">)+</font><font color="#800000">1</font><font color="#000080">,
+                     </font>CX<font color="#000080">+(</font>ColorBitmap<font color="#000080">.</font>Width <font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">)+</font><font color="#800000">1</font><font color="#000080">,</font>CY<font color="#000080">+(</font>ColorBitmap<font color="#000080">.</font>Height
+<font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">)+</font><font color="#800000">1</font><font color="#000080">),
+                        </font>ColorBitmap<font color="#000080">,
+</font>Rect<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font>ColorBitmap<font color="#000080">.</font>Width<font color="#000080">,</font>ColorBitmap<font color="#000080">.</font>Height<font color="#000080">), </font>TransparentColor<font color="#000080">);
+               </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+            </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+         </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+      </font><font color="#FF0000"><b>end
+      else
+      begin</b></font>		               <font color="#008000"><i>{Disabled}
+         </i></font><font color="#FF0000"><b>with </b></font>Canvas <font color="#FF0000"><b>do
+         begin
+</b></font>	    Brush<font color="#000080">.</font>Style<font color="#000080">:= </font>bsClear<font color="#000080">;
+            </font>Brush<font color="#000080">.</font>Color<font color="#000080">:= </font>clBtnFace<font color="#000080">;
+</font>	    FillRect<font color="#000080">(</font>Rect<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font>Width<font color="#000080">,</font>Height<font color="#000080">));
+</font>	    <font color="#FF0000"><b>if </b></font>Style <font color="#000080">= </font>tstTextBitmap <font color="#FF0000"><b>then
+            begin
+               </b></font>BrushCopy<font color="#000080">(</font>Rect<font color="#000080">(</font>CX<font color="#000080">-(</font>FDisabledBitmap<font color="#000080">.</font>Width <font color="#FF0000"><b>div
+</b></font><font color="#800000">2</font><font color="#000080">),</font>CY<font color="#000080">-(</font>FDisabledBitmap<font color="#000080">.</font>Height <font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">)-</font><font color="#800000">10</font><font color="#000080">,
+                  </font>CX<font color="#000080">+(</font>FDisabledBitmap<font color="#000080">.</font>Width <font color="#FF0000"><b>div
+</b></font><font color="#800000">2</font><font color="#000080">),</font>CY<font color="#000080">+(</font>FDisabledBitmap<font color="#000080">.</font>Height <font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">)-</font><font color="#800000">10</font><font color="#000080">),
+                     </font>FDisabledBitmap<font color="#000080">,
+</font>Rect<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font>FDisabledBitmap<font color="#000080">.</font>Width<font color="#000080">,</font>FDisabledBitmap<font color="#000080">.</font>Height<font color="#000080">), </font>TransparentColor<font color="#000080">);
+               </font>Font<font color="#000080">.</font>Name<font color="#000080">:= </font><font color="#800000">'MS Sans Serif'</font><font color="#000080">;
+               </font>Font<font color="#000080">.</font>Size<font color="#000080">:= </font><font color="#800000">8</font><font color="#000080">;
+               </font>Font<font color="#000080">.</font>Style<font color="#000080">:= [];
+               </font>Font<font color="#000080">.</font>Color<font color="#000080">:= </font>clbtnHighlight<font color="#000080">;
+               </font>TextOut<font color="#000080">(</font>CX<font color="#000080">-(</font>TextWidth<font color="#000080">(</font>Caption<font color="#000080">) </font><font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">)+</font><font color="#800000">1</font><font color="#000080">,</font>CY<font color="#000080">+</font><font color="#800000">6</font><font color="#000080">,</font>Caption<font color="#000080">);
+               </font>Font<font color="#000080">.</font>Color<font color="#000080">:= </font>clbtnShadow<font color="#000080">;
+               </font>TextOut<font color="#000080">(</font>CX<font color="#000080">-(</font>TextWidth<font color="#000080">(</font>Caption<font color="#000080">) </font><font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">),</font>CY<font color="#000080">+</font><font color="#800000">5</font><font color="#000080">,</font>Caption<font color="#000080">);
+</font>	    <font color="#FF0000"><b>end
+            else
+            begin
+               </b></font>BrushCopy<font color="#000080">(</font>Rect<font color="#000080">(</font>CX<font color="#000080">-(</font>FDisabledBitmap<font color="#000080">.</font>Width <font color="#FF0000"><b>div
+</b></font><font color="#800000">2</font><font color="#000080">),</font>CY<font color="#000080">-(</font>FDisabledBitmap<font color="#000080">.</font>Height <font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">),
+                  </font>CX<font color="#000080">+(</font>FDisabledBitmap<font color="#000080">.</font>Width <font color="#FF0000"><b>div
+</b></font><font color="#800000">2</font><font color="#000080">),</font>CY<font color="#000080">+(</font>FDisabledBitmap<font color="#000080">.</font>Height <font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">)),
+                     </font>FDisabledBitmap<font color="#000080">,
+</font>Rect<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font>FDisabledBitmap<font color="#000080">.</font>Width<font color="#000080">,</font>FDisabledBitmap<font color="#000080">.</font>Height<font color="#000080">), </font>TransparentColor<font color="#000080">);
+            </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+         </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+      </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+   </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TToolButton<font color="#000080">.</font>Click<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+   inherited </b></font>Click<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TToolButton<font color="#000080">.</font>DblClick<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+   inherited </b></font>Click<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TToolButton<font color="#000080">.</font>MouseDown<font color="#000080">(</font>Button<font color="#000080">: </font>TMouseButton<font color="#000080">; </font>Shift<font color="#000080">: </font>TShiftState<font color="#000080">;
+  </font>X<font color="#000080">, </font>Y<font color="#000080">: </font>Integer<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+   inherited </b></font>MouseDown<font color="#000080">(</font>Button<font color="#000080">, </font>Shift<font color="#000080">, </font>X<font color="#000080">, </font>Y<font color="#000080">);
+   </font><font color="#FF0000"><b>if </b></font><font color="#000080">(</font>Button <font color="#000080">= </font>mbLeft<font color="#000080">) </font><font color="#FF0000"><b>and </b></font>Enabled <font color="#FF0000"><b>then
+   begin
+      if </b></font>State <font color="#000080">&lt;&gt; </font>tbsDown <font color="#FF0000"><b>then
+      begin
+         </b></font>State<font color="#000080">:= </font>tbsDown<font color="#000080">;
+         </font>Invalidate<font color="#000080">;
+      </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+   </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TToolButton<font color="#000080">.</font>MouseMove<font color="#000080">(</font>Shift<font color="#000080">: </font>TShiftState<font color="#000080">; </font>X<font color="#000080">, </font>Y<font color="#000080">: </font>Integer<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+   inherited </b></font>MouseMove<font color="#000080">(</font>Shift<font color="#000080">, </font>X<font color="#000080">, </font>Y<font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TToolButton<font color="#000080">.</font>MouseUp<font color="#000080">(</font>Button<font color="#000080">: </font>TMouseButton<font color="#000080">; </font>Shift<font color="#000080">: </font>TShiftState<font color="#000080">;
+  </font>X<font color="#000080">, </font>Y<font color="#000080">: </font>Integer<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+   inherited </b></font>MouseUp<font color="#000080">(</font>Button<font color="#000080">, </font>Shift<font color="#000080">, </font>X<font color="#000080">, </font>Y<font color="#000080">);
+   </font>State<font color="#000080">:= </font>tbsUp<font color="#000080">;
+   </font>Invalidate<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TToolButton<font color="#000080">.</font>CMMouseEnter<font color="#000080">(</font><font color="#FF0000"><b>var Message</b></font><font color="#000080">: </font>TMessage<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+   </b></font>MouseState<font color="#000080">:= </font>msIn<font color="#000080">;
+   </font><font color="#FF0000"><b>if </b></font>Enabled <font color="#FF0000"><b>then
+      </b></font>Invalidate<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TToolButton<font color="#000080">.</font>CMMouseLeave<font color="#000080">(</font><font color="#FF0000"><b>var Message</b></font><font color="#000080">: </font>TMessage<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+   if </b></font>State <font color="#000080">= </font>tbsDown <font color="#FF0000"><b>then
+   begin
+      </b></font>State<font color="#000080">:= </font>tbsUp<font color="#000080">;
+      </font>Invalidate<font color="#000080">;
+   </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+   </font>MouseState<font color="#000080">:= </font>msOut<font color="#000080">;
+   </font><font color="#FF0000"><b>if </b></font>Enabled <font color="#FF0000"><b>then
+      </b></font>Invalidate<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TToolButton<font color="#000080">.</font>CMEnabledChanged<font color="#000080">(</font><font color="#FF0000"><b>var Message</b></font><font color="#000080">: </font>TMessage<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+   </b></font>Invalidate<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TToolButton<font color="#000080">.</font>CMSysColorChange<font color="#000080">(</font><font color="#FF0000"><b>var Message</b></font><font color="#000080">: </font>TMessage<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+   </b></font>Invalidate<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TToolButton<font color="#000080">.</font>CMTextChanged<font color="#000080">(</font><font color="#FF0000"><b>var Message</b></font><font color="#000080">: </font>TMessage<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+  </b></font>Invalidate<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TToolButton<font color="#000080">.</font>SetColorBitmap<font color="#000080">(</font>Value<font color="#000080">: </font>TBitmap<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+   if </b></font>FColorBitmap <font color="#000080">&lt;&gt; </font>Value <font color="#FF0000"><b>then
+   begin
+      </b></font>FColorBitmap<font color="#000080">.</font>Assign<font color="#000080">(</font>Value<font color="#000080">);
+      </font>Invalidate<font color="#000080">;
+   </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TToolButton<font color="#000080">.</font>SetMonoBitmap<font color="#000080">(</font>Value<font color="#000080">: </font>TBitmap<font color="#000080">);
+</font><font color="#FF0000"><b>var
+   </b></font>x<font color="#000080">,</font>y<font color="#000080">: </font>integer<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+   if </b></font>FMonoBitmap <font color="#000080">&lt;&gt; </font>Value <font color="#FF0000"><b>then
+   begin
+      </b></font>FMonoBitmap<font color="#000080">.</font>Assign<font color="#000080">(</font>Value<font color="#000080">);
+      </font>FDisabledBitmap<font color="#000080">.</font>Height<font color="#000080">:= </font>FMonoBitmap<font color="#000080">.</font>Height<font color="#000080">;
+      </font>FDisabledBitmap<font color="#000080">.</font>Width<font color="#000080">:= </font>FMonoBitmap<font color="#000080">.</font>Width<font color="#000080">;
+      </font><font color="#FF0000"><b>for </b></font>x<font color="#000080">:= </font><font color="#800000">0 </font><font color="#FF0000"><b>to </b></font>FDisabledBitmap<font color="#000080">.</font>Width <font color="#FF0000"><b>do
+      begin
+         for </b></font>y<font color="#000080">:= </font><font color="#800000">0 </font><font color="#FF0000"><b>to </b></font>FDisabledBitmap<font color="#000080">.</font>Height <font color="#FF0000"><b>do
+         begin
+            if </b></font>FMonoBitmap<font color="#000080">.</font>Canvas<font color="#000080">.</font>Pixels<font color="#000080">[</font>x<font color="#000080">,</font>y<font color="#000080">] = </font>clWhite <font color="#FF0000"><b>then
+               </b></font>FDisabledBitmap<font color="#000080">.</font>Canvas<font color="#000080">.</font>Pixels<font color="#000080">[</font>x<font color="#000080">,</font>y<font color="#000080">]:= </font>clbtnHighlight<font color="#000080">;
+            </font><font color="#FF0000"><b>if </b></font>FMonoBitmap<font color="#000080">.</font>Canvas<font color="#000080">.</font>Pixels<font color="#000080">[</font>x<font color="#000080">,</font>y<font color="#000080">] = </font>clGray <font color="#FF0000"><b>then
+               </b></font>FDisabledBitmap<font color="#000080">.</font>Canvas<font color="#000080">.</font>Pixels<font color="#000080">[</font>x<font color="#000080">,</font>y<font color="#000080">]:= </font>clbtnShadow<font color="#000080">;
+         </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+      </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+      </font>Invalidate<font color="#000080">;
+   </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TToolButton<font color="#000080">.</font>SetDisabledBitmap<font color="#000080">(</font>Value<font color="#000080">: </font>TBitmap<font color="#000080">);
+</font><font color="#FF0000"><b>const
+  </b></font>ROP_DSPDxax <font color="#000080">= </font><font color="#800000">$00E20746</font><font color="#000080">;
+</font><font color="#FF0000"><b>var
+   </b></font>MonoBmp<font color="#000080">, </font>TmpImage<font color="#000080">: </font>TBitmap<font color="#000080">;
+   </font>IRect<font color="#000080">: </font>TRect<font color="#000080">;
+   </font>IWidth<font color="#000080">,</font>IHeight<font color="#000080">: </font>integer<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+   if </b></font>FDisabledBitmap <font color="#000080">&lt;&gt; </font>Value <font color="#FF0000"><b>then
+   begin
+      </b></font>FDisabledBitmap<font color="#000080">.</font>Assign<font color="#000080">(</font>Value<font color="#000080">);
+      </font>IWidth<font color="#000080">:= </font>FDisabledBitmap<font color="#000080">.</font>Width<font color="#000080">;
+      </font>IHeight<font color="#000080">:= </font>FDisabledBitmap<font color="#000080">.</font>Height<font color="#000080">;
+      </font>IRect<font color="#000080">:= </font>Rect<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font>IWidth<font color="#000080">,</font>IHeight<font color="#000080">);
+      </font>TmpImage<font color="#000080">:= </font>TBitmap<font color="#000080">.</font>Create<font color="#000080">;
+      </font>MonoBmp<font color="#000080">:= </font>TBitmap<font color="#000080">.</font>Create<font color="#000080">;
+      </font>TmpImage<font color="#000080">.</font>Width<font color="#000080">:= </font>FDisabledBitmap<font color="#000080">.</font>Width<font color="#000080">;
+      </font>TmpImage<font color="#000080">.</font>Height<font color="#000080">:= </font>FDisabledBitmap<font color="#000080">.</font>Height<font color="#000080">;
+      </font>MonoBmp<font color="#000080">.</font>Width<font color="#000080">:= </font>FDisabledBitmap<font color="#000080">.</font>Width<font color="#000080">;
+      </font>MonoBmp<font color="#000080">.</font>Height<font color="#000080">:= </font>FDisabledBitmap<font color="#000080">.</font>Height<font color="#000080">;
+      </font><font color="#FF0000"><b>with </b></font>MonoBmp <font color="#FF0000"><b>do
+      begin
+         </b></font>Assign<font color="#000080">(</font>FDisabledBitmap<font color="#000080">);
+         </font>Canvas<font color="#000080">.</font>Brush<font color="#000080">.</font>Color <font color="#000080">:= </font>clBlack<font color="#000080">;
+         </font><font color="#FF0000"><b>if </b></font>Monochrome <font color="#FF0000"><b>then
+         begin
+            </b></font>Canvas<font color="#000080">.</font>Font<font color="#000080">.</font>Color <font color="#000080">:= </font>clWhite<font color="#000080">;
+            </font>Monochrome <font color="#000080">:= </font>False<font color="#000080">;
+            </font>Canvas<font color="#000080">.</font>Brush<font color="#000080">.</font>Color <font color="#000080">:= </font>clWhite<font color="#000080">;
+         </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+         </font>Monochrome <font color="#000080">:= </font>True<font color="#000080">;
+      </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+      </font><font color="#FF0000"><b>with </b></font>TmpImage<font color="#000080">.</font>Canvas <font color="#FF0000"><b>do
+      begin
+         </b></font>Brush<font color="#000080">.</font>Color <font color="#000080">:= </font>clBtnFace<font color="#000080">;
+         </font>FillRect<font color="#000080">(</font>IRect<font color="#000080">);
+         </font>Brush<font color="#000080">.</font>Color <font color="#000080">:= </font>clBtnHighlight<font color="#000080">;
+         </font>SetTextColor<font color="#000080">(</font>Handle<font color="#000080">, </font>clBlack<font color="#000080">);
+         </font>SetBkColor<font color="#000080">(</font>Handle<font color="#000080">, </font>clWhite<font color="#000080">);
+         </font>BitBlt<font color="#000080">(</font>Handle<font color="#000080">, </font><font color="#800000">1</font><font color="#000080">, </font><font color="#800000">1</font><font color="#000080">, </font>IWidth<font color="#000080">, </font>IHeight<font color="#000080">,
+         </font>MonoBmp<font color="#000080">.</font>Canvas<font color="#000080">.</font>Handle<font color="#000080">, </font><font color="#800000">0</font><font color="#000080">, </font><font color="#800000">0</font><font color="#000080">, </font>ROP_DSPDxax<font color="#000080">);
+         </font>Brush<font color="#000080">.</font>Color <font color="#000080">:= </font>clBtnShadow<font color="#000080">;
+         </font>SetTextColor<font color="#000080">(</font>Handle<font color="#000080">, </font>clBlack<font color="#000080">);
+         </font>SetBkColor<font color="#000080">(</font>Handle<font color="#000080">, </font>clWhite<font color="#000080">);
+         </font>BitBlt<font color="#000080">(</font>Handle<font color="#000080">, </font><font color="#800000">0</font><font color="#000080">, </font><font color="#800000">0</font><font color="#000080">, </font>IWidth<font color="#000080">, </font>IHeight<font color="#000080">,
+         </font>MonoBmp<font color="#000080">.</font>Canvas<font color="#000080">.</font>Handle<font color="#000080">, </font><font color="#800000">0</font><font color="#000080">, </font><font color="#800000">0</font><font color="#000080">, </font>ROP_DSPDxax<font color="#000080">);
+      </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+      </font>FDisabledBitmap<font color="#000080">.</font>Assign<font color="#000080">(</font>TmpImage<font color="#000080">);
+      </font>TmpImage<font color="#000080">.</font>Free<font color="#000080">;
+      </font>MonoBmp<font color="#000080">.</font>Free<font color="#000080">;
+      </font>Invalidate<font color="#000080">;
+   </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TToolButton<font color="#000080">.</font>SetStyle<font color="#000080">(</font>Value<font color="#000080">: </font>TToolButtonStyle<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+   if </b></font>FStyle <font color="#000080">&lt;&gt; </font>Value <font color="#FF0000"><b>then
+   begin
+      </b></font>FStyle<font color="#000080">:= </font>Value<font color="#000080">;
+      </font>Invalidate<font color="#000080">;
+   </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TToolButton<font color="#000080">.</font>SetTransparentColor<font color="#000080">(</font>Value<font color="#000080">: </font>TColor<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+   if </b></font>FTransParentColor <font color="#000080">&lt;&gt; </font>Value <font color="#FF0000"><b>then
+   begin
+      </b></font>FTransparentColor<font color="#000080">:= </font>Value<font color="#000080">;
+      </font>Invalidate<font color="#000080">;
+   </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure Register</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>begin
+   </b></font>RegisterComponents<font color="#000080">(</font><font color="#800000">'Matthew'</font><font color="#000080">, [</font>TToolButton<font color="#000080">]);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">.
+
+</font><font color="#008000"><i>{{{------------------------- snip, snip ----------------------------}
+
+ENCODED TBBMPS.ZIP FILE REMOVED.  PLEASE <A HREF="0273.ATTACH.ZIP">DOWNLOAD</A> EITHER THE 
+ATTACHMENT OR THE COMPLETE ZIP FILE.
+
+{{------------------------- snip, snip ----------------------------}
+
+ENCODED TBRES.ZIP FILE REMOVED.  PLEASE <A HREF="0273.ATTACH.ZIP">DOWNLOAD</A> EITHER THE 
+ATTACHMENT OR THE COMPLETE ZIP FILE.
+</i>
+</font>
+</code></pre><!--EndFragment--><p align="center"><b>[</b><a href="index.html">Back to DELPHI SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0273.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0273.ATTACH.ZIP">Attachment</a><b>]</b>
+</p></body>
+</html>

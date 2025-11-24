@@ -1,0 +1,78 @@
+<html>
+<head><title> "Compression Component with LZH & LZRW1/K" by DANNY HEIJL</title><link rel="STYLESHEET" type="text/css" href="../swagsource.css"></head>
+<body><p align="center">
+<b>[</b><a href="index.html">Back to DELPHI SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0286.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0286.TLZRW1.ZIP">Attachment</a><b>]</b>
+
+</p><!--StartFragment--><pre><code>
+<font color="#000000">Tlzrw1 <font color="#000080">: </font>compression component <font color="#FF0000"><b>with </b></font>LZH <font color="#FF0000"><b>and </b></font>LZRW1<font color="#000080">/</font>KH compression
+
+Version <font color="#800000">1.01.00 </font><font color="#000080">: </font>Danny Heijl <font color="#000080">(</font>Danny<font color="#000080">.</font>Heijl<font color="#000080">@</font>cevi<font color="#000080">.</font>be<font color="#000080">)
+
+</font>The LZH <font color="#FF0000"><b>and </b></font>LZRW1<font color="#000080">/</font>KH routines are from the SWAG<font color="#000080">.
+</font>They are basically unchanged<font color="#000080">, </font>I only added exceptions
+<font color="#FF0000"><b>and </b></font>some cosmetic changes <font color="#FF0000"><b>to </b></font>the code<font color="#000080">, </font><font color="#FF0000"><b>and </b></font>added <font color="#800000">32 </font>bit support<font color="#000080">.
+
+----------------------------------------------------------------------------------
+</font><font color="#FF0000"><b>file </b></font>name 	<font color="#000080">: </font>tlzrw1<font color="#000080">.</font>zip
+replaces	<font color="#000080">: </font>tlzrw1<font color="#000080">.</font>zip
+<font color="#FF0000"><b>file </b></font>version	<font color="#000080">: </font><font color="#800000">1.01.00
+</font><font color="#FF0000"><b>file </b></font>description<font color="#000080">: </font>freeware <font color="#FF0000"><b>file </b></font>compression<font color="#000080">/</font>decompression component <font color="#FF0000"><b>with </b></font>source
+target		<font color="#000080">: </font>Delphi <font color="#800000">1.0 </font><font color="#FF0000"><b>and </b></font>Delphi <font color="#800000">2.0
+</font>author name	<font color="#000080">: </font>Danny Heijl <font color="#000080">(</font>Danny<font color="#000080">.</font>Heijl<font color="#000080">@</font>cevi<font color="#000080">.</font>be<font color="#000080">)
+</font>author URL	<font color="#000080">: </font>http<font color="#000080">:</font><font color="#008000"><i>//www.cevi.be/pp/danny/dhe.htm
+</i></font><font color="#FF0000"><b>file </b></font>status	<font color="#000080">: </font>freeware
+full source	<font color="#000080">: </font>included
+category	<font color="#000080">: </font>compression component
+
+<font color="#000080">----------------------------------------------------------------------------------
+</font>Installation instructions <font color="#000080">:
+----------------------------------------------------------------------------------
+
+</font><font color="#800000">1. </font>copy compon<font color="#000080">\*.* </font><font color="#FF0000"><b>to </b></font>your component directory
+
+<font color="#800000">2.
+
+16 </font>bit <font color="#000080">: </font>install tlzrw116<font color="#000080">.</font>pas <font color="#FF0000"><b>in </b></font>your component <font color="#FF0000"><b>library
+</b></font><font color="#800000">32 </font>bit <font color="#000080">: </font>install tlzrw132<font color="#000080">.</font>pas <font color="#FF0000"><b>in </b></font>your component <font color="#FF0000"><b>library
+
+
+</b></font><font color="#800000">3. </font>rebuild the component <font color="#FF0000"><b>library</b></font><font color="#000080">.
+
+-----------------------------------------------------------------------------------
+
+</font>From this moment <font color="#FF0000"><b>on </b></font>you can excercize the test application compressp<font color="#000080">.</font>dpr<font color="#000080">.
+
+</font><font color="#FF0000"><b>Or </b></font>you can play <font color="#FF0000"><b>with </b></font><font color="#000080">&quot;</font>tlzrw1<font color="#000080">&quot; </font>yourself<font color="#000080">.
+
+</font>Tlzrw1 presents itself <font color="#FF0000"><b>as </b></font>a panel that shows compression<font color="#000080">/</font>decompression
+progress <font color="#FF0000"><b>if </b></font>you <font color="#FF0000"><b>set </b></font>it<font color="#800000">'s Visible proprty to True.
+
+</font>Properties <font color="#000080">:
+------------
+
+</font>inputfile
+outputfile
+compressmode <font color="#000080">: </font>good <font color="#000080">(</font>LZH<font color="#000080">, </font>slow<font color="#000080">), </font>fast <font color="#000080">(</font>LZRW1<font color="#000080">/</font>KH<font color="#000080">) </font><font color="#FF0000"><b>or </b></font>auto <font color="#000080">(</font>takes a sample <font color="#FF0000"><b>and </b></font>chooses<font color="#000080">).
+
+</font>Methods <font color="#000080">:
+---------
+
+</font>compress
+decompress
+advise <font color="#000080">: </font>returns good <font color="#FF0000"><b>or </b></font>fast compressmode <font color="#FF0000"><b>for </b></font>inputfile
+
+<font color="#008000"><i>{ { {------------------------- snip, snip ----------------------------}
+
+ENCODED TLZRW1.ZIP FILE REMOVED.  PLEASE <A HREF="0286.TLZRW1.ZIP">DOWNLOAD</A> EITHER THE 
+ATTACHMENT OR THE COMPLETE ZIP FILE.
+</i>
+</font>
+</code></pre><!--EndFragment--><p align="center"><b>[</b><a href="index.html">Back to DELPHI SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0286.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0286.TLZRW1.ZIP">Attachment</a><b>]</b>
+</p></body>
+</html>

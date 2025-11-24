@@ -1,0 +1,219 @@
+<html>
+<head><title> "Limit application's instances to just on" by STEVEN L. KEYSER</title><link rel="STYLESHEET" type="text/css" href="../swagsource.css"></head>
+<body><p align="center">
+<b>[</b><a href="index.html">Back to DELPHI SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0238.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0238.JUSTONE.ZIP">Attachment</a><b>]</b>
+
+</p><!--StartFragment--><pre><code>
+
+<font color="#008000"><i>{
+JustOne v1.1 - A Delphi Component
+By: Steven L. Keyser
+    email: 71214,3117@compuserve.com
+
+JustOne v1.1 - Added the ABOUT property
+ (1/14/96)	 - Eliminated the AllowMultInst property
+             - Eliminated the EXECUTE	property
+             - Added JUSTONE.HLP
+             - Added JUSTONE.KWF
+
+             Notes: The ABOUT property was added simply as a learning
+             exercise.  The EXECUTE property was removed due to an
+             improvement in the component's design.  With special
+             thanks to Russ Chinoy, the JustOne component no
+             longer requires any code to be added to the user's
+             application.  Dropping the JustOne component onto the startup
+             form is all that is required now to make JustOne work for you.
+
+JustOne v1.0 - The basic stuff.
+ (Oct '95)
+
+    Purpose:	JustOne is a component which makes it easy to limit the
+    number of your application's instances to just one.  If a second
+    instance of your application starts, the first instance is brought
+    to the front and given the focus (or restored if it was minimized
+    to an icon).  The second instance then halts.
+
+    Credit where credit is due...
+
+    Some of the source code for this component came from a Help file
+    I downloaded from the Delphi Forum on CompuServe (LDELPHI.ZIP).  This
+    Help file, called Lloyd's Delphi Notes (Lloyd Linklater), lists many
+    tips on using Delphi.  One of the items addressed is how to add code
+    to your application which will allow just one instance to run.  In the
+    Help file, that code is further credited to Pat Ritchey.
+
+    I took that snippet of code and put it into an easily re-usable
+    component.
+
+    Additional ideas came from Russ Chinoy (RC Software) on a way to
+    have JustOne perform its function without the user having to put
+    any code into their application.
+
+    JustOne is released as Freeware.  If you use it, you do so at your
+    own risk.  Feel free to modify this source code to suit your own
+    purposes.  If you enhance JustOne, I'd like to see your work.
+}
+</i></font><font color="#FF0000"><b>unit </b></font>Justone<font color="#000080">;
+
+</font><font color="#FF0000"><b>interface
+
+uses
+  </b></font>SysUtils<font color="#000080">, </font>WinTypes<font color="#000080">, </font>WinProcs<font color="#000080">, </font>Messages<font color="#000080">, </font>Classes<font color="#000080">, </font>Graphics<font color="#000080">, </font>Controls<font color="#000080">,
+  </font>Forms<font color="#000080">, </font>Dialogs<font color="#000080">, </font>DsgnIntf<font color="#000080">;
+
+</font><font color="#FF0000"><b>type
+</b></font>	TMyDataType <font color="#000080">= </font><font color="#FF0000"><b>record
+</b></font>	Name <font color="#000080">: </font><font color="#FF0000"><b>string</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>type
+  </b></font>TJustOne <font color="#000080">= </font><font color="#FF0000"><b>class</b></font><font color="#000080">(</font>TComponent<font color="#000080">)
+  </font><font color="#FF0000"><b>private
+    </b></font>FAbout<font color="#000080">:</font>	<font color="#FF0000"><b>string</b></font><font color="#000080">;
+  </font><font color="#FF0000"><b>public
+    constructor </b></font>Create<font color="#000080">(</font>AOwner<font color="#000080">:</font>TComponent<font color="#000080">); </font><font color="#FF0000"><b>override</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>destructor </b></font>Destroy<font color="#000080">; </font><font color="#FF0000"><b>override</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>procedure </b></font>GoToPreviousInstance<font color="#000080">;
+    </font><font color="#FF0000"><b>procedure </b></font>ShowAbout<font color="#000080">;
+  </font><font color="#FF0000"><b>published
+    property </b></font>About<font color="#000080">: </font><font color="#FF0000"><b>string read </b></font>FAbout <font color="#FF0000"><b>write </b></font>FAbout <font color="#FF0000"><b>stored </b></font>False<font color="#000080">;
+</font>	<font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure Register</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>type
+  </b></font>PHWND <font color="#000080">= ^</font>HWND<font color="#000080">;
+  </font><font color="#FF0000"><b>function </b></font>EnumFunc<font color="#000080">(</font>Wnd<font color="#000080">:</font>HWND<font color="#000080">; </font>TargetWindow<font color="#000080">:</font>PHWND<font color="#000080">): </font>boolean<font color="#000080">; </font><font color="#FF0000"><b>export</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>implementation
+
+</b></font><font color="#008000"><i>{########################################################################}
+</i></font><font color="#FF0000"><b>type
+  </b></font>TAboutProperty <font color="#000080">= </font><font color="#FF0000"><b>class</b></font><font color="#000080">(</font>TPropertyEditor<font color="#000080">)
+  </font><font color="#FF0000"><b>public
+    procedure </b></font>Edit<font color="#000080">; </font><font color="#FF0000"><b>override</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>function </b></font>GetAttributes<font color="#000080">: </font>TPropertyAttributes<font color="#000080">; </font><font color="#FF0000"><b>override</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>function </b></font>GetValue<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">; </font><font color="#FF0000"><b>override</b></font><font color="#000080">;
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#008000"><i>{########################################################################}
+</i></font><font color="#FF0000"><b>procedure </b></font>TAboutProperty<font color="#000080">.</font>Edit<font color="#000080">;
+</font><font color="#008000"><i>{Invoke the about dialog when clicking on ... in the Object Inspector}
+</i></font><font color="#FF0000"><b>begin
+  </b></font>TJustOne<font color="#000080">(</font>GetComponent<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">)).</font>ShowAbout<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#008000"><i>{########################################################################}
+</i></font><font color="#FF0000"><b>function </b></font>TAboutProperty<font color="#000080">.</font>GetAttributes<font color="#000080">: </font>TPropertyAttributes<font color="#000080">;
+</font><font color="#008000"><i>{Make settings for just displaying a string in the ABOUT property in the
+Object Inspector}
+</i></font><font color="#FF0000"><b>begin
+  </b></font>GetAttributes <font color="#000080">:= [</font>paDialog<font color="#000080">, </font>paReadOnly<font color="#000080">];
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#008000"><i>{########################################################################}
+</i></font><font color="#FF0000"><b>function </b></font>TAboutProperty<font color="#000080">.</font>GetValue<font color="#000080">: </font><font color="#FF0000"><b>String</b></font><font color="#000080">;
+</font><font color="#008000"><i>{Text in the Object Inspector for the ABOUT property}
+</i></font><font color="#FF0000"><b>begin
+  </b></font>GetValue <font color="#000080">:= </font><font color="#800000">'(About)'</font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#008000"><i>{########################################################################}
+</i></font><font color="#FF0000"><b>procedure </b></font>TJustOne<font color="#000080">.</font>ShowAbout<font color="#000080">;
+</font><font color="#FF0000"><b>var
+</b></font>	msg<font color="#000080">: </font><font color="#FF0000"><b>string</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>const
+</b></font>	carriage_return <font color="#000080">= </font>chr<font color="#000080">(</font><font color="#800000">13</font><font color="#000080">);
+  </font>copyright_symbol <font color="#000080">= </font>chr<font color="#000080">(</font><font color="#800000">169</font><font color="#000080">);
+</font><font color="#FF0000"><b>begin
+</b></font>	msg <font color="#000080">:= </font><font color="#800000">'JustOne  v1.1'</font><font color="#000080">;
+  </font>AppendStr<font color="#000080">(</font>msg<font color="#000080">, </font>carriage_return<font color="#000080">);
+  </font>AppendStr<font color="#000080">(</font>msg<font color="#000080">, </font><font color="#800000">'A Freeware component'</font><font color="#000080">);
+  </font>AppendStr<font color="#000080">(</font>msg<font color="#000080">, </font>carriage_return<font color="#000080">);
+  </font>AppendStr<font color="#000080">(</font>msg<font color="#000080">, </font>carriage_return<font color="#000080">);
+  </font>AppendStr<font color="#000080">(</font>msg<font color="#000080">, </font><font color="#800000">'Copyright '</font><font color="#000080">);
+  </font>AppendStr<font color="#000080">(</font>msg<font color="#000080">, </font>copyright_symbol<font color="#000080">);
+  </font>AppendStr<font color="#000080">(</font>msg<font color="#000080">, </font><font color="#800000">' 1995, 1996 by Steven L. Keyser'</font><font color="#000080">);
+  </font>AppendStr<font color="#000080">(</font>msg<font color="#000080">, </font>carriage_return<font color="#000080">);
+  </font>AppendStr<font color="#000080">(</font>msg<font color="#000080">, </font><font color="#800000">'e-mail 71214.3117@compuserve.com'</font><font color="#000080">);
+  </font>AppendStr<font color="#000080">(</font>msg<font color="#000080">, </font>carriage_return<font color="#000080">);
+  </font>ShowMessage<font color="#000080">(</font>msg<font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#008000"><i>{########################################################################}
+</i></font><font color="#FF0000"><b>procedure Register</b></font><font color="#000080">;
+</font><font color="#008000"><i>{If you want, replace 'SLicK' with whichever component page you want
+JustOne to show up on.}
+</i></font><font color="#FF0000"><b>begin
+  </b></font>RegisterComponents<font color="#000080">(</font><font color="#800000">'SLicK'</font><font color="#000080">, [</font>TJustOne<font color="#000080">]);
+  </font>RegisterPropertyEditor<font color="#000080">(</font>TypeInfo<font color="#000080">(</font><font color="#FF0000"><b>String</b></font><font color="#000080">), </font>TJustOne<font color="#000080">, </font><font color="#800000">'About'</font><font color="#000080">,
+</font>  	TAboutProperty<font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#008000"><i>{########################################################################}
+</i></font><font color="#FF0000"><b>function </b></font>EnumFunc<font color="#000080">(</font>Wnd<font color="#000080">:</font>HWND<font color="#000080">; </font>TargetWindow<font color="#000080">:</font>PHWND<font color="#000080">): </font>boolean<font color="#000080">;
+</font><font color="#FF0000"><b>var
+  </b></font>ClassName <font color="#000080">: </font><font color="#FF0000"><b>array</b></font><font color="#000080">[</font><font color="#800000">0</font><font color="#000080">..</font><font color="#800000">30</font><font color="#000080">] </font><font color="#FF0000"><b>of </b></font>char<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>result <font color="#000080">:= </font>TRUE<font color="#000080">;
+  </font><font color="#FF0000"><b>if </b></font>GetWindowWord<font color="#000080">(</font>Wnd<font color="#000080">,</font>GWW_HINSTANCE<font color="#000080">) = </font>hPrevInst <font color="#FF0000"><b>then
+     begin
+       </b></font>GetClassName<font color="#000080">(</font>Wnd<font color="#000080">,</font>ClassName<font color="#000080">,</font><font color="#800000">30</font><font color="#000080">);
+       </font><font color="#FF0000"><b>if </b></font>StrIComp<font color="#000080">(</font>ClassName<font color="#000080">,</font><font color="#800000">'TApplication'</font><font color="#000080">) = </font><font color="#800000">0 </font><font color="#FF0000"><b>then
+         begin
+           </b></font>TargetWindow<font color="#000080">^ := </font>Wnd<font color="#000080">;
+           </font>result <font color="#000080">:= </font>FALSE<font color="#000080">;
+         </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+     </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#008000"><i>{########################################################################}
+</i></font><font color="#FF0000"><b>procedure </b></font>TJustOne<font color="#000080">.</font>GotoPreviousInstance<font color="#000080">;
+</font><font color="#FF0000"><b>var
+  </b></font>PrevInstWnd <font color="#000080">: </font>HWND<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>PrevInstWnd <font color="#000080">:= </font><font color="#800000">0</font><font color="#000080">;
+  </font>EnumWindows<font color="#000080">(@</font>EnumFunc<font color="#000080">,</font>longint<font color="#000080">(@</font>PrevInstWnd<font color="#000080">));
+
+  </font><font color="#FF0000"><b>if </b></font>PrevInstWnd <font color="#000080">&lt;&gt; </font><font color="#800000">0 </font><font color="#FF0000"><b>then
+</b></font>   	<font color="#FF0000"><b>if </b></font>IsIconic<font color="#000080">(</font>PrevInstWnd<font color="#000080">) </font><font color="#FF0000"><b>then
+      </b></font>ShowWindow<font color="#000080">(</font>PrevInstWnd<font color="#000080">,</font>SW_RESTORE<font color="#000080">)
+</font>   	<font color="#FF0000"><b>else
+      </b></font>BringWindowToTop<font color="#000080">(</font>PrevInstWnd<font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#008000"><i>{########################################################################}
+</i></font><font color="#FF0000"><b>constructor </b></font>TJustOne<font color="#000080">.</font>Create<font color="#000080">(</font>AOwner<font color="#000080">:</font>TComponent<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+</b></font>	<font color="#FF0000"><b>inherited </b></font>Create<font color="#000080">(</font>AOwner<font color="#000080">);
+</font>	<font color="#FF0000"><b>if </b></font>hPrevInst <font color="#000080">&lt;&gt; </font><font color="#800000">0 </font><font color="#FF0000"><b>then
+    begin
+      </b></font>GotoPreviousInstance<font color="#000080">;
+      </font>halt<font color="#000080">;
+    </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#008000"><i>{########################################################################}
+</i></font><font color="#FF0000"><b>destructor </b></font>TJustOne<font color="#000080">.</font>Destroy<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  inherited </b></font>Destroy<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#008000"><i>{########################################################################}
+</i></font><font color="#FF0000"><b>end</b></font><font color="#000080">.
+
+</font><font color="#008000"><i>{ { {------------------------- snip, snip ----------------------------}
+
+ENCODED JUSTONE.ZIP FILE REMOVED.  PLEASE <A HREF="0238.JUSTONE.ZIP">DOWNLOAD</A> EITHER THE 
+ATTACHMENT OR THE COMPLETE ZIP FILE.
+</i>
+</font>
+</code></pre><!--EndFragment--><p align="center"><b>[</b><a href="index.html">Back to DELPHI SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0238.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0238.JUSTONE.ZIP">Attachment</a><b>]</b>
+</p></body>
+</html>

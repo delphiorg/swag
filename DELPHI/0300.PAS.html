@@ -1,0 +1,57 @@
+<html>
+<head><title> "VERY Fast Text Sort Example" by MARTIN WALDENBURG</title><link rel="STYLESHEET" type="text/css" href="../swagsource.css"></head>
+<body><p align="center">
+<b>[</b><a href="index.html">Back to DELPHI SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0300.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0300.MWTXTSOR.ZIP">Attachment</a><b>]</b>
+
+</p><!--StartFragment--><pre><code>
+<font color="#000000">These units demonstrate the <font color="#FF0000"><b>implementation of </b></font>a TextSort engine<font color="#000080">,
+</font>which <font color="#FF0000"><b>uses </b></font>a three<font color="#000080">-</font>way merge <font color="#FF0000"><b>for </b></font>Memory <font color="#FF0000"><b>and </b></font>a five<font color="#000080">-</font>way merge <font color="#FF0000"><b>for </b></font>files<font color="#000080">.
+</font>I<font color="#800000">'ve wrote this because I'</font>ve wasted so mucht time waiting <font color="#FF0000"><b>for </b></font>sorting<font color="#000080">.
+</font>It<font color="#800000">'s very fast, one Million lines with an average length of 40 in 210 seconds.
+</font>It isn<font color="#800000">'t true that QuickSort is the fastest Algorithm available.
+</font>This <font color="#FF0000"><b>is </b></font>only true <font color="#FF0000"><b>for </b></font>pure Integer <font color="#FF0000"><b>or </b></font>Word arrays<font color="#000080">.
+</font><font color="#FF0000"><b>With </b></font>text <font color="#FF0000"><b>or </b></font>records MergeSort can compete <font color="#FF0000"><b>and is in </b></font>many cases faster<font color="#000080">.
+</font><font color="#FF0000"><b>In </b></font>all cases <font color="#FF0000"><b>of </b></font>interrest it may be slightly slower <font color="#FF0000"><b>in </b></font>the worst <font color="#FF0000"><b>case </b></font>but
+it can overcome Quicksort several times<font color="#000080">, </font>especialy <font color="#FF0000"><b>with </b></font>large keys <font color="#FF0000"><b>or
+</b></font>a time intensive comparision like AnsiCompareText<font color="#000080">.
+
+</font>This <font color="#FF0000"><b>implementation is </b></font>very fast but <font color="#FF0000"><b>not </b></font>the fastest possible<font color="#000080">.
+</font>There are some ways <font color="#FF0000"><b>to </b></font>improve it<font color="#000080">.
+
+</font>You can compile it <font color="#FF0000"><b>with </b></font>Delphi <font color="#800000">2</font><font color="#000080">+</font><font color="#800000">3 </font><font color="#FF0000"><b>and </b></font>the BCB<font color="#000080">, </font><font color="#FF0000"><b>with </b></font>little changes <font color="#FF0000"><b>with
+</b></font>Delphi <font color="#800000">1 </font>too<font color="#000080">.
+</font>It will be fast <font color="#FF0000"><b>with </b></font>Delphi <font color="#800000">1 </font>too<font color="#000080">, </font>because it can run <font color="#FF0000"><b>in </b></font>little memory<font color="#000080">.
+
+</font>TTextSort has no compare <font color="#FF0000"><b>function</b></font><font color="#000080">:
+</font>You must provide one like this<font color="#000080">!
+
+</font><font color="#FF0000"><b>function </b></font>Compare<font color="#000080">(</font>Item1<font color="#000080">, </font>Item2<font color="#000080">: </font>Pointer<font color="#000080">): </font>Integer<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+   </b></font>Result<font color="#000080">:= </font>CompareText<font color="#000080">(</font>PMergeData<font color="#000080">(</font>Item1<font color="#000080">)^.</font>Data<font color="#000080">, </font>PMergeData<font color="#000080">(</font>Item2<font color="#000080">)^.</font>Data<font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font>Put it <font color="#FF0000"><b>with </b></font>the <font color="#FF0000"><b>constructor</b></font><font color="#000080">.
+</font>TextSort<font color="#000080">:= </font>TTextSort<font color="#000080">.</font>Create<font color="#000080">(</font>Compare<font color="#000080">);
+
+</font><font color="#FF0000"><b>With </b></font>MaxLines you can determine the maximum number <font color="#FF0000"><b>of </b></font>lines <font color="#FF0000"><b>for </b></font>the <font color="#FF0000"><b>in</b></font><font color="#000080">-</font>memory
+merge<font color="#000080">. </font>More than <font color="#800000">200000 </font>are seldom useful<font color="#000080">.
+</font><font color="#FF0000"><b>With </b></font>MaxMem you can determine the maximum number <font color="#FF0000"><b>of </b></font>Bytes <font color="#FF0000"><b>for </b></font>the <font color="#FF0000"><b>in</b></font><font color="#000080">-</font>memory
+merge<font color="#000080">. </font>More than <font color="#800000">1</font><font color="#000080">/</font><font color="#800000">3 </font><font color="#FF0000"><b>of </b></font>main momory <font color="#FF0000"><b>is </b></font>seldom useful<font color="#000080">.
+
+</font>E<font color="#000080">-</font>Mail me at Martin<font color="#000080">.</font>Waldenburg<font color="#000080">@</font>t<font color="#000080">-</font>online<font color="#000080">.</font>de
+
+<font color="#008000"><i>{ { ------------------------- snip, snip ----------------------------}
+
+ENCODED MWTXTSOR.ZIP FILE REMOVED.  PLEASE <A HREF="0300.MWTXTSOR.ZIP">DOWNLOAD</A> EITHER THE 
+ATTACHMENT OR THE COMPLETE ZIP FILE.
+</i>
+</font>
+</code></pre><!--EndFragment--><p align="center"><b>[</b><a href="index.html">Back to DELPHI SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0300.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0300.MWTXTSOR.ZIP">Attachment</a><b>]</b>
+</p></body>
+</html>

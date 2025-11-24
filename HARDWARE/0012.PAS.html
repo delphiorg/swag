@@ -1,0 +1,93 @@
+<html>
+<head><title> "Determine CPU Type" by GAYLE DAVIS</title><link rel="STYLESHEET" type="text/css" href="../swagsource.css"></head>
+<body><p align="center">
+<b>[</b><a href="index.html">Back to HARDWARE SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0012.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0012.CPU.ZIP">Attachment</a><b>]</b>
+
+</p><!--StartFragment--><pre><code><font color="#FF0000"><b>Unit </b></font>CPU<font color="#000080">;
+
+</font><font color="#FF0000"><b>INTERFACE
+
+Type
+  </b></font>CpuType <font color="#000080">= ( </font>cpu8088<font color="#000080">,
+              </font>cpu8086<font color="#000080">,
+              </font>cpu80286<font color="#000080">,
+              </font>cpu80386<font color="#000080">,
+              </font>cpu80486<font color="#000080">,
+              </font>cpuPentium<font color="#000080">,
+              </font>cpuFuture
+             <font color="#000080">);
+  </font>CpuStrType <font color="#000080">= </font><font color="#FF0000"><b>String</b></font><font color="#000080">[</font><font color="#800000">7</font><font color="#000080">];
+
+</font><font color="#FF0000"><b>Function </b></font>GetCpuType <font color="#000080">: </font>CpuType<font color="#000080">;
+  </font><font color="#008000"><i>{ Returns the currently executing CPU type }
+
+</i></font><font color="#FF0000"><b>Function </b></font>GetCpuTypeStr <font color="#000080">: </font>CpuStrType<font color="#000080">;
+  </font><font color="#008000"><i>{ Returns the currently executing CPU type as a string }
+
+</i></font><font color="#FF0000"><b>IMPLEMENTATION
+
+Const
+  </b></font>CpuTypeIdentified <font color="#000080">: </font>Boolean <font color="#000080">= </font>False<font color="#000080">;
+</font><font color="#FF0000"><b>Var
+  </b></font>ConfirmedCpuType <font color="#000080">: </font>CpuType<font color="#000080">;
+
+</font><font color="#008000"><i>{$L CPU.OBJ}
+
+{$F+}
+</i></font><font color="#FF0000"><b>Function </b></font>WhichCPU <font color="#000080">: </font>CpuType<font color="#000080">;
+  </font><font color="#008000"><i>{ Determines and returns the currently executing CPU type }
+</i></font><font color="#FF0000"><b>EXTERNAL</b></font><font color="#000080">;
+</font><font color="#008000"><i>{$F-}
+
+</i></font><font color="#FF0000"><b>Procedure </b></font>IdentifyCpuType<font color="#000080">;
+  </font><font color="#008000"><i>{ Handles initialization of CPU type }
+</i></font><font color="#FF0000"><b>Begin
+  If Not </b></font>CpuTypeIdentified <font color="#FF0000"><b>Then
+  Begin
+    </b></font>ConfirmedCpuType  <font color="#000080">:= </font>WhichCPU<font color="#000080">;
+    </font>CpuTypeIdentified <font color="#000080">:= </font>True<font color="#000080">;
+  </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>End</b></font><font color="#000080">;   </font><font color="#008000"><i>{ Procedure IdentifyCpuType }
+
+</i></font><font color="#FF0000"><b>Function </b></font>GetCpuType <font color="#000080">: </font>CpuType<font color="#000080">;
+  </font><font color="#008000"><i>{ Returns the currently executing CPU type }
+</i></font><font color="#FF0000"><b>Begin
+  </b></font>IdentifyCpuType<font color="#000080">;
+  </font>GetCpuType <font color="#000080">:= </font>ConfirmedCpuType<font color="#000080">;
+</font><font color="#FF0000"><b>End</b></font><font color="#000080">;   </font><font color="#008000"><i>{ Function GetCpuType }
+
+</i></font><font color="#FF0000"><b>Function </b></font>GetCpuTypeStr <font color="#000080">: </font>CpuStrType<font color="#000080">;
+  </font><font color="#008000"><i>{ Returns the currently executing CPU type as a string }
+</i></font><font color="#FF0000"><b>Begin
+  </b></font>IdentifyCpuType<font color="#000080">;
+  </font><font color="#FF0000"><b>Case </b></font>ConfirmedCpuType <font color="#FF0000"><b>Of
+    </b></font>cpu8088    <font color="#000080">: </font>GetCpuTypeStr <font color="#000080">:= </font><font color="#800000">'8088'</font><font color="#000080">;
+    </font>cpu8086    <font color="#000080">: </font>GetCpuTypeStr <font color="#000080">:= </font><font color="#800000">'8086'</font><font color="#000080">;
+    </font>cpu80286   <font color="#000080">: </font>GetCpuTypeStr <font color="#000080">:= </font><font color="#800000">'80286'</font><font color="#000080">;
+    </font>cpu80386   <font color="#000080">: </font>GetCpuTypeStr <font color="#000080">:= </font><font color="#800000">'80386'</font><font color="#000080">;
+    </font>cpu80486   <font color="#000080">: </font>GetCpuTypeStr <font color="#000080">:= </font><font color="#800000">'80486'</font><font color="#000080">;
+    </font>cpuPentium <font color="#000080">: </font>GetCpuTypeStr <font color="#000080">:= </font><font color="#800000">'Pentium'</font><font color="#000080">;
+    </font>cpuFuture  <font color="#000080">: </font>GetCpuTypeStr <font color="#000080">:= </font><font color="#800000">'Future'</font><font color="#000080">;
+  </font><font color="#FF0000"><b>End</b></font><font color="#000080">;   </font><font color="#008000"><i>{ Case }
+</i></font><font color="#FF0000"><b>End</b></font><font color="#000080">;   </font><font color="#008000"><i>{ Function GetCpuTypeStr }
+
+</i></font><font color="#FF0000"><b>End</b></font><font color="#000080">.
+</font><font color="#008000"><i>{ eof CPU.PAS }
+
+
+</i></font>
+
+{------------------------- snip, snip ----------------------------}
+
+ENCODED CPU.OBJ FILE REMOVED.  PLEASE <A HREF="0012.CPU.ZIP">DOWNLOAD</A> EITHER THE 
+ATTACHMENT OR THE COMPLETE ZIP FILE.
+
+</code></pre><!--EndFragment--><p align="center"><b>[</b><a href="index.html">Back to HARDWARE SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0012.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0012.CPU.ZIP">Attachment</a><b>]</b>
+</p></body>
+</html>

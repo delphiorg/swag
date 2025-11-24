@@ -1,0 +1,286 @@
+<html>
+<head><title> "Replacement for QuickReport's Preview Fo" by ANGUS JOHNSON</title><link rel="STYLESHEET" type="text/css" href="../swagsource.css"></head>
+<body><p align="center">
+<b>[</b><a href="index.html">Back to DELPHI SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0285.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0285.PREVIEW.ZIP">Attachment</a><b>]</b>
+
+</p><!--StartFragment--><pre><code>
+<font color="#000000">Delphi1 <font color="#000080">&amp; </font>Delphi2<font color="#000080">.
+
+</font>This <font color="#FF0000"><b>unit is to </b></font>replace QuickReport<font color="#800000">'s Preview Form.
+
+</font>Advantages<font color="#000080">:
+  </font><font color="#800000">1. </font>cursor keys can be used <font color="#FF0000"><b>to </b></font>move around the preview page<font color="#000080">.
+  </font><font color="#800000">2. </font><font color="#000080">[</font>page_up<font color="#000080">] </font><font color="#FF0000"><b>and </b></font><font color="#000080">[</font>page_down<font color="#000080">] </font>keys used <font color="#FF0000"><b>to </b></font>move between pages
+  <font color="#800000">3. </font><font color="#000080">[</font>home<font color="#000080">] </font><font color="#FF0000"><b>or </b></font><font color="#000080">[</font>ctrl<font color="#000080">][</font>page_up<font color="#000080">] </font><font color="#FF0000"><b>to </b></font>move <font color="#FF0000"><b>to </b></font>first page
+  <font color="#800000">4. </font><font color="#000080">[</font><font color="#FF0000"><b>end</b></font><font color="#000080">] </font><font color="#FF0000"><b>or </b></font><font color="#000080">[</font>ctrl<font color="#000080">][</font>page_down<font color="#000080">] </font><font color="#FF0000"><b>to </b></font>move <font color="#FF0000"><b>to </b></font>last page
+
+  <font color="#800000">5. </font>automatically fills entire screen <font color="#000080">(</font><font color="#FF0000"><b>except </b></font>task bar<font color="#000080">)
+
+
+</font>Usage<font color="#000080">:
+
+  </font><font color="#800000">1. </font>Make sure QuickRep <font color="#FF0000"><b>is in </b></font>the <font color="#FF0000"><b>uses </b></font>clause <font color="#FF0000"><b>on </b></font>your MainForm<font color="#000080">.
+  </font><font color="#800000">2. </font>Add this Preview <font color="#FF0000"><b>unit to </b></font>your project<font color="#000080">.
+  </font><font color="#800000">3. </font>Add the following <font color="#FF0000"><b>procedure to </b></font>your MainForm <font color="#000080">-
+</font>	<font color="#FF0000"><b>procedure </b></font>TMainForm<font color="#000080">.</font>MyPreview<font color="#000080">;
+</font>	<font color="#FF0000"><b>begin
+</b></font>	   FmPreview<font color="#000080">.</font>ShowModal<font color="#000080">;
+</font>	<font color="#FF0000"><b>end</b></font><font color="#000080">;
+  </font><font color="#800000">4. </font>add <font color="#000080">-
+</font>	QRPrinter<font color="#000080">.</font>OnPreview <font color="#000080">:= </font>MyPreview<font color="#000080">;
+     </font><font color="#FF0000"><b>to </b></font>your code <font color="#000080">(</font><font color="#FF0000"><b>or </b></font>place it <font color="#FF0000"><b>in </b></font>FormCreate method<font color="#000080">) </font>before calling <font color="#000080">-
+</font>	YourReport<font color="#000080">.</font>Quickreport1<font color="#000080">.</font>preview<font color="#000080">;
+
+
+</font>Angus Johnson
+ajohnson<font color="#000080">@</font>rpi<font color="#000080">.</font>net<font color="#000080">.</font>au
+
+
+<font color="#FF0000"><b>unit </b></font>Preview<font color="#000080">;
+
+</font><font color="#FF0000"><b>interface
+
+uses
+  </b></font>SysUtils<font color="#000080">, </font>Classes<font color="#000080">, </font>Controls<font color="#000080">, </font>Forms<font color="#000080">, </font>Quickrep<font color="#000080">, </font>ExtCtrls<font color="#000080">, </font>Messages<font color="#000080">,
+  </font>StdCtrls<font color="#000080">, </font>Buttons<font color="#000080">, </font>WinTypes<font color="#000080">, </font>WinProcs<font color="#000080">, </font>Dialogs<font color="#000080">, </font>Printers<font color="#000080">,
+  </font>IniFiles<font color="#000080">;
+
+</font><font color="#FF0000"><b>type
+  </b></font>TFmPreview <font color="#000080">= </font><font color="#FF0000"><b>class</b></font><font color="#000080">(</font>TForm<font color="#000080">)
+</font>	 Panel1<font color="#000080">: </font>TPanel<font color="#000080">;
+</font>	 QRPreview1<font color="#000080">: </font>TQRPreview<font color="#000080">;
+</font>	 Label1<font color="#000080">: </font>TLabel<font color="#000080">;
+</font>	 PrintDialog1<font color="#000080">: </font>TPrintDialog<font color="#000080">;
+</font>	 bbPrev<font color="#000080">: </font>TBitBtn<font color="#000080">;
+</font>	 bbNext<font color="#000080">: </font>TBitBtn<font color="#000080">;
+</font>	 bbZoomOut<font color="#000080">: </font>TBitBtn<font color="#000080">;
+</font>	 bbZoomW<font color="#000080">: </font>TBitBtn<font color="#000080">;
+</font>	 bbZoomIn<font color="#000080">: </font>TBitBtn<font color="#000080">;
+</font>	 bbPrint<font color="#000080">: </font>TBitBtn<font color="#000080">;
+    </font>bbClose<font color="#000080">: </font>TBitBtn<font color="#000080">;
+</font>	 <font color="#FF0000"><b>procedure </b></font>FormShow<font color="#000080">(</font>Sender<font color="#000080">: </font>TObject<font color="#000080">);
+</font>	 <font color="#FF0000"><b>procedure </b></font>bbZoomOutClick<font color="#000080">(</font>Sender<font color="#000080">: </font>TObject<font color="#000080">);
+</font>	 <font color="#FF0000"><b>procedure </b></font>bbZoomWClick<font color="#000080">(</font>Sender<font color="#000080">: </font>TObject<font color="#000080">);
+</font>	 <font color="#FF0000"><b>procedure </b></font>bbPrevClick<font color="#000080">(</font>Sender<font color="#000080">: </font>TObject<font color="#000080">);
+</font>	 <font color="#FF0000"><b>procedure </b></font>bbNextClick<font color="#000080">(</font>Sender<font color="#000080">: </font>TObject<font color="#000080">);
+</font>	 <font color="#FF0000"><b>procedure </b></font>bbPrintClick<font color="#000080">(</font>Sender<font color="#000080">: </font>TObject<font color="#000080">);
+</font>	 <font color="#FF0000"><b>procedure </b></font>bbZoomInClick<font color="#000080">(</font>Sender<font color="#000080">: </font>TObject<font color="#000080">);
+</font>	 <font color="#FF0000"><b>procedure </b></font>bbCloseClick<font color="#000080">(</font>Sender<font color="#000080">: </font>TObject<font color="#000080">);
+</font>	 <font color="#FF0000"><b>procedure </b></font>FormActivate<font color="#000080">(</font>Sender<font color="#000080">: </font>TObject<font color="#000080">);
+</font>	 <font color="#FF0000"><b>procedure </b></font>FormClose<font color="#000080">(</font>Sender<font color="#000080">: </font>TObject<font color="#000080">; </font><font color="#FF0000"><b>var </b></font>Action<font color="#000080">: </font>TCloseAction<font color="#000080">);
+</font>	 <font color="#FF0000"><b>procedure </b></font>FormKeyDown<font color="#000080">(</font>Sender<font color="#000080">: </font>TObject<font color="#000080">; </font><font color="#FF0000"><b>var </b></font>Key<font color="#000080">: </font>Word<font color="#000080">;
+</font>	   Shift<font color="#000080">: </font>TShiftState<font color="#000080">);
+  </font><font color="#FF0000"><b>private
+</b></font>	 <font color="#FF0000"><b>procedure </b></font>CMDialogKey<font color="#000080">(</font><font color="#FF0000"><b>var message</b></font><font color="#000080">: </font>TCMDialogKey<font color="#000080">); </font><font color="#FF0000"><b>message </b></font>CM_DIALOGKEY<font color="#000080">;
+  </font><font color="#FF0000"><b>public
+  end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>var
+  </b></font>FmPreview<font color="#000080">: </font>TFmPreview<font color="#000080">;
+
+</font><font color="#FF0000"><b>implementation
+
+uses
+  </b></font>Main<font color="#000080">;
+
+</font><font color="#008000"><i>{$R *.DFM}
+
+
+</i></font><font color="#FF0000"><b>procedure </b></font>TFmPreview<font color="#000080">.</font>FormShow<font color="#000080">(</font>Sender<font color="#000080">: </font>TObject<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+</b></font>	QRPreview1<font color="#000080">.</font>Zoom <font color="#000080">:= </font><font color="#800000">100</font><font color="#000080">; </font><font color="#008000"><i>{defaults to ZoomIn}
+</i></font>	Label1<font color="#000080">.</font>caption <font color="#000080">:= </font><font color="#800000">'Page 1 of ' </font><font color="#000080">+</font>inttostr<font color="#000080">(</font>QRPrinter<font color="#000080">.</font>PageCount<font color="#000080">);
+</font>	<font color="#FF0000"><b>if </b></font>QRPrinter<font color="#000080">.</font>PageCount <font color="#000080">= </font><font color="#800000">1 </font><font color="#FF0000"><b>then </b></font>bbNext<font color="#000080">.</font>enabled <font color="#000080">:= </font>false
+	<font color="#FF0000"><b>else </b></font>bbNext<font color="#000080">.</font>enabled <font color="#000080">:= </font>true<font color="#000080">;
+</font>	bbClose<font color="#000080">.</font>setfocus<font color="#000080">;
+</font>	bbZoomIn<font color="#000080">.</font>enabled <font color="#000080">:= </font>false<font color="#000080">;
+</font>	bbZoomW<font color="#000080">.</font>enabled <font color="#000080">:= </font>true<font color="#000080">;
+</font>	bbZoomOut<font color="#000080">.</font>enabled <font color="#000080">:= </font>true<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TFmPreview<font color="#000080">.</font>bbZoomOutClick<font color="#000080">(</font>Sender<font color="#000080">: </font>TObject<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+</b></font>	QRPreview1<font color="#000080">.</font>ZoomToFit<font color="#000080">;
+</font>	bbZoomOut<font color="#000080">.</font>enabled <font color="#000080">:= </font>false<font color="#000080">;
+</font>	bbZoomW<font color="#000080">.</font>enabled <font color="#000080">:= </font>true<font color="#000080">;
+</font>	bbZoomIn<font color="#000080">.</font>enabled <font color="#000080">:= </font>true<font color="#000080">;
+</font>	bbClose<font color="#000080">.</font>setfocus<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TFmPreview<font color="#000080">.</font>bbZoomWClick<font color="#000080">(</font>Sender<font color="#000080">: </font>TObject<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+</b></font>	QRPreview1<font color="#000080">.</font>ZoomToWidth<font color="#000080">;
+</font>	bbZoomW<font color="#000080">.</font>enabled <font color="#000080">:= </font>false<font color="#000080">;
+</font>	bbZoomOut<font color="#000080">.</font>enabled <font color="#000080">:= </font>true<font color="#000080">;
+</font>	bbZoomIn<font color="#000080">.</font>enabled <font color="#000080">:= </font>true<font color="#000080">;
+</font>	bbClose<font color="#000080">.</font>setfocus<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TFmPreview<font color="#000080">.</font>bbPrevClick<font color="#000080">(</font>Sender<font color="#000080">: </font>TObject<font color="#000080">);
+</font><font color="#FF0000"><b>begin </b></font><font color="#008000"><i>{Previous page}
+  </i></font><font color="#FF0000"><b>if </b></font>QRPreview1<font color="#000080">.</font>PageNumber <font color="#000080">&gt; </font><font color="#800000">1 </font><font color="#FF0000"><b>then
+         </b></font>QRPreview1<font color="#000080">.</font>PageNumber <font color="#000080">:= </font>QRPreview1<font color="#000080">.</font>PageNumber<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">;
+  </font>Label1<font color="#000080">.</font>caption <font color="#000080">:= </font><font color="#800000">'Page ' </font><font color="#000080">+ </font>inttostr<font color="#000080">(</font>QRPreview1<font color="#000080">.</font>PageNumber<font color="#000080">)+
+                        </font><font color="#800000">' of ' </font><font color="#000080">+</font>inttostr<font color="#000080">(</font>QRPrinter<font color="#000080">.</font>PageCount<font color="#000080">);
+  </font>bbNext<font color="#000080">.</font>enabled <font color="#000080">:= </font>true<font color="#000080">;
+  </font><font color="#FF0000"><b>if </b></font>QRPreview1<font color="#000080">.</font>PageNumber <font color="#000080">= </font><font color="#800000">1 </font><font color="#FF0000"><b>then begin
+</b></font>	 bbPrev<font color="#000080">.</font>enabled <font color="#000080">:= </font>false<font color="#000080">;
+</font>	 bbNext<font color="#000080">.</font>setfocus<font color="#000080">;
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TFmPreview<font color="#000080">.</font>bbNextClick<font color="#000080">(</font>Sender<font color="#000080">: </font>TObject<font color="#000080">);
+</font><font color="#FF0000"><b>begin </b></font><font color="#008000"><i>{Next page}
+  </i></font><font color="#FF0000"><b>if </b></font>QRPreview1<font color="#000080">.</font>PageNumber <font color="#000080">&lt; </font>QRPrinter<font color="#000080">.</font>PageCount <font color="#FF0000"><b>then
+</b></font>					QRPreview1<font color="#000080">.</font>PageNumber <font color="#000080">:= </font>QRPreview1<font color="#000080">.</font>PageNumber<font color="#000080">+</font><font color="#800000">1</font><font color="#000080">;
+  </font>Label1<font color="#000080">.</font>caption <font color="#000080">:= </font><font color="#800000">'Page ' </font><font color="#000080">+ </font>inttostr<font color="#000080">(</font>QRPreview1<font color="#000080">.</font>PageNumber<font color="#000080">)+
+</font>					<font color="#800000">' of ' </font><font color="#000080">+</font>inttostr<font color="#000080">(</font>QRPrinter<font color="#000080">.</font>PageCount<font color="#000080">);
+  </font>bbPrev<font color="#000080">.</font>enabled <font color="#000080">:= </font>true<font color="#000080">;
+  </font><font color="#FF0000"><b>if </b></font>QRPreview1<font color="#000080">.</font>PageNumber <font color="#000080">= </font>QRPrinter<font color="#000080">.</font>PageCount <font color="#FF0000"><b>then begin
+</b></font>	 bbNext<font color="#000080">.</font>enabled <font color="#000080">:= </font>false<font color="#000080">;
+</font>	 bbPrev<font color="#000080">.</font>setfocus<font color="#000080">;
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TFmPreview<font color="#000080">.</font>bbPrintClick<font color="#000080">(</font>Sender<font color="#000080">: </font>TObject<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+  </b></font><font color="#008000"><i>{A PrintDialog component can be added to the form with an -
+  if not PrintDialog1.execute then exit -
+  statement placed here.}
+  </i></font>screen<font color="#000080">.</font>cursor <font color="#000080">:= </font>crHourglass<font color="#000080">;
+  </font><font color="#FF0000"><b>try
+</b></font>	 QRPrinter<font color="#000080">.</font>Print<font color="#000080">;
+</font>	 <font color="#FF0000"><b>while </b></font>tag <font color="#000080">&gt; </font><font color="#800000">1 </font><font color="#FF0000"><b>do begin
+</b></font>	   QRPrinter<font color="#000080">.</font>Print<font color="#000080">;
+</font>	   tag <font color="#000080">:= </font>tag<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">;
+</font>	 <font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font>	 tag <font color="#000080">:= </font><font color="#800000">1</font><font color="#000080">;
+  </font><font color="#FF0000"><b>finally
+</b></font>	 screen<font color="#000080">.</font>cursor <font color="#000080">:= </font>crDefault<font color="#000080">;
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+  </font>close<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TFmPreview<font color="#000080">.</font>bbZoomInClick<font color="#000080">(</font>Sender<font color="#000080">: </font>TObject<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+</b></font>	QRPreview1<font color="#000080">.</font>Zoom <font color="#000080">:= </font><font color="#800000">100</font><font color="#000080">;
+</font>	bbZoomIn<font color="#000080">.</font>enabled <font color="#000080">:= </font>false<font color="#000080">;
+</font>	bbZoomW<font color="#000080">.</font>enabled <font color="#000080">:= </font>true<font color="#000080">;
+</font>	bbZoomOut<font color="#000080">.</font>enabled <font color="#000080">:= </font>true<font color="#000080">;
+</font>	bbClose<font color="#000080">.</font>setfocus<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TFmPreview<font color="#000080">.</font>bbCloseClick<font color="#000080">(</font>Sender<font color="#000080">: </font>TObject<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+</b></font>	close<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TFmPreview<font color="#000080">.</font>FormActivate<font color="#000080">(</font>Sender<font color="#000080">: </font>TObject<font color="#000080">);
+</font><font color="#FF0000"><b>var
+  </b></font>TrayHwnd<font color="#000080">: </font>HWnd<font color="#000080">;
+  </font>Rect<font color="#000080">: </font>TRect<font color="#000080">;
+  </font>CxFullScreen<font color="#000080">, </font>CyFullScreen<font color="#000080">, </font>CyCaption<font color="#000080">: </font>integer<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font><font color="#008000"><i>{size the form to fill the screen...}
+  </i></font>TrayHwnd <font color="#000080">:= </font>FindWindow<font color="#000080">(</font><font color="#800000">'Shell_TrayWnd'</font><font color="#000080">,</font><font color="#800000">''</font><font color="#000080">);
+  </font><font color="#FF0000"><b>if </b></font>TrayHwnd <font color="#000080">= </font><font color="#800000">0 </font><font color="#FF0000"><b>then </b></font><font color="#008000"><i>{not Win95 screen}
+</i></font>	 WindowState <font color="#000080">:= </font>wsMaximized
+  <font color="#FF0000"><b>else begin
+</b></font>	 GetWindowRect<font color="#000080">(</font>TrayHwnd<font color="#000080">,</font>Rect<font color="#000080">);
+</font>	 CxFullScreen    <font color="#000080">:= </font>GetSystemMetrics<font color="#000080">(</font>SM_CXFULLSCREEN<font color="#000080">);
+</font>	 CyFullScreen    <font color="#000080">:= </font>GetSystemMetrics<font color="#000080">(</font>SM_CYFULLSCREEN<font color="#000080">);
+</font>	 CyCaption       <font color="#000080">:= </font>GetSystemMetrics<font color="#000080">(</font>SM_CYCAPTION<font color="#000080">);
+
+</font>	 <font color="#008000"><i>{NOTE: Position must equal either poDefault or poDesigned,
+	  and WindowState = wsNormal}
+</i></font>	 Top      <font color="#000080">:= </font><font color="#800000">0</font><font color="#000080">;
+</font>	 Left     <font color="#000080">:= </font><font color="#800000">0</font><font color="#000080">;
+</font>	 Width    <font color="#000080">:= </font>CxFullScreen<font color="#000080">;
+</font>	 Height   <font color="#000080">:= </font>CyFullScreen <font color="#000080">+ </font>CyCaption<font color="#000080">;
+
+</font>	 <font color="#FF0000"><b>if </b></font><font color="#000080">(</font>Rect<font color="#000080">.</font>Top <font color="#000080">&lt; </font><font color="#800000">0</font><font color="#000080">) </font><font color="#FF0000"><b>and </b></font><font color="#000080">(</font>Rect<font color="#000080">.</font>Left <font color="#000080">&lt; </font><font color="#800000">0</font><font color="#000080">) </font><font color="#FF0000"><b>then begin
+</b></font>	   <font color="#008000"><i>{Taskbar on either top or left}
+</i></font>	   <font color="#FF0000"><b>if </b></font>Rect<font color="#000080">.</font>Right <font color="#000080">&gt; </font>Rect<font color="#000080">.</font>Bottom <font color="#FF0000"><b>then </b></font><font color="#008000"><i>{Taskbar on top}
+</i></font>		 Top  <font color="#000080">:= </font>Rect<font color="#000080">.</font>Bottom
+	   <font color="#FF0000"><b>else </b></font><font color="#008000"><i>{Taskbar on left}
+</i></font>		 Left <font color="#000080">:= </font>Rect<font color="#000080">.</font>Right<font color="#000080">;
+</font>	 <font color="#FF0000"><b>end</b></font><font color="#000080">;
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+  </font>bbClose<font color="#000080">.</font>left <font color="#000080">:= </font>width <font color="#000080">- </font><font color="#800000">76</font><font color="#000080">;
+  </font>bbPrint<font color="#000080">.</font>left <font color="#000080">:= </font>width <font color="#000080">- </font><font color="#800000">144</font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TFmPreview<font color="#000080">.</font>FormClose<font color="#000080">(</font>Sender<font color="#000080">: </font>TObject<font color="#000080">; </font><font color="#FF0000"><b>var </b></font>Action<font color="#000080">: </font>TCloseAction<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+  </b></font>QRPreview1<font color="#000080">.</font>PageNumber <font color="#000080">:= </font><font color="#800000">1</font><font color="#000080">; </font><font color="#008000"><i>{this is necessary if reopening form!!!?}
+  </i></font>bbPrev<font color="#000080">.</font>enabled <font color="#000080">:= </font>false<font color="#000080">;
+  </font>QRPreview1<font color="#000080">.</font>HorzScrollbar<font color="#000080">.</font>Position <font color="#000080">:= </font><font color="#800000">0</font><font color="#000080">;
+  </font>QRPreview1<font color="#000080">.</font>VertScrollbar<font color="#000080">.</font>Position <font color="#000080">:= </font><font color="#800000">0</font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TFmPreview<font color="#000080">.</font>CMDialogKey<font color="#000080">(</font><font color="#FF0000"><b>var message</b></font><font color="#000080">: </font>TCMDialogKey<font color="#000080">);
+</font><font color="#FF0000"><b>begin </b></font><font color="#008000"><i>{INTERCEPTS ARROW KEYS INORDER TO MOVE AROUND PAGE}
+  </i></font><font color="#FF0000"><b>with message do
+</b></font>	 <font color="#FF0000"><b>case </b></font>CharCode <font color="#FF0000"><b>of
+</b></font>	   VK_LEFT<font color="#000080">: </font><font color="#FF0000"><b>begin
+</b></font>		 <font color="#FF0000"><b>with </b></font>QRPreview1<font color="#000080">.</font>HorzScrollbar <font color="#FF0000"><b>do </b></font>Position <font color="#000080">:= </font>Position <font color="#000080">-</font><font color="#800000">50</font><font color="#000080">;
+</font>		 exit<font color="#000080">;
+</font>		 <font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font>		VK_RIGHT<font color="#000080">: </font><font color="#FF0000"><b>begin
+</b></font>		 <font color="#FF0000"><b>with </b></font>QRPreview1<font color="#000080">.</font>HorzScrollbar <font color="#FF0000"><b>do </b></font>Position <font color="#000080">:= </font>Position <font color="#000080">+</font><font color="#800000">50</font><font color="#000080">;
+</font>		 exit<font color="#000080">;
+</font>		 <font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font>		VK_UP<font color="#000080">: </font><font color="#FF0000"><b>begin
+</b></font>		 <font color="#FF0000"><b>with </b></font>QRPreview1<font color="#000080">.</font>VertScrollbar <font color="#FF0000"><b>do </b></font>Position <font color="#000080">:= </font>Position <font color="#000080">-</font><font color="#800000">50</font><font color="#000080">;
+</font>		 exit<font color="#000080">;
+</font>		 <font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font>		VK_DOWN<font color="#000080">: </font><font color="#FF0000"><b>begin
+</b></font>		 <font color="#FF0000"><b>with </b></font>QRPreview1<font color="#000080">.</font>VertScrollbar <font color="#FF0000"><b>do </b></font>Position <font color="#000080">:= </font>Position <font color="#000080">+</font><font color="#800000">50</font><font color="#000080">;
+</font>		 exit<font color="#000080">;
+</font>		 <font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font>	 <font color="#FF0000"><b>end</b></font><font color="#000080">;
+  </font><font color="#FF0000"><b>inherited</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TFmPreview<font color="#000080">.</font>FormKeyDown<font color="#000080">(</font>Sender<font color="#000080">: </font>TObject<font color="#000080">; </font><font color="#FF0000"><b>var </b></font>Key<font color="#000080">: </font>Word<font color="#000080">;
+  </font>Shift<font color="#000080">: </font>TShiftState<font color="#000080">);
+</font><font color="#FF0000"><b>begin </b></font><font color="#008000"><i>{INTERCEPTS [PG_UP],[PG_DN], [CTRL][PG_UP],[CTRL][PG_DN], [HOME],[END]}
+  </i></font><font color="#FF0000"><b>if </b></font><font color="#000080">(((</font>Key <font color="#000080">= </font>VK_NEXT<font color="#000080">) </font><font color="#FF0000"><b>and </b></font><font color="#000080">(</font>Shift <font color="#000080">= [</font>ssCtrl<font color="#000080">])) </font><font color="#FF0000"><b>or </b></font><font color="#000080">(</font>Key <font color="#000080">= </font>VK_END<font color="#000080">))
+</font>											<font color="#FF0000"><b>and </b></font>bbNext<font color="#000080">.</font>enabled <font color="#FF0000"><b>then begin
+</b></font>	 QRPreview1<font color="#000080">.</font>PageNumber <font color="#000080">:= </font>QRPrinter<font color="#000080">.</font>PageCount<font color="#000080">; </font><font color="#008000"><i>{GOTO LAST PAGE}
+</i></font>	 Label1<font color="#000080">.</font>caption <font color="#000080">:= </font><font color="#800000">'Page ' </font><font color="#000080">+ </font>inttostr<font color="#000080">(</font>QRPrinter<font color="#000080">.</font>PageCount<font color="#000080">)+
+</font>					  <font color="#800000">' of ' </font><font color="#000080">+</font>inttostr<font color="#000080">(</font>QRPrinter<font color="#000080">.</font>PageCount<font color="#000080">);
+</font>	 bbPrev<font color="#000080">.</font>enabled <font color="#000080">:= </font>true<font color="#000080">;
+</font>	 bbNext<font color="#000080">.</font>enabled <font color="#000080">:= </font>false<font color="#000080">;
+</font>	 bbPrev<font color="#000080">.</font>setfocus<font color="#000080">;
+</font>	 <font color="#FF0000"><b>end
+  else if </b></font><font color="#000080">(((</font>Key <font color="#000080">= </font>VK_PRIOR<font color="#000080">) </font><font color="#FF0000"><b>and </b></font><font color="#000080">(</font>Shift <font color="#000080">= [</font>ssCtrl<font color="#000080">])) </font><font color="#FF0000"><b>or </b></font><font color="#000080">(</font>Key <font color="#000080">= </font>VK_HOME<font color="#000080">))
+</font>											 <font color="#FF0000"><b>and </b></font>bbPrev<font color="#000080">.</font>enabled <font color="#FF0000"><b>then begin
+</b></font>	 QRPreview1<font color="#000080">.</font>PageNumber <font color="#000080">:= </font><font color="#800000">1</font><font color="#000080">; </font><font color="#008000"><i>{GOTO FIRST PAGE}
+</i></font>	 Label1<font color="#000080">.</font>caption <font color="#000080">:= </font><font color="#800000">'Page 1' </font><font color="#000080">+
+</font>					  <font color="#800000">' of ' </font><font color="#000080">+</font>inttostr<font color="#000080">(</font>QRPrinter<font color="#000080">.</font>PageCount<font color="#000080">);
+</font>	 bbPrev<font color="#000080">.</font>enabled <font color="#000080">:= </font>false<font color="#000080">;
+</font>	 bbNext<font color="#000080">.</font>enabled <font color="#000080">:= </font>true<font color="#000080">;
+</font>	 bbNext<font color="#000080">.</font>setfocus<font color="#000080">;
+</font>	 <font color="#FF0000"><b>end
+  else if </b></font><font color="#000080">(</font>Key <font color="#000080">= </font>VK_NEXT<font color="#000080">) </font><font color="#FF0000"><b>and </b></font>bbNext<font color="#000080">.</font>enabled <font color="#FF0000"><b>then </b></font>bbNextClick<font color="#000080">(</font>Sender<font color="#000080">)
+  </font><font color="#FF0000"><b>else if </b></font><font color="#000080">(</font>Key <font color="#000080">= </font>VK_PRIOR<font color="#000080">) </font><font color="#FF0000"><b>and </b></font>bbPrev<font color="#000080">.</font>enabled <font color="#FF0000"><b>then </b></font>bbPrevClick<font color="#000080">(</font>Sender<font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">.
+
+</font><font color="#008000"><i>{ { ------------------------- snip, snip ----------------------------}
+
+ENCODED PREVIEW.DFM FILE REMOVED.  PLEASE <A HREF="0285.PREVIEW.ZIP">DOWNLOAD</A> EITHER THE 
+ATTACHMENT OR THE COMPLETE ZIP FILE.
+</i>
+</font>
+</code></pre><!--EndFragment--><p align="center"><b>[</b><a href="index.html">Back to DELPHI SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0285.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0285.PREVIEW.ZIP">Attachment</a><b>]</b>
+</p></body>
+</html>

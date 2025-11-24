@@ -1,0 +1,208 @@
+<html>
+<head><title> "Space Sprites Program" by HUGO ROZAS</title><link rel="STYLESHEET" type="text/css" href="../swagsource.css"></head>
+<body><p align="center">
+<b>[</b><a href="index.html">Back to GRAPHICS SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0290.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0290.SPACEPCX.ZIP">Attachment</a><b>]</b>
+
+</p><!--StartFragment--><pre><code><font color="#008000"><i>{
+The Following code is a little cheeze example of getting around the ye ol'
+retrace and flicker problem. To do this all writes are made to a vitual
+screen and then the whole thing is moved at once. This code has quite a
+nice effect even though it almost all in pure pascal.
+Enjoy: Swag ready. [g]
+
+- IMPORTANT : Use XX3402 to get the needed PCX files
+              ( Last part of the program ).
+
+  1) Cut from line 192 to the end and save as SPACEPCX.XX
+  2) Run : XX3402 D SPACEPCX.XX ( It generates SPACEPCX.ZIP )
+  3) Run : PKUNZIP SPACEPCX.ZIP ( It generates two PCX files )
+  4) Compile and Run this program.
+  5) XX3402.EXE is found in the SWAG Directory.
+}
+
+{$q-,r-,d-,b-}
+
+</i></font><font color="#FF0000"><b>PROGRAM </b></font>SPACE_Sprites<font color="#000080">;
+</font><font color="#008000"><i>{ - Slow game-sprites-example, by Bas van Gaalen, Holland, PD
+    12/20/94 }
+{ - Modified and completely rewritten by Mr. Krinkle : Cameron Clark }
+{ - Basicly is the same program from Cameron; I have only add some
+    sprites from SPRITELIB to make it more spectacular. Hugo Rozas :
+    &lt;hrm@mail.cosapidata.com.pe&gt;
+    07/12/97 }
+</i></font><font color="#FF0000"><b>USES </b></font>crt<font color="#000080">;
+</font><font color="#FF0000"><b>CONST  </b></font>maxSpr<font color="#000080">=</font><font color="#800000">144</font><font color="#000080">;                         </font><font color="#008000"><i>{Reduce, if program runs slugish}
+       </i></font>ScrSze<font color="#000080">=</font><font color="#800000">64000</font><font color="#000080">;
+</font><font color="#FF0000"><b>TYPE </b></font>a_scrn<font color="#000080">= </font><font color="#FF0000"><b>ARRAY </b></font><font color="#000080">[</font><font color="#800000">1</font><font color="#000080">..</font>ScrSze<font color="#000080">] </font><font color="#FF0000"><b>OF </b></font>byte<font color="#000080">;
+     </font>sprite<font color="#000080">= </font><font color="#FF0000"><b>RECORD
+             </b></font>xCOR<font color="#000080">,  </font>yCOR   <font color="#000080">: </font>word<font color="#000080">;
+             </font>width<font color="#000080">, </font>height <font color="#000080">: </font>byte<font color="#000080">;
+             </font>vVEL<font color="#000080">,  </font>hVEL   <font color="#000080">: </font>word<font color="#000080">;
+             </font>it<font color="#000080">: </font><font color="#FF0000"><b>ARRAY</b></font><font color="#000080">[</font><font color="#800000">1</font><font color="#000080">..</font><font color="#800000">188</font><font color="#000080">]  </font><font color="#FF0000"><b>OF </b></font>byte<font color="#000080">;   </font><font color="#008000"><i>{bitmap}
+     </i></font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>VAR </b></font>sprites <font color="#000080">: </font><font color="#FF0000"><b>ARRAY</b></font><font color="#000080">[</font><font color="#800000">1</font><font color="#000080">..</font>MaxSpr<font color="#000080">] </font><font color="#FF0000"><b>OF </b></font>sprite<font color="#000080">;
+    </font>point1 <font color="#000080">: </font>Pointer<font color="#000080">;
+    </font>point2 <font color="#000080">: ^</font>a_scrn<font color="#000080">; </font><font color="#008000"><i>{Used for screen math}
+    </i></font>i<font color="#000080">,</font>j<font color="#000080">,</font>k  <font color="#000080">: </font>word<font color="#000080">;
+    </font>c      <font color="#000080">: </font>Char<font color="#000080">;
+    </font>a <font color="#000080">: </font>byte<font color="#000080">;
+    </font>Pic<font color="#000080">:</font><font color="#FF0000"><b>Array </b></font><font color="#000080">[</font><font color="#800000">0</font><font color="#000080">..</font><font color="#800000">35999</font><font color="#000080">] </font><font color="#FF0000"><b>Of </b></font>Byte<font color="#000080">;
+    </font>Pcx<font color="#000080">:</font><font color="#FF0000"><b>File</b></font><font color="#000080">;
+    </font>Read_Result<font color="#000080">:</font>Integer<font color="#000080">;
+
+
+</font><font color="#008000"><i>{
+ This nice load pcx procedure is
+ from : Alan Bang Andersen
+}
+</i></font><font color="#FF0000"><b>Procedure </b></font>Load_Pcx<font color="#000080">(</font>Name<font color="#000080">:</font><font color="#FF0000"><b>String</b></font><font color="#000080">);
+</font><font color="#FF0000"><b>begin
+   Asm
+     </b></font><font color="#FF00FF">Mov  AL, 0
+     Mov  DX, 03C8h
+     Out  DX, AL
+     Inc  DX
+     Mov  CX, 1023
+@l1: Out  DX, AL
+     Loop @l1
+  </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+  </font>Assign<font color="#000080">(</font>PCX<font color="#000080">, </font>name<font color="#000080">);
+  </font>Reset<font color="#000080">(</font>PCX<font color="#000080">, </font><font color="#800000">1</font><font color="#000080">);
+  </font>BlockRead<font color="#000080">(</font>PCX<font color="#000080">, </font>Pic<font color="#000080">, </font>SizeOf<font color="#000080">(</font>Pic<font color="#000080">), </font>Read_Result<font color="#000080">);
+  </font>Close<font color="#000080">(</font>PCX<font color="#000080">);
+  </font><font color="#FF0000"><b>Asm
+     </b></font><font color="#FF00FF">Cld
+     Mov  AX, 0A000h
+     Mov  ES, AX
+     Lea  BX, Pic
+     Add  BX, 128
+     Xor  DI, DI
+     Xor  DX, DX
+     Xor  AX, AX
+     Xor  CX, CX
+@l2: Mov  AL, [BX]
+     Inc  BX
+     Cmp  AL, 0C0h
+     Ja   @r1
+     Stosb
+     Inc  DX
+     Jmp  @r3
+@r1: Sub  AL, 0C0h
+     Mov  CL, AL
+     Add  DX, AX
+     Mov  AL, [BX]
+     Inc  BX
+ Rep Stosb
+@r3: Cmp  DX, 64000
+     Jnz  @l2
+     Inc  BX
+     Mov  DX, 03C8h
+     Mov  AL, 00h
+     Out  DX, AL
+     Inc  DX
+     Mov  CX, 255
+@r4: Mov  AL, [BX]
+     Shr  AL, 2
+     Out  DX, AL
+     Mov  AL, [BX+1]
+     Shr  AL, 2
+     Out  DX, AL
+     Mov  AL, [BX+2]
+     Shr  AL, 2
+     Out  DX, AL
+     Add  BX, 3
+     Loop @r4
+  </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>PROCEDURE </b></font>SpriteData<font color="#000080">( </font>nSprite <font color="#000080">: </font>Word <font color="#000080">);
+</font><font color="#FF0000"><b>VAR
+ </b></font>i<font color="#000080">,</font>d<font color="#000080">,</font>x<font color="#000080">,</font>y<font color="#000080">,</font>Px<font color="#000080">,</font>Py <font color="#000080">: </font>Word<font color="#000080">;
+</font><font color="#FF0000"><b>BEGIN
+   </b></font>Px <font color="#000080">:= </font><font color="#800000">1 </font><font color="#000080">+ ( ( ( </font>nSprite <font color="#000080">- </font><font color="#800000">1 </font><font color="#000080">)  </font><font color="#FF0000"><b>MOD </b></font><font color="#800000">18 </font><font color="#000080">) * </font><font color="#800000">17</font><font color="#000080">);
+   </font>Py <font color="#000080">:= </font><font color="#800000">89 </font><font color="#000080">+ ( ( ( </font>nSprite <font color="#000080">- </font><font color="#800000">1 </font><font color="#000080">)  </font><font color="#FF0000"><b>DIV </b></font><font color="#800000">18 </font><font color="#000080">) * </font><font color="#800000">11 </font><font color="#000080">);
+   </font>i <font color="#000080">:= </font><font color="#800000">1</font><font color="#000080">;
+   </font><font color="#FF0000"><b>FOR </b></font>x <font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>TO </b></font><font color="#800000">17 </font><font color="#FF0000"><b>DO
+     FOR </b></font>y <font color="#000080">:= </font><font color="#800000">1 </font><font color="#FF0000"><b>TO </b></font><font color="#800000">11 </font><font color="#FF0000"><b>DO
+       BEGIN
+         </b></font>d <font color="#000080">:= (((</font>Py<font color="#000080">+</font>y<font color="#000080">) + (</font>y <font color="#FF0000"><b>DIV </b></font><font color="#800000">18</font><font color="#000080">)) * </font><font color="#800000">320 </font><font color="#000080">) + ( </font>Px<font color="#000080">+</font>x <font color="#000080">);
+         </font>sprites<font color="#000080">[ </font>nSprite <font color="#000080">].</font>it<font color="#000080">[</font>I<font color="#000080">] :=  </font>Point2<font color="#000080">^[ </font>d <font color="#000080">];
+         </font>Inc<font color="#000080">( </font>i <font color="#000080">);
+       </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>PROCEDURE </b></font>setpal<font color="#000080">(</font>col<font color="#000080">,</font>r<font color="#000080">,</font>g<font color="#000080">,</font>b <font color="#000080">: </font>byte<font color="#000080">); </font><font color="#FF0000"><b>assembler</b></font><font color="#000080">; </font><font color="#FF0000"><b>ASM
+  </b></font><font color="#FF00FF">mov dx,03c8h; mov al,col; out dx,al; Inc dx; mov al,r
+  out dx,al; mov al,g; out dx,al; mov al,b; out dx,al; </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>PROCEDURE </b></font>putsprite<font color="#000080">( </font><font color="#FF0000"><b>VAR </b></font>spriter <font color="#000080">: </font>sprite <font color="#000080">);
+</font><font color="#FF0000"><b>VAR </b></font>i<font color="#000080">,</font>x<font color="#000080">,</font>y<font color="#000080">,</font>d <font color="#000080">: </font>word<font color="#000080">;
+</font><font color="#FF0000"><b>BEGIN </b></font><font color="#008000"><i>{Update coordinates according to H&amp;V velocity and virtual draw}
+  </i></font><font color="#FF0000"><b>WITH </b></font>Spriter <font color="#FF0000"><b>DO BEGIN
+   IF  </b></font><font color="#000080">(</font>xCOR <font color="#000080">+ </font>hVEL <font color="#000080">&gt; </font><font color="#800000">320 </font><font color="#000080">- </font>width<font color="#000080">)  </font><font color="#FF0000"><b>OR </b></font><font color="#000080">(</font>xCOR <font color="#000080">+ </font>hVEL <font color="#000080">&lt; </font><font color="#800000">1</font><font color="#000080">) </font><font color="#FF0000"><b>THEN
+       </b></font>hVEL<font color="#000080">:=</font>hVEL <font color="#000080">* -</font><font color="#800000">1</font><font color="#000080">;
+   </font><font color="#FF0000"><b>IF  </b></font><font color="#000080">(</font>yCOR <font color="#000080">+ </font>vVEL <font color="#000080">&gt; </font><font color="#800000">200 </font><font color="#000080">- </font>height<font color="#000080">) </font><font color="#FF0000"><b>OR </b></font><font color="#000080">(</font>yCOR <font color="#000080">+ </font>vVEL <font color="#000080">&lt; </font><font color="#800000">1</font><font color="#000080">) </font><font color="#FF0000"><b>THEN
+       </b></font>vVEL<font color="#000080">:=</font>vVEL <font color="#000080">* -</font><font color="#800000">1</font><font color="#000080">;
+   </font>xCOR<font color="#000080">:=</font>xCOR <font color="#000080">+ </font>hVEL<font color="#000080">;  </font>yCOR<font color="#000080">:=</font>yCOR <font color="#000080">+ </font>vVEL<font color="#000080">;
+   </font>i <font color="#000080">:= </font><font color="#800000">1</font><font color="#000080">;
+   </font><font color="#FF0000"><b>FOR </b></font>x <font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>TO </b></font><font color="#800000">17 </font><font color="#FF0000"><b>DO
+     FOR </b></font>y <font color="#000080">:= </font><font color="#800000">1 </font><font color="#FF0000"><b>TO </b></font><font color="#800000">11 </font><font color="#FF0000"><b>DO
+       BEGIN
+         IF </b></font><font color="#000080">( </font>It<font color="#000080">[ </font>i <font color="#000080">] &lt;&gt; </font><font color="#800000">0 </font><font color="#000080">) </font><font color="#FF0000"><b>THEN BEGIN
+            </b></font>Point2<font color="#000080">^[( (((</font>yCor<font color="#000080">+</font>y<font color="#000080">) + (</font>y <font color="#FF0000"><b>DIV </b></font><font color="#800000">18</font><font color="#000080">)) * </font><font color="#800000">320 </font><font color="#000080">) + ( </font>xCor<font color="#000080">+</font>x <font color="#000080">) ) ] := </font>It<font color="#000080">[ </font>i <font color="#000080">];
+         </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+         </font>Inc<font color="#000080">( </font>i <font color="#000080">);
+       </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+  </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>BEGIN </b></font><font color="#008000"><i>{*Skeleton*}
+  </i></font><font color="#FF0000"><b>ASM </b></font><font color="#FF00FF">mov ax,13h; Int 10h; </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+ </font><font color="#008000"><i>{ load and save background }
+  </i></font>load_pcx<font color="#000080">( </font><font color="#800000">'SPACESPR.PCX' </font><font color="#000080">);
+  </font>GetMem<font color="#000080">(</font>Point1<font color="#000080">, </font>ScrSze<font color="#000080">);
+  </font>GetMem<font color="#000080">(</font>point2<font color="#000080">, </font>ScrSze<font color="#000080">);
+  </font>Move<font color="#000080">(</font>mem<font color="#000080">[</font><font color="#800000">$a000</font><font color="#000080">:</font><font color="#800000">0000</font><font color="#000080">], </font>Point2<font color="#000080">^, </font>ScrSze<font color="#000080">);
+  </font>Randomize<font color="#000080">;  </font><font color="#008000"><i>{ create random sprite }
+  </i></font><font color="#FF0000"><b>FOR </b></font>J<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>TO </b></font>MaxSpr <font color="#FF0000"><b>DO BEGIN
+      </b></font>sprites<font color="#000080">[</font>j<font color="#000080">].</font>xCor <font color="#000080">:= </font>random<font color="#000080">(</font><font color="#800000">300</font><font color="#000080">)+</font><font color="#800000">1</font><font color="#000080">;  </font><font color="#008000"><i>{Screen Pos}
+      </i></font>sprites<font color="#000080">[</font>j<font color="#000080">].</font>yCor <font color="#000080">:= </font>random<font color="#000080">(</font><font color="#800000">170</font><font color="#000080">)+</font><font color="#800000">1</font><font color="#000080">;
+      </font>sprites<font color="#000080">[</font>j<font color="#000080">].</font>width <font color="#000080">:= </font><font color="#800000">17</font><font color="#000080">;  </font><font color="#008000"><i>{Fixed Dimensions}
+      </i></font>sprites<font color="#000080">[</font>j<font color="#000080">].</font>height <font color="#000080">:= </font><font color="#800000">11</font><font color="#000080">;
+      </font><font color="#FF0000"><b>REPEAT
+      </b></font>sprites<font color="#000080">[</font>j<font color="#000080">].</font>hVEL <font color="#000080">:= </font><font color="#800000">6</font><font color="#000080">-</font>random<font color="#000080">(</font><font color="#800000">16</font><font color="#000080">)+</font><font color="#800000">1</font><font color="#000080">;   </font><font color="#008000"><i>{horiz. sprite displacement}
+      </i></font><font color="#FF0000"><b>UNTIL </b></font>sprites<font color="#000080">[</font>j<font color="#000080">].</font>hVEL <font color="#000080">&lt;&gt; </font><font color="#800000">0</font><font color="#000080">;
+      </font><font color="#FF0000"><b>REPEAT
+      </b></font>sprites<font color="#000080">[</font>j<font color="#000080">].</font>vVEL <font color="#000080">:= </font><font color="#800000">6</font><font color="#000080">-</font>random<font color="#000080">(</font><font color="#800000">13</font><font color="#000080">)+</font><font color="#800000">1</font><font color="#000080">;   </font><font color="#008000"><i>{Vert.  sprite displacement}
+      </i></font><font color="#FF0000"><b>UNTIL </b></font>sprites<font color="#000080">[</font>j<font color="#000080">].</font>vVEL <font color="#000080">&lt;&gt; </font><font color="#800000">0</font><font color="#000080">;
+      </font>SpriteData<font color="#000080">( </font>J <font color="#000080">);
+  </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+  </font>load_pcx<font color="#000080">( </font><font color="#800000">'SPACEBCK.PCX' </font><font color="#000080">);
+  </font>Move<font color="#000080">(</font>mem<font color="#000080">[</font><font color="#800000">$a000</font><font color="#000080">:</font><font color="#800000">0000</font><font color="#000080">], </font>Point1<font color="#000080">^, </font>ScrSze<font color="#000080">);
+  </font><font color="#FF0000"><b>REPEAT
+    </b></font>Move<font color="#000080">(</font>Point1<font color="#000080">^, </font>Point2<font color="#000080">^, </font>ScrSze<font color="#000080">);         </font><font color="#008000"><i>{copy Background for writing on}
+    </i></font><font color="#FF0000"><b>FOR </b></font>J <font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>TO </b></font>MaxSpr <font color="#FF0000"><b>DO
+      </b></font>putsprite<font color="#000080">( </font>sprites<font color="#000080">[</font>J<font color="#000080">] );             </font><font color="#008000"><i>{virtual write to Point2}
+    </i></font>Move<font color="#000080">(</font>point2<font color="#000080">^, </font>mem<font color="#000080">[</font><font color="#800000">$a000</font><font color="#000080">:</font><font color="#800000">0000</font><font color="#000080">], </font>ScrSze<font color="#000080">); </font><font color="#008000"><i>{write Point2}
+  </i></font><font color="#FF0000"><b>UNTIL </b></font>KeyPressed<font color="#000080">;                         </font><font color="#008000"><i>{NO retrace needed}
+  </i></font><font color="#FF0000"><b>ASM </b></font><font color="#FF00FF">mov ax,03h; Int 10h; </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+  </font>FreeMem<font color="#000080">(</font>Point1<font color="#000080">, </font>ScrSze<font color="#000080">);
+  </font>FreeMem<font color="#000080">(</font>point2<font color="#000080">, </font>ScrSze<font color="#000080">);
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">.
+
+</font><font color="#008000"><i>{
+ -----------------  CUT HERE AND SAVE AS SPACEPCX.XX  ----------------------
+}
+ENCODED SPACEPCX.ZIP FILE REMOVED.  PLEASE <A HREF="0290.SPACEPCX.ZIP">DOWNLOAD</A> EITHER THE 
+ATTACHMENT OR THE COMPLETE ZIP FILE.
+</i>
+</font>
+</code></pre><!--EndFragment--><p align="center"><b>[</b><a href="index.html">Back to GRAPHICS SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0290.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0290.SPACEPCX.ZIP">Attachment</a><b>]</b>
+</p></body>
+</html>

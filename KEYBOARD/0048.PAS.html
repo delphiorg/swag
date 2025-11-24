@@ -1,0 +1,88 @@
+<html>
+<head><title> "Complete Keyboard Unit" by ROB PERELMAN</title><link rel="STYLESHEET" type="text/css" href="../swagsource.css"></head>
+<body><p align="center">
+<b>[</b><a href="index.html">Back to KEYBOARD SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0048.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0048.KBD.ZIP">Attachment</a><b>]</b>
+
+</p><!--StartFragment--><pre><code><font color="#008000"><i>(*
+From: ROB PERELMAN
+Subj: A COMPLETE Keyboard Unit in ASM
+*)
+
+</i></font><font color="#FF0000"><b>UNIT </b></font>Keyboard<font color="#000080">;
+
+</font><font color="#FF0000"><b>INTERFACE
+
+   FUNCTION </b></font>AltPress<font color="#000080">: </font>Boolean<font color="#000080">;
+   </font><font color="#FF0000"><b>FUNCTION </b></font>CapsOn<font color="#000080">: </font>Boolean<font color="#000080">;
+   </font><font color="#FF0000"><b>FUNCTION </b></font>CtrlPress<font color="#000080">: </font>Boolean<font color="#000080">;
+   </font><font color="#FF0000"><b>FUNCTION </b></font>InsertOn<font color="#000080">: </font>Boolean<font color="#000080">;
+   </font><font color="#FF0000"><b>FUNCTION </b></font>LAltPress<font color="#000080">: </font>Boolean<font color="#000080">;
+   </font><font color="#FF0000"><b>FUNCTION </b></font>LCtrlPress<font color="#000080">: </font>Boolean<font color="#000080">;
+   </font><font color="#FF0000"><b>FUNCTION </b></font>LShiftPress<font color="#000080">: </font>Boolean<font color="#000080">;
+   </font><font color="#FF0000"><b>FUNCTION </b></font>NumOn<font color="#000080">: </font>Boolean<font color="#000080">;
+   </font><font color="#FF0000"><b>FUNCTION </b></font>RAltPress<font color="#000080">: </font>Boolean<font color="#000080">;
+   </font><font color="#FF0000"><b>FUNCTION </b></font>RCtrlPress<font color="#000080">: </font>Boolean<font color="#000080">;
+   </font><font color="#FF0000"><b>FUNCTION </b></font>RShiftPress<font color="#000080">: </font>Boolean<font color="#000080">;
+   </font><font color="#FF0000"><b>FUNCTION </b></font>ScrollOn<font color="#000080">: </font>Boolean<font color="#000080">;
+   </font><font color="#FF0000"><b>FUNCTION </b></font>ShiftPress<font color="#000080">: </font>Boolean<font color="#000080">;
+   </font><font color="#FF0000"><b>PROCEDURE </b></font>ClearKbd<font color="#000080">;
+   </font><font color="#FF0000"><b>PROCEDURE </b></font>PrintScreen<font color="#000080">;
+   </font><font color="#FF0000"><b>PROCEDURE </b></font>SetCaps <font color="#000080">(</font>CapsLock<font color="#000080">: </font>Boolean<font color="#000080">);
+   </font><font color="#FF0000"><b>PROCEDURE </b></font>SetEnhKbd <font color="#000080">(</font>Enhanced<font color="#000080">: </font>Boolean<font color="#000080">);
+   </font><font color="#FF0000"><b>PROCEDURE </b></font>SetInsert <font color="#000080">(</font>Ins<font color="#000080">: </font>Boolean<font color="#000080">);
+   </font><font color="#FF0000"><b>PROCEDURE </b></font>SetNum <font color="#000080">(</font>NumLock<font color="#000080">: </font>Boolean<font color="#000080">);
+   </font><font color="#FF0000"><b>PROCEDURE </b></font>SetPrtSc <font color="#000080">(</font>PrtScOn<font color="#000080">: </font>Boolean<font color="#000080">);
+   </font><font color="#FF0000"><b>PROCEDURE </b></font>SetScroll <font color="#000080">(</font>ScrollLock<font color="#000080">: </font>Boolean<font color="#000080">);
+   </font><font color="#FF0000"><b>PROCEDURE </b></font>SpeedKey <font color="#000080">(</font>RepDelay<font color="#000080">, </font>RepRate<font color="#000080">: </font>Integer<font color="#000080">);
+   </font><font color="#FF0000"><b>PROCEDURE </b></font>TypeIn <font color="#000080">(</font>Keys<font color="#000080">: </font><font color="#FF0000"><b>String</b></font><font color="#000080">);
+
+</font><font color="#FF0000"><b>IMPLEMENTATION
+
+</b></font><font color="#008000"><i>{$F+}
+
+{ the routines are actually in assembly language }
+
+   </i></font><font color="#FF0000"><b>FUNCTION </b></font>AltPress<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;
+   </font><font color="#FF0000"><b>FUNCTION </b></font>CapsOn<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;
+   </font><font color="#FF0000"><b>FUNCTION </b></font>CtrlPress<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;
+   </font><font color="#FF0000"><b>FUNCTION </b></font>InsertOn<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;
+   </font><font color="#FF0000"><b>FUNCTION </b></font>LAltPress<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;
+   </font><font color="#FF0000"><b>FUNCTION </b></font>LCtrlPress<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;
+   </font><font color="#FF0000"><b>FUNCTION </b></font>LShiftPress<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;
+   </font><font color="#FF0000"><b>FUNCTION </b></font>NumOn<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;
+   </font><font color="#FF0000"><b>FUNCTION </b></font>RAltPress<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;
+   </font><font color="#FF0000"><b>FUNCTION </b></font>RCtrlPress<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;
+   </font><font color="#FF0000"><b>FUNCTION </b></font>RShiftPress<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;
+   </font><font color="#FF0000"><b>FUNCTION </b></font>ScrollOn<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;
+   </font><font color="#FF0000"><b>FUNCTION </b></font>ShiftPress<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;
+   </font><font color="#FF0000"><b>PROCEDURE </b></font>ClearKbd<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;
+   </font><font color="#FF0000"><b>PROCEDURE </b></font>PrintScreen<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;
+   </font><font color="#FF0000"><b>PROCEDURE </b></font>SetCaps<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;
+   </font><font color="#FF0000"><b>PROCEDURE </b></font>SetEnhKbd<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;
+   </font><font color="#FF0000"><b>PROCEDURE </b></font>SetInsert<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;
+   </font><font color="#FF0000"><b>PROCEDURE </b></font>SetNum<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;
+   </font><font color="#FF0000"><b>PROCEDURE </b></font>SetPrtSc<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;
+   </font><font color="#FF0000"><b>PROCEDURE </b></font>SetScroll<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;
+   </font><font color="#FF0000"><b>PROCEDURE </b></font>SpeedKey<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;
+   </font><font color="#FF0000"><b>PROCEDURE </b></font>TypeIn<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;
+
+</font><font color="#008000"><i>{$L KBD}
+
+</i></font><font color="#FF0000"><b>BEGIN
+END</b></font><font color="#000080">.
+
+</font><font color="#008000"><i>{ ---------------------   CUT HERE -----------------------}
+
+ENCODED KBD.OBJ FILE REMOVED.  PLEASE <A HREF="0048.KBD.ZIP">DOWNLOAD</A> EITHER THE 
+ATTACHMENT OR THE COMPLETE ZIP FILE.
+</i>
+</font>
+</code></pre><!--EndFragment--><p align="center"><b>[</b><a href="index.html">Back to KEYBOARD SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0048.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0048.KBD.ZIP">Attachment</a><b>]</b>
+</p></body>
+</html>

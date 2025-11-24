@@ -1,0 +1,33 @@
+Okay, here are the changed files.
+
+What I have done:
+
+1) Extracted all the encoded binaries that I was able to locate out of the original 
+source sets.
+2) For the ones that were not extractable for errors, I put a placeholder text file
+for that entry.
+3) If an encoding was an archive that was not ZIP, I converted it to ZIP.  If an
+encoding was not a ZIP file, I zipped them.  If there was more than one file, they were
+zipped together.
+4) Renamed all the ZIP files to match the file they were gotten from.  If ICON.ZIP was 
+decoded from 0300.PAS, it got renamed to 0300.ICON.ZIP.
+5) All encodings were deleted from the PAS files.  In their place a message was placed
+stating to download the attached file for it.
+6) All encodings were deleted from the HTML files.  In their place a message was placed
+stating to download the attached file for it.  Also, a link was placed in the header and
+footer labeled "Attachment" so the user could download the decoded file.  If the particular
+file had an error in decoding, a link was set to a page explaining the issue and requesting
+the binary file be provided.
+7) All PAS.ZIP files were updated with the changes.  If 0300.PAS.ZIP had 0300.PAS & FILE_ID.DIZ,
+it now has the changed 0300.PAS, FILE_ID.DIZ, and 0300.ICON.ZIP.
+8) Added a link on the "Attachment removed" message.
+
+The following files had encoding errors:
+
+DELPHI
+------
+0317.PAS - MWSORT.ZIP
+
+WIN-OS2
+------
+0036.PAS - OWNLIST.RES

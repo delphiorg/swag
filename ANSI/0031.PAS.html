@@ -1,0 +1,176 @@
+<html>
+<head><title> "FAST ANSI Display Unit" by LARRY HADLEY</title><link rel="STYLESHEET" type="text/css" href="../swagsource.css"></head>
+<body><p align="center">
+<b>[</b><a href="index.html">Back to ANSI SWAG index</a><b>]
+</b>&nbsp;&nbsp;<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]
+</b>&nbsp;&nbsp;<b>[</b><a href="0031.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0031.HANSI.ZIP">Attachment</a><b>]</b></p>
+
+<!--StartFragment--><pre><code>
+<font color="#008000"><i>{
+JW&gt;I would be interested in such code - and a BP7 version is hardly needed,
+JW&gt;since I am happily working with TP4.0.
+
+  Well the problem is mainly keeping my code confidential, and I
+  don't have a TP4 compiler, I no longer have a TP5.x compiler,
+  either.
+
+  Fortunately, the &quot;top secret&quot; stuff is all in .asm, and I can send
+  you the .obj file without any complications. The .pas &quot;wrapper&quot;
+  for the .TPU is very simple.
+
+  A couple of caveats:
+
+  - there are a couple of minor bugs in the implementation, it
+    works fine, but occasionally the output will get *slightly*
+    mangled.
+
+  - This code writes *directly* to the video buffer, bypassing all
+    CRT or SYSTEM unit calls. This makes it generally incompatible
+    with windowing routines. (This is one reason I want badly to
+    upgrade it to BP7 - I pretty much have to support TurboVision to
+    be of any future use) The plus side: all CRT variables are
+    updated, and so calls to HANSI can be intermixed with calls to
+    normal CRT unit functions.
+
+  - *Only* ANSI codes relating to the CRT are translated, keyboard
+    redefinition, etc, is ignored. (ie, eaten by the emulator)
+
+  - ALWAYS USE THE CALLS THE WAY I SET THEM UP! The functions
+    internal to the .obj file are NEAR calls, and will not work
+    correctly when called externally to the .TPU.
+
+  - Use care to make sure you do not pass strings longer than 256
+    characters to the HANSI unit - longer strings will be truncated,
+    and do strange things to your output.
+
+{------------------------ snip, snip ----------------------------}
+
+</i></font><font color="#FF0000"><b>Unit </b></font>HANSI<font color="#000080">;
+
+</font><font color="#008000"><i>{$F+,A+}
+</i></font><font color="#FF0000"><b>INTERFACE
+
+Uses
+   </b></font>CRT<font color="#000080">;
+
+</font><font color="#FF0000"><b>TYPE
+   </b></font>CURS_COORD <font color="#000080">= </font><font color="#FF0000"><b>RECORD
+                   </b></font>x<font color="#000080">, </font>y <font color="#000080">: </font>byte<font color="#000080">;
+                </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+   </font>BUF_STRUCT <font color="#000080">= </font><font color="#FF0000"><b>array</b></font><font color="#000080">[</font><font color="#800000">0</font><font color="#000080">..</font><font color="#800000">127</font><font color="#000080">] </font><font color="#FF0000"><b>of </b></font>byte<font color="#000080">;
+
+</font><font color="#FF0000"><b>VAR
+   </b></font>temp <font color="#000080">: </font>byte<font color="#000080">;
+   </font>loop     <font color="#000080">: </font>word<font color="#000080">;
+   </font>cpr_buf  <font color="#000080">: </font><font color="#FF0000"><b>array</b></font><font color="#000080">[</font><font color="#800000">0</font><font color="#000080">..</font><font color="#800000">8</font><font color="#000080">] </font><font color="#FF0000"><b>of </b></font>char<font color="#000080">;  </font><font color="#008000"><i>{ 8 dup (0), '[' }
+
+   </i></font>input_buf        <font color="#000080">: </font><font color="#FF0000"><b>string</b></font><font color="#000080">;      </font><font color="#008000"><i>{ input buffer for ansi proc }
+   </i></font>str_ofs<font color="#000080">, </font>str_seg <font color="#000080">: </font>word<font color="#000080">; </font><font color="#008000"><i>{ seg and offset parts to point to input_buf }
+   </i></font>attr_parm        <font color="#000080">: </font>integer<font color="#000080">;
+
+   </font>cur          <font color="#000080">: </font>CURS_COORD<font color="#000080">;
+   </font>ansi_params  <font color="#000080">: </font>BUF_STRUCT<font color="#000080">;
+   </font>saved_coords <font color="#000080">: </font>word<font color="#000080">;
+
+   </font>brkkeybuf<font color="#000080">,      </font><font color="#008000"><i>{ db  3  control C }
+   </i></font>fnkeybuf<font color="#000080">,       </font><font color="#008000"><i>{ db  0  holds second byte of fn key codes }
+   </i></font>driver_init<font color="#000080">,
+   </font>max_x<font color="#000080">, </font>max_y<font color="#000080">, </font>ega_rows<font color="#000080">,
+   </font>wrap_flag<font color="#000080">, </font>attrib<font color="#000080">,
+   </font>string_term<font color="#000080">, </font>recurse<font color="#000080">, </font>cur_page                  <font color="#000080">: </font>byte<font color="#000080">;
+
+   </font>crt_cols<font color="#000080">, </font>crt_len<font color="#000080">, </font>columns<font color="#000080">, </font>lines<font color="#000080">,
+   </font>buf_size<font color="#000080">, </font>cur_parm_ptr<font color="#000080">, </font>video_mode<font color="#000080">, </font>escvector   <font color="#000080">: </font>word<font color="#000080">;
+
+   </font>crt_disp_mode <font color="#000080">: </font>byte <font color="#FF0000"><b>ABSOLUTE </b></font><font color="#800000">$0040</font><font color="#000080">:</font><font color="#800000">$0049</font><font color="#000080">;
+   </font>crt_page      <font color="#000080">: </font>byte <font color="#FF0000"><b>ABSOLUTE </b></font><font color="#800000">$0040</font><font color="#000080">:</font><font color="#800000">$0062</font><font color="#000080">;
+   </font>crt_curs_mode <font color="#000080">: </font>word <font color="#FF0000"><b>ABSOLUTE </b></font><font color="#800000">$0040</font><font color="#000080">:</font><font color="#800000">$0060</font><font color="#000080">;
+   </font>crt_curs_pos  <font color="#000080">: </font><font color="#FF0000"><b>array</b></font><font color="#000080">[</font><font color="#800000">0</font><font color="#000080">..</font><font color="#800000">8</font><font color="#000080">] </font><font color="#FF0000"><b>of </b></font>word <font color="#FF0000"><b>ABSOLUTE </b></font><font color="#800000">$0040</font><font color="#000080">:</font><font color="#800000">$0050</font><font color="#000080">;
+   </font>crt_EGA_rows  <font color="#000080">: </font>byte <font color="#FF0000"><b>ABSOLUTE </b></font><font color="#800000">$0040</font><font color="#000080">:</font><font color="#800000">$0084</font><font color="#000080">;
+
+</font><font color="#FF0000"><b>Procedure </b></font>Bip<font color="#000080">;
+
+</font><font color="#FF0000"><b>Procedure </b></font>A_Write<font color="#000080">(</font>buf<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">);
+
+</font><font color="#FF0000"><b>Procedure </b></font>A_WriteLn<font color="#000080">(</font>buf<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">);
+
+</font><font color="#FF0000"><b>IMPLEMENTATION
+
+Procedure </b></font>Bip<font color="#000080">;
+   </font><font color="#FF0000"><b>BEGIN
+      </b></font>Sound<font color="#000080">(</font><font color="#800000">1100</font><font color="#000080">);
+      </font>Delay<font color="#000080">(</font><font color="#800000">5</font><font color="#000080">);
+      </font>NoSound<font color="#000080">;
+   </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>Procedure </b></font>Init_Ansi<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">; </font><font color="#008000"><i>{ defined for NEAR calls - do not
+                                 call directly! }
+
+</i></font><font color="#FF0000"><b>Procedure </b></font>AnsiWrite<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">; </font><font color="#008000"><i>{ defined for NEAR calls - do not
+                                 call directly! }
+{$L hansi.obj}
+
+</i></font><font color="#FF0000"><b>Procedure </b></font>ANSI_init<font color="#000080">;
+   </font><font color="#FF0000"><b>BEGIN
+      if </b></font>driver_init <font color="#000080">= </font><font color="#800000">0 </font><font color="#FF0000"><b>then
+         </b></font>Init_Ansi<font color="#000080">;
+   </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>Procedure </b></font>A_Write<font color="#000080">(</font>buf<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">);
+   </font><font color="#FF0000"><b>BEGIN
+      if </b></font>buf<font color="#000080">&lt;&gt; </font><font color="#800000">'' </font><font color="#FF0000"><b>then
+      BEGIN
+         </b></font>input_buf <font color="#000080">:= </font>buf<font color="#000080">;
+         </font>ega_rows <font color="#000080">:= </font>crt_EGA_rows<font color="#000080">;
+         </font>AnsiWrite<font color="#000080">;
+      </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+   </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>Procedure </b></font>A_WriteLn<font color="#000080">(</font>buf<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">);
+   </font><font color="#FF0000"><b>BEGIN
+      </b></font>input_buf <font color="#000080">:= </font>buf<font color="#000080">+</font><font color="#800000">#13</font><font color="#000080">+</font><font color="#800000">#10</font><font color="#000080">;
+      </font>ega_rows <font color="#000080">:= </font>crt_EGA_rows<font color="#000080">;
+      </font>AnsiWrite<font color="#000080">;
+   </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>Function </b></font>CurrentMode<font color="#000080">:</font>byte<font color="#000080">;
+   </font><font color="#FF0000"><b>BEGIN
+      </b></font>CurrentMode <font color="#000080">:= </font>crt_disp_mode<font color="#000080">;
+   </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>Function </b></font>MaxRows<font color="#000080">:</font>byte<font color="#000080">;
+   </font><font color="#FF0000"><b>BEGIN
+      </b></font>MaxRows <font color="#000080">:= </font>crt_EGA_rows<font color="#000080">;
+   </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>BEGIN   </b></font><font color="#008000"><i>{ init all EXTRN's req'd by the asm module }
+   </i></font>Lines   <font color="#000080">:= </font>Hi<font color="#000080">(</font>WindMax<font color="#000080">)+</font><font color="#800000">1</font><font color="#000080">;
+   </font>Columns <font color="#000080">:= </font>Lo<font color="#000080">(</font>WindMax<font color="#000080">)+</font><font color="#800000">1</font><font color="#000080">;
+   </font>driver_init <font color="#000080">:= </font><font color="#800000">0</font><font color="#000080">; </font>buf_size <font color="#000080">:= </font><font color="#800000">127</font><font color="#000080">;
+   </font>escvector <font color="#000080">:= </font><font color="#800000">0</font><font color="#000080">;   </font>wrap_flag <font color="#000080">:= </font><font color="#800000">1</font><font color="#000080">;
+   </font>video_mode <font color="#000080">:= </font>LastMode<font color="#000080">;
+   </font>string_term <font color="#000080">:= </font><font color="#800000">0</font><font color="#000080">; </font>cur_page <font color="#000080">:= </font>crt_page<font color="#000080">;
+   </font>crt_cols <font color="#000080">:= </font>columns<font color="#000080">;
+   </font>recurse <font color="#000080">:= </font><font color="#800000">0</font><font color="#000080">; </font>brkkeybuf <font color="#000080">:= </font><font color="#800000">3</font><font color="#000080">; </font>fnkeybuf <font color="#000080">:= </font><font color="#800000">0</font><font color="#000080">;
+   </font>ega_rows  <font color="#000080">:= </font>crt_EGA_rows<font color="#000080">;
+   </font>str_ofs <font color="#000080">:= </font>OFS<font color="#000080">(</font>input_buf<font color="#000080">);
+   </font>str_seg <font color="#000080">:= </font>SEG<font color="#000080">(</font>input_buf<font color="#000080">);
+   </font>Writeln<font color="#000080">;
+   </font>ANSI_Init<font color="#000080">;
+   </font>Writeln<font color="#000080">;
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">.</font>
+
+{------------------------- snip, snip ----------------------------}
+
+ENCODED HANSI.ZIP FILE REMOVED.  PLEASE <A HREF="0031.HANSI.ZIP">DOWNLOAD</a> EITHER THE 
+ATTACHMENT OR THE COMPLETE ZIP FILE.
+
+</font>
+</code></pre><!--EndFragment--><p align="center">
+<b>[</b><a href="index.html">Back to ANSI SWAG index</a><b>]
+</b>&nbsp;&nbsp;<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]
+</b>&nbsp;&nbsp;<b>[</b><a href="0031.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0031.HANSI.ZIP">Attachment</a><b>]</b></p></body>
+</html>

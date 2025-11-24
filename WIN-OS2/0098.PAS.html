@@ -1,0 +1,132 @@
+<html>
+<head><title> "DIB Bitmaps" by U CONRAD</title><link rel="STYLESHEET" type="text/css" href="../swagsource.css"></head>
+<body><p align="center">
+<b>[</b><a href="index.html">Back to WIN-OS2 SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0098.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0098.BMPTBLT.ZIP">Attachment</a><b>]</b>
+
+</p><!--StartFragment--><pre><code><font color="#FF0000"><b>PROGRAM </b></font>Bmptblt<font color="#000080">;
+</font><font color="#008000"><i>{ Dieser Code beschreibt die Darstellung von Bitmaps mit &quot;durchsichtigen&quot; Bereichen
+  (c) 1997 U. Conrad, uconrad1@gwdg.de }
+
+{$R BMPTBLT.RES}  { see end of document .. XX34 to extract RES file}
+
+</i></font><font color="#FF0000"><b>USES </b></font>OWindows<font color="#000080">,</font>WinTypes<font color="#000080">,</font>WinProcs<font color="#000080">,</font>Strings<font color="#000080">;
+
+</font><font color="#FF0000"><b>TYPE </b></font>TDemoApp<font color="#000080">=</font><font color="#FF0000"><b>OBJECT</b></font><font color="#000080">(</font>TApplication<font color="#000080">)
+       </font><font color="#FF0000"><b>PROCEDURE </b></font>InitMainWindow<font color="#000080">; </font><font color="#FF0000"><b>virtual</b></font><font color="#000080">;
+     </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>TYPE </b></font>PDemoWin <font color="#000080">= ^</font>TDemoWin<font color="#000080">;
+     </font>TDemoWin <font color="#000080">= </font><font color="#FF0000"><b>OBJECT</b></font><font color="#000080">(</font>TWindow<font color="#000080">)
+       </font><font color="#FF0000"><b>PROCEDURE </b></font>Paint<font color="#000080">(</font>PaintDC <font color="#000080">: </font>HDC<font color="#000080">;</font><font color="#FF0000"><b>var </b></font>PaintInfo <font color="#000080">: </font>TPaintStruct<font color="#000080">); </font><font color="#FF0000"><b>virtual</b></font><font color="#000080">;
+       </font><font color="#FF0000"><b>PROCEDURE </b></font>GetWindowClass<font color="#000080">(</font><font color="#FF0000"><b>var </b></font>AWndClass <font color="#000080">: </font>TWndClass<font color="#000080">); </font><font color="#FF0000"><b>virtual</b></font><font color="#000080">;
+     </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#008000"><i>{ Prozedur fuer die normale Abbildung von Bitmpas }
+</i></font><font color="#FF0000"><b>PROCEDURE </b></font>BmpBlt<font color="#000080">(</font>DC <font color="#000080">: </font>HDC<font color="#000080">;</font>x<font color="#000080">,</font>y <font color="#000080">: </font>integer<font color="#000080">;</font>hbmp <font color="#000080">: </font>HBitmap<font color="#000080">);
+</font><font color="#FF0000"><b>VAR </b></font>MemDC        <font color="#000080">: </font>HDC<font color="#000080">;
+    </font>OldBmp       <font color="#000080">: </font>HBitmap<font color="#000080">;
+    </font>Bitmap       <font color="#000080">: </font>TBitmap<font color="#000080">;
+</font><font color="#FF0000"><b>BEGIN
+  </b></font>MemDC<font color="#000080">:=</font>CreateCompatibleDC<font color="#000080">(</font>DC<font color="#000080">);
+  </font>OldBmp<font color="#000080">:=</font>SelectObject<font color="#000080">(</font>MemDC<font color="#000080">,</font>hbmp<font color="#000080">);
+  </font>GetObject<font color="#000080">(</font>hBmp<font color="#000080">,</font>Sizeof<font color="#000080">(</font>Bitmap<font color="#000080">),@</font>Bitmap<font color="#000080">);
+  </font>BitBlt<font color="#000080">(</font>DC<font color="#000080">,</font><font color="#800000">10</font><font color="#000080">,</font><font color="#800000">10</font><font color="#000080">,</font>Bitmap<font color="#000080">.</font>bmWidth<font color="#000080">,</font>Bitmap<font color="#000080">.</font>bmHeight<font color="#000080">,</font>MemDC<font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font>SrcCopy<font color="#000080">);
+  </font>SelectObject<font color="#000080">(</font>MemDC<font color="#000080">,</font>OldBmp<font color="#000080">);
+  </font>DeleteDC<font color="#000080">(</font>MemDC<font color="#000080">);
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#008000"><i>{ Prozedur fuer die durchsichtige Darstellung }
+</i></font><font color="#FF0000"><b>PROCEDURE </b></font>BmpTransparentBlt<font color="#000080">(</font>hDCDest <font color="#000080">: </font>HDC<font color="#000080">;</font>x<font color="#000080">,</font>y <font color="#000080">: </font>integer<font color="#000080">;</font>hbmp <font color="#000080">: </font>HBitmap<font color="#000080">;</font>rgbTransparent <font color="#000080">: </font>TColorRef<font color="#000080">);
+</font><font color="#008000"><i>{ hDCDest bezeichnet den Zielkontext, x und y die obere linke Ecke der Bitmap;
+  hBmp ist ein Handle zu der Bitmap und rgbTransparent bezeichnet die Farbe,
+  die bei der Darstellung &quot;durchsichtig&quot; dargestellt werden soll }
+</i></font><font color="#FF0000"><b>VAR </b></font>hDCSrc            <font color="#000080">: </font>HDC<font color="#000080">;
+    </font>hDCMask           <font color="#000080">: </font>HDC<font color="#000080">;
+    </font>Bitmap            <font color="#000080">: </font>TBitmap<font color="#000080">;
+    </font>hbmTransMask      <font color="#000080">: </font>HBitmap<font color="#000080">;
+    </font>OldBk             <font color="#000080">: </font>TColorRef<font color="#000080">;
+    </font>OldCol            <font color="#000080">: </font>TColorRef<font color="#000080">;
+</font><font color="#FF0000"><b>BEGIN
+  </b></font>GetObject<font color="#000080">(</font>hBmp<font color="#000080">,</font>SizeOf<font color="#000080">(</font>TBitmap<font color="#000080">),@</font>Bitmap<font color="#000080">);           </font><font color="#008000"><i>{ Informationen ueber Bitmap speichern }
+  </i></font>hDCSrc<font color="#000080">:=</font>CreateCompatibleDC<font color="#000080">(</font>hDCDest<font color="#000080">);               </font><font color="#008000"><i>{ Quellkontext erzeugen }
+  </i></font>hDCMask<font color="#000080">:=</font>CreateCompatibleDC<font color="#000080">(</font>hDCDest<font color="#000080">);              </font><font color="#008000"><i>{ Kontext fuer MAske erzeugen }
+  </i></font>hbmTransMask<font color="#000080">:=</font>CreateBitmap<font color="#000080">(</font>Bitmap<font color="#000080">.</font>bmWidth<font color="#000080">,</font>Bitmap<font color="#000080">.</font>bmHeight<font color="#000080">,</font><font color="#800000">1</font><font color="#000080">,</font><font color="#800000">1</font><font color="#000080">,</font><font color="#FF0000"><b>nil</b></font><font color="#000080">);
+  </font>SelectObject<font color="#000080">(</font>hDCSrc<font color="#000080">,</font>hbmp<font color="#000080">);                         </font><font color="#008000"><i>{ Bitmap im Quellkontext abbilden }
+  </i></font>SelectObject<font color="#000080">(</font>hDCMask<font color="#000080">,</font>hbmTransMask<font color="#000080">);                </font><font color="#008000"><i>{ }
+  </i></font>SetBkColor<font color="#000080">(</font>hDCSrc<font color="#000080">,</font>rgbTransparent<font color="#000080">);                 </font><font color="#008000"><i>{ Maske erzeugen }
+  </i></font>BitBlt<font color="#000080">(</font>hdcMask<font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font>Bitmap<font color="#000080">.</font>bmWidth<font color="#000080">,</font>Bitmap<font color="#000080">.</font>bmHeight<font color="#000080">,</font>hDCSrc<font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font>SrcCopy<font color="#000080">);
+  </font><font color="#008000"><i>{ mit Maske kombinieren }
+  </i></font>OldBk<font color="#000080">:=</font>SetBkColor<font color="#000080">(</font>hDCDest<font color="#000080">,</font>RGB<font color="#000080">(</font><font color="#800000">255</font><font color="#000080">,</font><font color="#800000">255</font><font color="#000080">,</font><font color="#800000">255</font><font color="#000080">));
+  </font>OldCol<font color="#000080">:=</font>SetTextColor<font color="#000080">(</font>hDCDest<font color="#000080">,</font>RGB<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">));
+  </font>BitBlt<font color="#000080">(</font>hDCDest<font color="#000080">,</font>x<font color="#000080">,</font>y<font color="#000080">,</font>Bitmap<font color="#000080">.</font>bmWidth<font color="#000080">,</font>Bitmap<font color="#000080">.</font>bmHeight<font color="#000080">,</font>hDCSrc<font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font>SRCInvert<font color="#000080">);
+  </font>BitBlt<font color="#000080">(</font>hDCDest<font color="#000080">,</font>x<font color="#000080">,</font>y<font color="#000080">,</font>Bitmap<font color="#000080">.</font>bmWidth<font color="#000080">,</font>Bitmap<font color="#000080">.</font>bmHeight<font color="#000080">,</font>hDCMask<font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font>SRCAnd<font color="#000080">);
+  </font>BitBlt<font color="#000080">(</font>hDCDest<font color="#000080">,</font>x<font color="#000080">,</font>y<font color="#000080">,</font>Bitmap<font color="#000080">.</font>bmWidth<font color="#000080">,</font>Bitmap<font color="#000080">.</font>bmHeight<font color="#000080">,</font>hDCSrc<font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font>SRCInvert<font color="#000080">);
+  </font>SetBkColor<font color="#000080">(</font>hDCDest<font color="#000080">,</font>OldBk<font color="#000080">);
+  </font>SetTextColor<font color="#000080">(</font>hDCDest<font color="#000080">,</font>OldCol<font color="#000080">);
+  </font><font color="#008000"><i>{ Kontexte freigeben }
+  </i></font>DeleteDC<font color="#000080">(</font>hDCSrc<font color="#000080">);
+  </font>DeleteDC<font color="#000080">(</font>hDCMask<font color="#000080">);
+  </font>DeleteDC<font color="#000080">(</font>hDCDest<font color="#000080">);
+  </font><font color="#008000"><i>{ Objekte loeschen }
+  </i></font>DeleteObject<font color="#000080">(</font>hbmTransMask<font color="#000080">);
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#008000"><i>{ ================== Methoden des Fensters ===================== }
+</i></font><font color="#FF0000"><b>PROCEDURE </b></font>TDemoWin<font color="#000080">.</font>Paint<font color="#000080">(</font>PaintDC <font color="#000080">: </font>HDC<font color="#000080">;</font><font color="#FF0000"><b>var </b></font>PaintInfo <font color="#000080">: </font>TPaintStruct<font color="#000080">);
+</font><font color="#FF0000"><b>VAR </b></font>BmpTransparent   <font color="#000080">: </font>HBitmap<font color="#000080">;
+    </font>BmpNormal        <font color="#000080">: </font>HBitmap<font color="#000080">;
+    </font>OldMode          <font color="#000080">: </font>integer<font color="#000080">;
+</font><font color="#FF0000"><b>BEGIN
+  </b></font>BmpTransparent<font color="#000080">:=</font>LoadBitmap<font color="#000080">(</font>hInstance<font color="#000080">,</font><font color="#800000">'BMP_TRANSPARENT'</font><font color="#000080">);
+  </font>BmpNormal<font color="#000080">:=</font>LoadBitmap<font color="#000080">(</font>hInstance<font color="#000080">,</font><font color="#800000">'BMP_Normal'</font><font color="#000080">);
+  </font>BmpBlt<font color="#000080">(</font>PaintDC<font color="#000080">,</font><font color="#800000">10</font><font color="#000080">,</font><font color="#800000">10</font><font color="#000080">,</font>BmpNormal<font color="#000080">);
+  </font>TextOut<font color="#000080">(</font>PaintDC<font color="#000080">,</font><font color="#800000">50</font><font color="#000080">,</font><font color="#800000">15</font><font color="#000080">,</font><font color="#800000">'Normale Darstellung'</font><font color="#000080">,</font>StrLen<font color="#000080">(</font><font color="#800000">'Normale Darstellung'</font><font color="#000080">));
+  </font><font color="#008000"><i>{ bildet die Bitmap ganz normal ab }
+  </i></font>BmpTransparentBlt<font color="#000080">(</font>PaintDC<font color="#000080">,</font><font color="#800000">10</font><font color="#000080">,</font><font color="#800000">60</font><font color="#000080">,</font>BmpTransparent<font color="#000080">,</font>RGB<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">255</font><font color="#000080">));
+  </font><font color="#008000"><i>{ bildet die Bitmap ab, ohne Pixel der Farbe RGB(0,0,255) darzustellen }
+  </i></font>OldMode<font color="#000080">:=</font>SetBkMode<font color="#000080">(</font>PaintDC<font color="#000080">,</font>transparent<font color="#000080">);
+  </font><font color="#008000"><i>{ fuer die Textausgabe wird erst jetzt der Transparent-Modus gesetzt }
+  </i></font>TextOut<font color="#000080">(</font>PaintDC<font color="#000080">,</font><font color="#800000">50</font><font color="#000080">,</font><font color="#800000">65</font><font color="#000080">,</font><font color="#800000">'Transparente Darstellung'</font><font color="#000080">,</font>StrLen<font color="#000080">(</font><font color="#800000">'Transparente Darstellung'</font><font color="#000080">));
+  </font>SetBkMode<font color="#000080">(</font>PaintDC<font color="#000080">,</font>OldMode<font color="#000080">);
+  </font>DeleteObject<font color="#000080">(</font>BmpTransparent<font color="#000080">);
+  </font>DeleteObject<font color="#000080">(</font>BmpNormal<font color="#000080">);
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>PROCEDURE </b></font>TDemoWin<font color="#000080">.</font>GetWindowClass<font color="#000080">(</font><font color="#FF0000"><b>var </b></font>AWndClass <font color="#000080">: </font>TWndClass<font color="#000080">);
+</font><font color="#FF0000"><b>BEGIN
+  inherited </b></font>GetWindowClass<font color="#000080">(</font>AWndClass<font color="#000080">);
+  </font>AWndClass<font color="#000080">.</font>hbrBackground<font color="#000080">:=</font>GetStockObject<font color="#000080">(</font>LtGray_Brush<font color="#000080">);
+  </font><font color="#008000"><i>{ fuer dieses Fenster nehmen wir einen grauen HIntergrund, um den
+    Effekt sichtbar zu machen }
+</i></font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#008000"><i>{ ================== Methoden der Applikation ===================== }
+</i></font><font color="#FF0000"><b>PROCEDURE </b></font>TDemoApp<font color="#000080">.</font>InitMainWindow<font color="#000080">;
+</font><font color="#FF0000"><b>BEGIN
+  </b></font>MainWindow<font color="#000080">:=</font>New<font color="#000080">(</font>PDemoWin<font color="#000080">,</font>Init<font color="#000080">(</font><font color="#FF0000"><b>nil</b></font><font color="#000080">,</font><font color="#800000">'Durchsichtige Darstellung von Bitmaps'</font><font color="#000080">));
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#008000"><i>{ *****************   Programm ******************* }
+
+</i></font><font color="#FF0000"><b>VAR </b></font>DemoApp  <font color="#000080">: </font>TDemoApp<font color="#000080">;
+
+</font><font color="#FF0000"><b>BEGIN
+  </b></font>DemoApp<font color="#000080">.</font>Init<font color="#000080">(</font><font color="#800000">'DemoApp'</font><font color="#000080">);
+  </font>DemoApp<font color="#000080">.</font>Run<font color="#000080">;
+  </font>DemoApp<font color="#000080">.</font>Done<font color="#000080">;
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">.
+
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">.
+</font><font color="#008000"><i>{ ENCODED BMPTBLT.RES FILE REMOVED.  PLEASE <A HREF="0098.BMPTBLT.ZIP">DOWNLOAD</A> EITHER THE 
+ATTACHMENT OR THE COMPLETE ZIP FILE.
+</i>
+</font>
+</code></pre><!--EndFragment--><p align="center"><b>[</b><a href="index.html">Back to WIN-OS2 SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0098.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0098.BMPTBLT.ZIP">Attachment</a><b>]</b>
+</p></body>
+</html>

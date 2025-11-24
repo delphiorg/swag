@@ -1,0 +1,197 @@
+<html>
+<head><title> "Water ripple demo" by SCOTT TUNSTALL</title><link rel="STYLESHEET" type="text/css" href="../swagsource.css"></head>
+<body><p align="center">
+<b>[</b><a href="index.html">Back to GRAPHICS SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0286.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0286.SHAKEIT.ZIP">Attachment</a><b>]</b>
+
+</p><!--StartFragment--><pre><code><font color="#008000"><i>{
+PROGRAM NAME: SHAKEIT.PAS
+
+AUTHOR      : SCOTT TUNSTALL B.Sc
+
+CREATION    : 12TH AUGUST 1997
+DATE
+
+
+NOTES:
+I guess you could call this a kind of &quot;water ripple&quot; demo.
+
+It needs VGA, TP7 and my KOJAKVGA unit V3.3 to run (get it from
+June 97 SWAG, GRAPHICS section) and in case you're wondering why
+I wrote this, I was inspired by a demo that came with a file my
+mate Geoff gave me ages ago. Which was much better than this &lt;g&gt; !
+
+Hope you like it. The &quot;shake&quot; proc is quite interesting,
+if I say so myself !!! ;)
+
+Have fun!
+     Scott.
+
+
+
+DISCLAIMER:
+Use this program at your OWN RISK. CGA/EGA card owners, do NOT complain
+if this kills your PC! :&gt;
+
+If you use this routine at all, please credit KojakVGA. Thank you.
+}
+
+
+
+</i></font><font color="#FF0000"><b>Program </b></font>ShakeIt_Baby<font color="#000080">;
+
+
+</font><font color="#FF0000"><b>Uses </b></font>KOJAKVGA<font color="#000080">,</font>crt<font color="#000080">;       </font><font color="#008000"><i>{ My baby! ;) }
+
+
+
+{ If you wanna see 1 kind of shake, use the $DEFINE below }
+
+{$DEFINE USE_SHAKE}
+
+
+</i></font><font color="#FF0000"><b>type </b></font>shaketype<font color="#000080">=(</font>ShakeLeft<font color="#000080">,</font>ShakeRight<font color="#000080">);
+
+
+</font><font color="#FF0000"><b>Const </b></font>StartY<font color="#000080">=</font><font color="#800000">1</font><font color="#000080">;     </font><font color="#008000"><i>{ Pixel row where dat shakin' starts ! }
+      </i></font>EndY<font color="#000080">=</font><font color="#800000">199</font><font color="#000080">;       </font><font color="#008000"><i>{ And where it ends }
+
+
+
+</i></font><font color="#FF0000"><b>Var </b></font>HiddenBMap <font color="#000080">: </font>pointer<font color="#000080">;
+    </font>MyPalette  <font color="#000080">: </font>PaletteType<font color="#000080">;
+    </font>ShakeDir   <font color="#000080">: </font>ShakeType<font color="#000080">;
+    </font>XDistLatch<font color="#000080">,
+    </font>XDist      <font color="#000080">: </font>byte<font color="#000080">;
+    </font>YCount     <font color="#000080">: </font>byte<font color="#000080">;
+
+
+</font><font color="#FF0000"><b>Begin
+     </b></font><font color="#008000"><i>{ Load PCX to &quot;shake&quot; into a hidden bitmap }
+
+     </i></font>HiddenBMap<font color="#000080">:=</font>New64KBitmap<font color="#000080">;
+     </font>UseBitmap<font color="#000080">(</font>HiddenBMap<font color="#000080">);
+     </font>Cls<font color="#000080">;
+
+
+     </font><font color="#008000"><i>{ You can use any 256 colour PCX file you like (up to 320x200 in size,
+       any bigger and the image is clipped) }
+
+     </i></font>LoadPCX<font color="#000080">(</font>ParamStr<font color="#000080">(</font><font color="#800000">1</font><font color="#000080">),</font>MyPalette<font color="#000080">);
+
+     </font>InitVGAMode<font color="#000080">;
+     </font>UsePalette<font color="#000080">(</font>Mypalette<font color="#000080">);
+
+     </font><font color="#008000"><i>{ Initial X distance }
+
+     </i></font>XDistLatch<font color="#000080">:=</font><font color="#800000">1</font><font color="#000080">;
+
+     </font><font color="#008000"><i>{ And we're shaking to the left initially.. }
+
+     </i></font>ShakeDir<font color="#000080">:=</font>ShakeLeft<font color="#000080">;
+
+
+     </font><font color="#FF0000"><b>Repeat
+           </b></font><font color="#008000"><i>{ Draw &quot;non-shaking&quot; parts of screen.. If you're doing
+             any scrolly messages etc., draw to bitmap &lt;HiddenBmap&gt;
+           }
+
+           </i></font><font color="#FF0000"><b>If </b></font>StartY <font color="#000080">&gt;</font><font color="#800000">0 </font><font color="#FF0000"><b>Then
+              </b></font>CopyAreaToBitmap<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">319</font><font color="#000080">,</font>StartY<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">,</font>Ptr<font color="#000080">(</font><font color="#800000">$a000</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">),</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">);
+
+           </font><font color="#FF0000"><b>If </b></font>EndY <font color="#000080">&lt; </font><font color="#800000">199 </font><font color="#FF0000"><b>Then
+              </b></font>CopyAreaToBitmap<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font>EndY<font color="#000080">+</font><font color="#800000">1</font><font color="#000080">,</font><font color="#800000">319</font><font color="#000080">,</font><font color="#800000">199</font><font color="#000080">,</font>Ptr<font color="#000080">(</font><font color="#800000">$a000</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">),</font><font color="#800000">0</font><font color="#000080">,</font>EndY<font color="#000080">+</font><font color="#800000">1</font><font color="#000080">);
+
+
+
+           </font><font color="#008000"><i>{ Now do the &quot;difficult&quot; stuff. }
+
+           </i></font>XDist<font color="#000080">:=</font>XDistLatch<font color="#000080">;
+           </font><font color="#FF0000"><b>For </b></font>YCount<font color="#000080">:=</font>StartY <font color="#FF0000"><b>To </b></font>EndY <font color="#FF0000"><b>Do
+           Begin
+
+
+</b></font><font color="#008000"><i>{$IFDEF USE_SHAKE}
+               </i></font><font color="#FF0000"><b>Case </b></font>ShakeDir <font color="#FF0000"><b>Of
+
+
+
+               </b></font>ShakeLeft<font color="#000080">: </font><font color="#FF0000"><b>Begin
+                          </b></font>CopyAreaToBitmap<font color="#000080">(</font><font color="#800000">4</font><font color="#000080">,</font>YCount<font color="#000080">,</font><font color="#800000">315</font><font color="#000080">,</font>YCount<font color="#000080">,
+                          </font>Ptr<font color="#000080">(</font><font color="#800000">$a000</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">),</font><font color="#800000">3</font><font color="#000080">-</font>XDist<font color="#000080">,</font>YCount<font color="#000080">);
+                          </font>Inc<font color="#000080">(</font>XDist<font color="#000080">);
+                          </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+
+               </font>ShakeRight<font color="#000080">: </font><font color="#FF0000"><b>Begin
+                           </b></font>CopyAreaToBitmap<font color="#000080">(</font><font color="#800000">4</font><font color="#000080">,</font>YCount<font color="#000080">,</font><font color="#800000">315</font><font color="#000080">,</font>YCount<font color="#000080">,
+                           </font>Ptr<font color="#000080">(</font><font color="#800000">$a000</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">),</font>XDist<font color="#000080">,</font>YCount<font color="#000080">);
+                           </font>Inc<font color="#000080">(</font>XDist<font color="#000080">);
+                           </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+               </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+
+               </font><font color="#FF0000"><b>If </b></font>XDist<font color="#000080">=</font><font color="#800000">4 </font><font color="#FF0000"><b>Then
+               Begin
+                  </b></font>XDist<font color="#000080">:=</font><font color="#800000">1</font><font color="#000080">;
+                  </font><font color="#FF0000"><b>If </b></font>ShakeDir <font color="#000080">= </font>ShakeRight <font color="#FF0000"><b>Then
+                     </b></font>ShakeDir<font color="#000080">:=</font>ShakeLeft
+                  <font color="#FF0000"><b>Else
+                      </b></font>ShakeDir<font color="#000080">:=</font>ShakeRight<font color="#000080">;
+               </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+
+
+</font><font color="#008000"><i>{$ELSE}
+
+                </i></font>CopyAreaToBitmap<font color="#000080">(</font><font color="#800000">4</font><font color="#000080">,</font>YCount<font color="#000080">,</font><font color="#800000">315</font><font color="#000080">,</font>YCount<font color="#000080">,
+                </font>Ptr<font color="#000080">(</font><font color="#800000">$a000</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">),</font><font color="#800000">3</font><font color="#000080">-</font>XDist<font color="#000080">,</font>YCount<font color="#000080">);
+                </font>Inc<font color="#000080">(</font>XDist<font color="#000080">);
+                </font><font color="#FF0000"><b>If </b></font>XDist<font color="#000080">=</font><font color="#800000">3 </font><font color="#FF0000"><b>Then
+                   </b></font>XDist<font color="#000080">:=</font><font color="#800000">1</font><font color="#000080">;
+</font><font color="#008000"><i>{$ENDIF}
+
+
+           </i></font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+
+
+           </font><font color="#008000"><i>{ Make the Latch (XDist reload value) different for
+             each time the for loop executes }
+
+
+           </i></font>Inc<font color="#000080">(</font>XDistLatch<font color="#000080">);
+           </font><font color="#FF0000"><b>If </b></font>XDistLatch <font color="#000080">= </font><font color="#800000">3 </font><font color="#FF0000"><b>Then
+              Begin
+              </b></font>XDistLatch<font color="#000080">:=</font><font color="#800000">1</font><font color="#000080">;
+              </font><font color="#FF0000"><b>If </b></font>ShakeDir <font color="#000080">= </font>ShakeLeft <font color="#FF0000"><b>Then
+                 </b></font>ShakeDir<font color="#000080">:= </font>ShakeRight
+              <font color="#FF0000"><b>Else
+                  </b></font>ShakeDir<font color="#000080">:= </font>ShakeLeft<font color="#000080">;
+              </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+
+
+     </font><font color="#008000"><i>{ Wait 5 video retraces }
+
+     </i></font>Vwait<font color="#000080">(</font><font color="#800000">8</font><font color="#000080">);
+     </font><font color="#FF0000"><b>Until </b></font>Keypressed<font color="#000080">;
+
+     </font><font color="#008000"><i>{ Release hidden bitmap from memory }
+
+     </i></font>FreeBitmap<font color="#000080">(</font>HiddenBMap<font color="#000080">);
+
+</font><font color="#FF0000"><b>End</b></font><font color="#000080">.
+
+
+
+
+
+{{------------------------- snip, snip ----------------------------}
+
+ENCODED SHAKEIT.PCX FILE REMOVED.  PLEASE <A HREF="0286.SHAKEIT.ZIP">DOWNLOAD</A> EITHER THE 
+ATTACHMENT OR THE COMPLETE ZIP FILE.
+</i>
+</code></pre><!--EndFragment--><p align="center"><b>[</b><a href="index.html">Back to GRAPHICS SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0286.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0286.SHAKEIT.ZIP">Attachment</a><b>]</b>
+</p></body>
+</html>

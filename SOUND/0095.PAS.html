@@ -1,0 +1,289 @@
+<html>
+<head><title> "Player for MOD files" by UNKNOWN</title><link rel="STYLESHEET" type="text/css" href="../swagsource.css"></head>
+<body><p align="center">
+<b>[</b><a href="index.html">Back to SOUND SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0095.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0095.MODS.ZIP">Attachment</a><b>]</b>
+
+
+</p><!--StartFragment--><pre><code><font color="#008000"><i>{$A-,B-,E-,G+,N-,O-,R-,S-,T-,V-,X+}
+     {ç&yen; &acirc;&agrave;&reg;&pound;†&acirc;&igrave; ìÅúÖí !!!}
+     {MODS File player }
+     { See test program and OBJ at the end .. }
+</i></font><font color="#FF0000"><b>Unit </b></font>Mods<font color="#000080">;
+
+</font><font color="#FF0000"><b>interface
+
+const
+  </b></font>dvSpeaker   <font color="#000080">= </font><font color="#800000">0</font><font color="#000080">;
+  </font>dvDacLPT1   <font color="#000080">= </font><font color="#800000">1</font><font color="#000080">;
+  </font>dvDacLPT2   <font color="#000080">= </font><font color="#800000">2</font><font color="#000080">;
+  </font>dvDacLPT3   <font color="#000080">= </font><font color="#800000">3</font><font color="#000080">;
+  </font>dvDacLPTs   <font color="#000080">= </font><font color="#800000">4</font><font color="#000080">;
+  </font>dvDacLPTm   <font color="#000080">= </font><font color="#800000">5</font><font color="#000080">;
+  </font>dvSBlaster  <font color="#000080">= </font><font color="#800000">6</font><font color="#000080">;
+  </font>dvStereoIn1 <font color="#000080">= </font><font color="#800000">10</font><font color="#000080">;
+  </font>dvDSSLPT1   <font color="#000080">= </font><font color="#800000">11</font><font color="#000080">;
+  </font>dvDSSLPT2   <font color="#000080">= </font><font color="#800000">12</font><font color="#000080">;
+  </font>dvDSSLPT3   <font color="#000080">= </font><font color="#800000">13</font><font color="#000080">;
+  </font>dvNoSound   <font color="#000080">= </font><font color="#800000">255</font><font color="#000080">;
+
+</font><font color="#FF0000"><b>const
+  </b></font>lpStopAtEnd <font color="#000080">= </font><font color="#800000">0</font><font color="#000080">;
+  </font>lpPlayFirst <font color="#000080">= </font><font color="#800000">1</font><font color="#000080">;
+  </font>lpNoBackJmp <font color="#000080">= </font><font color="#800000">2</font><font color="#000080">;
+  </font>lpLoopPlay  <font color="#000080">= </font><font color="#800000">4</font><font color="#000080">;
+
+</font><font color="#FF0000"><b>const
+  </b></font>stNoError  <font color="#000080">= </font><font color="#800000">0</font><font color="#000080">;
+  </font>stModError <font color="#000080">= </font><font color="#800000">1</font><font color="#000080">;
+  </font>stAllrPlay <font color="#000080">= </font><font color="#800000">2</font><font color="#000080">;
+  </font>stOutOfMem <font color="#000080">= </font><font color="#800000">4</font><font color="#000080">;
+
+</font><font color="#FF0000"><b>const
+  </b></font>Loop<font color="#000080">: </font>Integer <font color="#000080">= </font>lpLoopPlay<font color="#000080">;
+  </font>MixSpeed<font color="#000080">: </font>Integer <font color="#000080">= </font><font color="#800000">10000</font><font color="#000080">;
+  </font>Device<font color="#000080">: </font>Integer <font color="#000080">= </font>dvNoSound<font color="#000080">;
+  </font>Volume<font color="#000080">: </font>Integer <font color="#000080">= </font><font color="#800000">255</font><font color="#000080">;
+  </font>Playing <font color="#000080">: </font>boolean <font color="#000080">= </font>False<font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>SetVolume<font color="#000080">(</font>AVolume<font color="#000080">: </font>Integer<font color="#000080">);
+</font><font color="#FF0000"><b>function </b></font>PlayMod<font color="#000080">(</font>FName<font color="#000080">: </font><font color="#FF0000"><b>String</b></font><font color="#000080">): </font>Integer<font color="#000080">;
+</font><font color="#FF0000"><b>procedure </b></font>StopMod<font color="#000080">;
+
+</font><font color="#FF0000"><b>implementation
+
+Uses </b></font>Memory<font color="#000080">;
+
+</font><font color="#008000"><i>{$L MODS.OBJ}
+</i></font><font color="#FF0000"><b>procedure </b></font>ModVolume<font color="#000080">(</font>v1<font color="#000080">,</font>v2<font color="#000080">,</font>v3<font color="#000080">,</font>v4<font color="#000080">: </font>Integer<font color="#000080">); </font><font color="#FF0000"><b>far</b></font><font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>procedure </b></font>ModDevice<font color="#000080">(</font><font color="#FF0000"><b>var </b></font>Device<font color="#000080">: </font>Integer<font color="#000080">); </font><font color="#FF0000"><b>far</b></font><font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>procedure </b></font>ModSetup<font color="#000080">(</font><font color="#FF0000"><b>var </b></font>Status<font color="#000080">: </font>Integer<font color="#000080">;
+  </font>ADevice<font color="#000080">, </font>AMixSpeed<font color="#000080">, </font>APro<font color="#000080">, </font>ALoop<font color="#000080">: </font>Integer<font color="#000080">; </font><font color="#FF0000"><b>var </b></font>FName<font color="#000080">: </font><font color="#FF0000"><b>String</b></font><font color="#000080">); </font><font color="#FF0000"><b>far</b></font><font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>procedure </b></font>ModStop<font color="#000080">; </font><font color="#FF0000"><b>far</b></font><font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>procedure </b></font>ModInit<font color="#000080">; </font><font color="#FF0000"><b>far</b></font><font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>function </b></font>GetBlock<font color="#000080">(</font>Size<font color="#000080">: </font>Word<font color="#000080">): </font>Word<font color="#000080">; </font><font color="#FF0000"><b>assembler</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>asm
+        </b></font><font color="#FF00FF">ADD     Size,16
+        PUSH    Size
+        CALL    MemAllocSeg
+        MOV     AX,DX
+        OR      AX,AX
+        JZ      @@Exit
+        MOV     ES,DX
+        MOV     DX,Size
+        MOV     ES:[0].Word,DX
+        INC     AX
+@@Exit:
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>FreeBlock<font color="#000080">(</font>Segment<font color="#000080">: </font>Word<font color="#000080">);
+</font><font color="#FF0000"><b>var
+  </b></font>P<font color="#000080">: ^</font>Word<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>P <font color="#000080">:= </font>Ptr<font color="#000080">(</font>Segment<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">, </font><font color="#800000">0</font><font color="#000080">);
+  </font>FreeMem<font color="#000080">(</font>P<font color="#000080">, </font>P<font color="#000080">^);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>CheckError<font color="#000080">; </font><font color="#FF0000"><b>assembler</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>asm
+        </b></font><font color="#FF00FF">OR      AX,AX
+        AND     [BP+6].Word,NOT 1
+        JNZ     @@1
+        MOV     AX,8
+        OR      [BP+6].Word,1
+@@1:
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>Int21h<font color="#000080">; </font><font color="#FF0000"><b>assembler</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>asm
+        </b></font><font color="#FF00FF">CMP     AH,4Ah
+        JA      @@Old
+        CMP     AH,48h
+        JB      @@Old
+        PUSH    BP
+        MOV     BP,SP
+        PUSH    CX
+        PUSH    DX
+        PUSH    SI
+        PUSH    DI
+        PUSH    DS
+        PUSH    ES
+        MOV     DX,SEG @DATA
+        MOV     DS,DX
+
+        CMP     AH,48h
+        JNE     @@1
+        PUSH    BX              </font><font color="#008000"><i>{ GetBlock }
+        </i></font><font color="#FF00FF">SHL     BX,4
+        PUSH    BX
+        CALL    GetBlock
+        POP     BX
+        CALL    CheckError
+        JMP     @@Done
+
+@@1:
+        CMP     AH,49h          </font><font color="#008000"><i>{ Mem Free }
+        </i></font><font color="#FF00FF">JNE     @@2
+        PUSH    AX
+        PUSH    BX
+        PUSH    ES
+        CALL    FreeBlock
+        MOV     AX,1
+        CALL    CheckError
+        POP     BX
+        POP     AX
+        JMP     @@Done
+@@2:                            </font><font color="#008000"><i>{ Adj Block }
+        </i></font><font color="#FF00FF">PUSH    BX
+        SHL     BX,4
+        PUSH    BX
+        PUSH    ES
+        CALL    FreeBlock
+        CALL    GetBlock
+        POP     BX
+        CALL    CheckError
+
+@@Done:
+        POP     ES
+        POP     DS
+        POP     DI
+        POP     SI
+        POP     DX
+        POP     CX
+        POP     BP
+        IRET
+@@Old:
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>Old21h<font color="#000080">; </font><font color="#FF0000"><b>assembler</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>asm
+        </b></font><font color="#FF00FF">DB      0,0,0
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>Set21h<font color="#000080">; </font><font color="#FF0000"><b>assembler</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>asm
+        </b></font><font color="#FF00FF">MOV     AX,3521h
+        INT     21h
+        PUSH    DS
+        PUSH    CS
+        POP     DS
+        MOV     Old21h.Byte[-1],0EAh
+        MOV     Old21h.Word[0],BX
+        MOV     Old21h.Word[2],ES
+        MOV     AX,2521h
+        MOV     DX,OFFSET Int21h
+        INT     21h
+        POP     DS
+
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>Reset21h<font color="#000080">; </font><font color="#FF0000"><b>assembler</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>asm
+        </b></font><font color="#FF00FF">PUSH    DS
+        LDS     DX,DWORD PTR CS:Old21h
+        MOV     AX,2521h
+        INT     21h
+        POP     DS
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>SetVolume<font color="#000080">(</font>AVolume<font color="#000080">: </font>Integer<font color="#000080">); </font><font color="#FF0000"><b>assembler</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>asm
+        </b></font><font color="#FF00FF">MOV     AX,AVolume
+        CMP     AX,255
+        JLE     @@1
+        MOV     AX,255
+@@1:    CMP     AX,0
+        JGE     @@2
+        XOR     AX,AX
+@@2:    MOV     Volume,AX
+        PUSH    AX
+        PUSH    AX
+        PUSH    AX
+        PUSH    AX
+        CALL    ModVolume
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>function </b></font>PlayMod<font color="#000080">(</font>FName<font color="#000080">: </font><font color="#FF0000"><b>String</b></font><font color="#000080">): </font>Integer<font color="#000080">; </font><font color="#FF0000"><b>assembler</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>var </b></font>Status<font color="#000080">: </font>Integer<font color="#000080">;
+</font><font color="#FF0000"><b>asm
+        </b></font><font color="#FF00FF">CMP     Device,dvNoSound
+        JE      @@Exit
+        CALL    Set21h
+        LEA     BX,Status
+        PUSH    SS
+        PUSH    BX
+        PUSH    Device
+        PUSH    MixSpeed
+        PUSH    0
+        PUSH    Loop
+        PUSH    FName.Word[2]
+        PUSH    FName.Word[0]
+        CALL    ModSetup
+        CALL    Reset21h
+        MOV     AX,Status
+        MOV     Playing,True
+        CMP     AX,0
+        JE      @@Exit
+        CMP     AX,2
+        JE      @@Exit
+        MOV     Playing,False
+@@Exit:
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>StopMod<font color="#000080">; </font><font color="#FF0000"><b>assembler</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>asm
+        </b></font><font color="#FF00FF">CMP     Playing,False
+        JE      @@Exit
+        CALL    Set21h
+        CALL    ModStop
+        CALL    Reset21h
+        MOV     Playing,False
+@@Exit:
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>InitMods<font color="#000080">; </font><font color="#FF0000"><b>assembler</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>asm
+        </b></font><font color="#FF00FF">PUSH    Volume
+        CALL    SetVolume
+        CALL    ModInit
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>begin
+  </b></font>InitMemory<font color="#000080">;
+  </font>InitMods
+<font color="#FF0000"><b>end</b></font><font color="#000080">.
+
+{------------------------- snip, snip ----------------------------}
+
+ENCODED MODS.OBJ FILE REMOVED.  PLEASE <A HREF="0095.MODS.ZIP">DOWNLOAD</A> EITHER THE 
+ATTACHMENT OR THE COMPLETE ZIP FILE.
+</i>
+</font><font color="#008000"><i>{ --------------------------------------------------------------------------}
+{   TEST PROGRAM  .. cut }
+
+</i></font><font color="#FF0000"><b>Uses </b></font>Crt<font color="#000080">,</font>Mods<font color="#000080">;
+ </font><font color="#FF0000"><b>var </b></font>ch <font color="#000080">: </font>char<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+ </b></font>Device<font color="#000080">:=</font>dvDacLPTs<font color="#000080">;
+ </font>MixSpeed<font color="#000080">:=</font><font color="#800000">15909</font><font color="#000080">; </font><font color="#008000"><i>{10000;}
+ </i></font>WriteLn<font color="#000080">(</font>PlayMod<font color="#000080">(</font><font color="#800000">'NIAGRA.MOD'</font><font color="#000080">));
+ </font><font color="#FF0000"><b>repeat
+  </b></font>ch<font color="#000080">:=</font>ReadKey<font color="#000080">; </font><font color="#FF0000"><b>if </b></font>ch<font color="#000080">=</font><font color="#800000">#0 </font><font color="#FF0000"><b>then </b></font>ch<font color="#000080">:=</font>ReadKey<font color="#000080">;
+  </font><font color="#FF0000"><b>Case </b></font>ch <font color="#FF0000"><b>of
+   </b></font><font color="#800000">#43 </font><font color="#000080">:  </font><font color="#FF0000"><b>begin </b></font>Inc<font color="#000080">(</font>Volume<font color="#000080">); </font>SetVolume<font color="#000080">(</font>Volume<font color="#000080">); </font><font color="#FF0000"><b>end</b></font><font color="#000080">; </font><font color="#008000"><i>{ë&yen;&agrave;&euml;&copy; &macr;&laquo;&icirc;&aacute;}
+   </i></font><font color="#800000">#45 </font><font color="#000080">:  </font><font color="#FF0000"><b>begin </b></font>Dec<font color="#000080">(</font>Volume<font color="#000080">); </font>SetVolume<font color="#000080">(</font>Volume<font color="#000080">); </font><font color="#FF0000"><b>end</b></font><font color="#000080">; </font><font color="#008000"><i>{ë&yen;&agrave;&euml;&copy; &shy;&uml;≠&atilde;&aacute;}
+   </i></font><font color="#800000">#42 </font><font color="#000080">:  </font><font color="#FF0000"><b>begin </b></font>Volume<font color="#000080">:=</font><font color="#800000">255</font><font color="#000080">; </font>SetVolume<font color="#000080">(</font>Volume<font color="#000080">); </font><font color="#FF0000"><b>end</b></font><font color="#000080">; </font><font color="#008000"><i>{ë&yen;&agrave;†&iuml; &sect;&cent;&yen;&sect;&curren;&reg;&ccedil;&ordf;† MAX}
+  </i></font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+ </font><font color="#FF0000"><b>until </b></font>ch <font color="#FF0000"><b>in </b></font><font color="#000080">[</font><font color="#800000">#27</font><font color="#000080">];
+ </font>StopMod<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">.
+</font>
+</code></pre><!--EndFragment--><p align="center"><b>[</b><a href="index.html">Back to SOUND SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0095.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0095.MODS.ZIP">Attachment</a><b>]</b>
+</p></body>
+</html>

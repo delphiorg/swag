@@ -1,0 +1,53 @@
+<html>
+<head><title> "Real Containers for tObject descendants" by ROBERT DAIGNAULT</title><link rel="STYLESHEET" type="text/css" href="../swagsource.css"></head>
+<body><p align="center">
+<b>[</b><a href="index.html">Back to DELPHI SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0279.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0279.CONTAIN.ZIP">Attachment</a><b>]</b>
+
+</p><!--StartFragment--><pre><code>
+<font color="#000080">!! </font>NOTE<font color="#000080">:  </font>The code <font color="#FF0000"><b>is </b></font>contained the XX3402 <font color="#FF0000"><b>file </b></font>below<font color="#000080">.  </font>Cut <font color="#FF0000"><b>out and </b></font>extract<font color="#000080">.
+
+
+</font>tObjectList <font color="#000080">&amp; </font>tSortedObjectList<font color="#000080">: </font>Real containers <font color="#FF0000"><b>for </b></font>tObject descendants
+
+I wrote this tool because <font color="#FF0000"><b>of </b></font><font color="#800000">3 </font>areas where I felt Delphi was weak<font color="#000080">. </font>Delphi<font color="#800000">'s
+</font>containers are weak <font color="#FF0000"><b>in </b></font>two areas  <font color="#000080">: </font>Iteration <font color="#FF0000"><b>and object </b></font>disposal<font color="#000080">. </font>Delphi<font color="#800000">'s
+</font>stream support <font color="#FF0000"><b>is </b></font>un<font color="#000080">-</font>documented<font color="#000080">. </font>It<font color="#800000">'s might be in there, but you have to do
+</font>detective work<font color="#000080">. </font><font color="#FF0000"><b>As far as </b></font>I know<font color="#000080">, </font>non component streaming <font color="#FF0000"><b>is not </b></font>supported<font color="#000080">.
+
+</font>A container  should  give  ways  <font color="#FF0000"><b>to  </b></font>iterate  it<font color="#800000">'s  content easily. None of
+</font>Delphi<font color="#800000">'s containers  (tStrings, tStringList )  have iterator functions.  As
+</font><font color="#FF0000"><b>for  </b></font>disposal<font color="#000080">, </font>an  <font color="#FF0000"><b>object </b></font>container  should free  it<font color="#800000">'s objects  in it'</font>s own
+<font color="#FF0000"><b>destructor</b></font><font color="#000080">. </font>I<font color="#800000">'m not talking of GUI objects here, but of real world objects.
+</font>By this I mean  non GUI objects<font color="#000080">. </font>Let<font color="#800000">'s not forget that  GUI is only a tool.
+</font>The real  work<font color="#000080">, </font>the work we  get paid <font color="#FF0000"><b>for</b></font><font color="#000080">, </font><font color="#FF0000"><b>is  </b></font>behind the GUI<font color="#000080">, </font><font color="#FF0000"><b>and  </b></font>that <font color="#FF0000"><b>is
+</b></font>also OOP<font color="#000080">. </font><font color="#FF0000"><b>If </b></font>a Form owns a container full <font color="#FF0000"><b>of </b></font>non<font color="#000080">-</font>GUI objects<font color="#000080">, </font>the container
+should take care <font color="#FF0000"><b>of </b></font>disposing <font color="#FF0000"><b>of </b></font>it<font color="#800000">'s content.
+
+</font>tStringList doesn<font color="#800000">'t  dispose of it'</font>s  objects <font color="#000080">(</font>it does  free it<font color="#800000">'s strings).
+</font>This last problem would have been easy <font color="#FF0000"><b>to  </b></font>fix <font color="#FF0000"><b>if </b></font>it had been the only one<font color="#000080">,
+</font>but  we  still  have  the  streaming   problem<font color="#000080">.  </font><font color="#FF0000"><b>As  far  as  </b></font>I  can  tell<font color="#000080">,
+</font>tStringList<font color="#800000">'s stream support is limited to  it'</font>s <font color="#FF0000"><b>string </b></font>content<font color="#000080">, </font>even <font color="#FF0000"><b>if </b></font>it
+can hold both objects <font color="#FF0000"><b>and </b></font>strings<font color="#000080">,
+
+</font><font color="#FF0000"><b>For </b></font>those  <font color="#FF0000"><b>of </b></font>you new  <font color="#FF0000"><b>to Pascal</b></font><font color="#000080">, </font>tCollection  was the container  that came
+<font color="#FF0000"><b>with </b></font>BP7<font color="#000080">. </font>I found tCollection <font color="#FF0000"><b>to </b></font>be very fast <font color="#FF0000"><b>and </b></font>easy <font color="#FF0000"><b>to </b></font>use<font color="#000080">. </font>It supported
+easy streaming <font color="#FF0000"><b>and </b></font>it had very good iterator functions<font color="#000080">.
+
+</font>Robert Daignault
+LPL Soft
+
+<font color="#008000"><i>{ ---------------------   CUT  ---------------------- }
+
+ENCODED CONTAIN.ZIP FILE REMOVED.  PLEASE <A HREF="0279.CONTAIN.ZIP">DOWNLOAD</A> EITHER THE 
+ATTACHMENT OR THE COMPLETE ZIP FILE.
+</i>
+</font>
+</code></pre><!--EndFragment--><p align="center"><b>[</b><a href="index.html">Back to DELPHI SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0279.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0279.CONTAIN.ZIP">Attachment</a><b>]</b>
+</p></body>
+</html>

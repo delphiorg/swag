@@ -1,0 +1,395 @@
+<html>
+<head><title> "Use Color Text Screens in T.V." by SCOTT F. EARNEST</title><link rel="STYLESHEET" type="text/css" href="../swagsource.css"></head>
+<body><p align="center">
+<b>[</b><a href="index.html">Back to OOP SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0080.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0080.LINES.ZIP">Attachment</a><b>]</b>
+
+</p><!--StartFragment--><pre><code><font color="#FF0000"><b>unit </b></font>ColorApp<font color="#000080">;
+
+</font><font color="#008000"><i>{ see the DEMO unit at the end of this code snipet }
+{
+ COLORAPP.PAS v1.00 -- Unit for making &quot;pretty&quot; applications
+
+ Written by Scott F. Earnest (scott@whiplash.res.cmu.edu)
+
+
+ This unit defines three objects:
+
+   TColorApplication -- A simple descendant of TApplication.  It uses color
+     text screen images in place of the common &quot;hash&quot; backdrop.
+   TColorDesktop -- An intermediate object, direct descendant of TDesktop.
+   TColorBackground -- A descendant of TBackground, this object is the one
+     that actually manages color images.
+
+
+ Credits to:
+
+ - Unknown author of source that appears in SWAG -- this is my effort to take
+   that badly kludged source and make a valid, functional tool from it.
+
+ - Portions of this code Copyright (C) 1992 Borland International (I had to
+   cheat the Init method of TColorApplication to keep it from zeroing out
+   the proper pointers.
+
+
+ Bug reports, upgrade suggestions, comments, flames, humble cash contri-
+ butions to author.  Standard disclaimers apply.  Free for general use, but
+ if you use this code in a shareware or commercial product, please contact
+ me to offer some sort of compensation; i.e., if you profit from this, I'd
+ better profit, too!
+
+ Please do not add this code to the SWAG collection.  It will be distributed
+ in package form via FTP sites.
+}
+
+</i></font><font color="#FF0000"><b>interface
+
+uses
+  </b></font>App<font color="#000080">, </font>Objects<font color="#000080">;
+
+</font><font color="#008000"><i>{ -- Public Object Declarations ------------------------------------------- }
+
+</i></font><font color="#FF0000"><b>type
+  </b></font>PColorApplication <font color="#000080">= ^</font>TColorApplication<font color="#000080">;
+  </font>TColorApplication <font color="#000080">= </font><font color="#FF0000"><b>object</b></font><font color="#000080">(</font>TApplication<font color="#000080">)
+    </font>Image25<font color="#000080">, </font>Image43<font color="#000080">, </font>Image50 <font color="#000080">: </font>pointer<font color="#000080">;
+    </font>Len25<font color="#000080">, </font>Len43<font color="#000080">, </font>Len50 <font color="#000080">: </font>word<font color="#000080">;
+    </font><font color="#FF0000"><b>constructor </b></font>Init<font color="#000080">;
+    </font><font color="#FF0000"><b>destructor </b></font>Done<font color="#000080">; </font><font color="#FF0000"><b>virtual</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>procedure </b></font>InitDesktop<font color="#000080">; </font><font color="#FF0000"><b>virtual</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>procedure </b></font>FreeImages<font color="#000080">; </font><font color="#FF0000"><b>virtual</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>procedure </b></font>LoadImages<font color="#000080">; </font><font color="#FF0000"><b>virtual</b></font><font color="#000080">;
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>type
+  </b></font>PColorDesktop <font color="#000080">= ^</font>TColorDesktop<font color="#000080">;
+  </font>TColorDesktop <font color="#000080">= </font><font color="#FF0000"><b>object</b></font><font color="#000080">(</font>TDesktop<font color="#000080">)
+    </font>Image25<font color="#000080">, </font>Image43<font color="#000080">, </font>Image50 <font color="#000080">: </font>pointer<font color="#000080">;
+    </font>Len25<font color="#000080">, </font>Len43<font color="#000080">, </font>Len50 <font color="#000080">: </font>word<font color="#000080">;
+    </font><font color="#FF0000"><b>constructor </b></font>Init <font color="#000080">(</font><font color="#FF0000"><b>var </b></font>Bounds <font color="#000080">: </font>TRect<font color="#000080">;
+                      </font>i25<font color="#000080">, </font>i43<font color="#000080">, </font>i50 <font color="#000080">: </font>pointer<font color="#000080">; </font>l25<font color="#000080">, </font>l43<font color="#000080">, </font>l50 <font color="#000080">: </font>word<font color="#000080">);
+    </font><font color="#FF0000"><b>procedure </b></font>InitBackground<font color="#000080">; </font><font color="#FF0000"><b>virtual</b></font><font color="#000080">;
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>type
+  </b></font>PColorBackground <font color="#000080">= ^</font>TColorBackground<font color="#000080">;
+  </font>TColorBackground <font color="#000080">= </font><font color="#FF0000"><b>object</b></font><font color="#000080">(</font>TBackground<font color="#000080">)
+    </font>Background25<font color="#000080">,
+    </font>Background43<font color="#000080">,
+    </font>Background50 <font color="#000080">: </font>pointer<font color="#000080">;
+    </font>BGLen25<font color="#000080">, </font>BGLen43<font color="#000080">, </font>BGLen50 <font color="#000080">: </font>word<font color="#000080">;
+    </font><font color="#FF0000"><b>constructor </b></font>Init <font color="#000080">(</font><font color="#FF0000"><b>var </b></font>Bounds <font color="#000080">: </font>TRect<font color="#000080">; </font>i25<font color="#000080">, </font>i43<font color="#000080">, </font>i50 <font color="#000080">: </font>pointer<font color="#000080">;
+                      </font>l25<font color="#000080">, </font>l43<font color="#000080">, </font>l50 <font color="#000080">: </font>word<font color="#000080">);
+    </font><font color="#FF0000"><b>procedure </b></font>Draw<font color="#000080">; </font><font color="#FF0000"><b>virtual</b></font><font color="#000080">;
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>implementation
+
+uses
+  </b></font>Views<font color="#000080">, </font>Memory<font color="#000080">, </font>Drivers<font color="#000080">, </font>HistList<font color="#000080">;
+
+</font><font color="#008000"><i>{ -- TColorApplication ---------------------------------------------------- }
+
+</i></font><font color="#FF0000"><b>constructor </b></font>TColorApplication<font color="#000080">.</font>init<font color="#000080">;
+
+</font><font color="#FF0000"><b>var
+  </b></font>R <font color="#000080">: </font>TRect<font color="#000080">;
+
+</font><font color="#FF0000"><b>begin
+  </b></font><font color="#008000"><i>{App.TApplication.Init:}
+  </i></font>InitMemory<font color="#000080">;
+  </font>InitVideo<font color="#000080">;
+  </font>InitEvents<font color="#000080">;
+  </font>InitSysError<font color="#000080">;
+  </font>InitHistory<font color="#000080">;
+  </font><font color="#008000"><i>{End App.TApplication.Init}
+
+  {App.TProgram.Init:}
+  </i></font>Application <font color="#000080">:= @</font>Self<font color="#000080">;
+  </font>InitScreen<font color="#000080">;
+  </font>R<font color="#000080">.</font>Assign<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">, </font><font color="#800000">0</font><font color="#000080">, </font>ScreenWidth<font color="#000080">, </font>ScreenHeight<font color="#000080">);
+  </font>TGroup<font color="#000080">.</font>Init<font color="#000080">(</font>R<font color="#000080">);
+  </font>State <font color="#000080">:= </font>sfVisible <font color="#000080">+ </font>sfSelected <font color="#000080">+ </font>sfFocused <font color="#000080">+ </font>sfModal <font color="#000080">+ </font>sfExposed<font color="#000080">;
+  </font>Options <font color="#000080">:= </font><font color="#800000">0</font><font color="#000080">;
+  </font>Buffer <font color="#000080">:= </font>ScreenBuffer<font color="#000080">;
+  </font>LoadImages<font color="#000080">; </font><font color="#008000"><i>{This line inserted.}
+  </i></font>InitDesktop<font color="#000080">;
+  </font>InitStatusLine<font color="#000080">;
+  </font>InitMenuBar<font color="#000080">;
+  </font><font color="#FF0000"><b>if </b></font>Desktop <font color="#000080">&lt;&gt; </font><font color="#FF0000"><b>nil then </b></font>Insert<font color="#000080">(</font>Desktop<font color="#000080">);
+  </font><font color="#FF0000"><b>if </b></font>StatusLine <font color="#000080">&lt;&gt; </font><font color="#FF0000"><b>nil then </b></font>Insert<font color="#000080">(</font>StatusLine<font color="#000080">);
+  </font><font color="#FF0000"><b>if </b></font>MenuBar <font color="#000080">&lt;&gt; </font><font color="#FF0000"><b>nil then </b></font>Insert<font color="#000080">(</font>MenuBar<font color="#000080">);
+  </font><font color="#008000"><i>{End App.TProgram.Init}
+</i></font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>destructor </b></font>TColorApplication<font color="#000080">.</font>Done<font color="#000080">;
+
+</font><font color="#FF0000"><b>begin
+  </b></font>FreeImages<font color="#000080">;
+  </font><font color="#FF0000"><b>inherited </b></font>done<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TColorApplication<font color="#000080">.</font>FreeImages<font color="#000080">;
+
+</font><font color="#008000"><i>{
+ Use this method to free loaded images if they are loaded onto the heap.
+ Default action is to do nothing.
+}
+
+</i></font><font color="#FF0000"><b>begin
+end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TColorApplication<font color="#000080">.</font>InitDesktop<font color="#000080">;
+
+</font><font color="#FF0000"><b>var
+  </b></font>R <font color="#000080">: </font>TRect<font color="#000080">;
+
+</font><font color="#FF0000"><b>begin
+  </b></font>GetExtent<font color="#000080">(</font>R<font color="#000080">);
+  </font>inc<font color="#000080">(</font>R<font color="#000080">.</font>A<font color="#000080">.</font>Y<font color="#000080">);
+  </font>dec<font color="#000080">(</font>R<font color="#000080">.</font>B<font color="#000080">.</font>Y<font color="#000080">);
+  </font>Desktop <font color="#000080">:= </font>new<font color="#000080">(</font>PColorDesktop<font color="#000080">,</font>init<font color="#000080">(</font>R<font color="#000080">,</font>image25<font color="#000080">,</font>image43<font color="#000080">,</font>image50<font color="#000080">,
+                                    </font>len25<font color="#000080">,</font>len43<font color="#000080">,</font>len50<font color="#000080">));
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TColorApplication<font color="#000080">.</font>LoadImages<font color="#000080">;
+
+</font><font color="#008000"><i>{
+ Use this method to allocate and/or load the image buffers and set the
+ proper lengths.
+}
+
+</i></font><font color="#FF0000"><b>begin
+  Abstract</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#008000"><i>{ -- TColorDesktop -------------------------------------------------------- }
+
+</i></font><font color="#FF0000"><b>constructor </b></font>TColorDesktop<font color="#000080">.</font>Init <font color="#000080">(</font><font color="#FF0000"><b>var </b></font>Bounds <font color="#000080">: </font>TRect<font color="#000080">;
+                                </font>i25<font color="#000080">, </font>i43<font color="#000080">, </font>i50 <font color="#000080">: </font>pointer<font color="#000080">;
+                                </font>l25<font color="#000080">, </font>l43<font color="#000080">, </font>l50 <font color="#000080">: </font>word<font color="#000080">);
+
+</font><font color="#FF0000"><b>begin
+  </b></font>TGroup<font color="#000080">.</font>Init<font color="#000080">(</font>Bounds<font color="#000080">);
+  </font>GrowMode <font color="#000080">:= </font>gfGrowHiX <font color="#FF0000"><b>or </b></font>gfGrowHiY<font color="#000080">;
+  </font>image25 <font color="#000080">:= </font>i25<font color="#000080">;
+  </font>image43 <font color="#000080">:= </font>i43<font color="#000080">;
+  </font>image50 <font color="#000080">:= </font>i50<font color="#000080">;
+  </font>len25 <font color="#000080">:= </font>l25<font color="#000080">;
+  </font>len43 <font color="#000080">:= </font>l43<font color="#000080">;
+  </font>len50 <font color="#000080">:= </font>l50<font color="#000080">;
+  </font>InitBackground<font color="#000080">;
+  </font><font color="#FF0000"><b>if </b></font>Background <font color="#000080">&lt;&gt; </font><font color="#FF0000"><b>nil then
+    </b></font>Insert<font color="#000080">(</font>Background<font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TColorDesktop<font color="#000080">.</font>InitBackground<font color="#000080">;
+
+</font><font color="#FF0000"><b>var
+  </b></font>R <font color="#000080">: </font>TRect<font color="#000080">;
+
+</font><font color="#FF0000"><b>begin
+  </b></font>GetExtent<font color="#000080">(</font>R<font color="#000080">);
+  </font>Background <font color="#000080">:= </font>new <font color="#000080">(</font>PColorBackground<font color="#000080">,</font>init<font color="#000080">(</font>R<font color="#000080">,</font>image25<font color="#000080">,</font>image43<font color="#000080">,</font>image50<font color="#000080">,
+                                           </font>len25<font color="#000080">,</font>len43<font color="#000080">,</font>len50<font color="#000080">));
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#008000"><i>{ -- TColorBackground ----------------------------------------------------- }
+
+</i></font><font color="#FF0000"><b>constructor </b></font>TColorBackground<font color="#000080">.</font>Init <font color="#000080">(</font><font color="#FF0000"><b>var </b></font>Bounds <font color="#000080">: </font>TRect<font color="#000080">;
+                                   </font>i25<font color="#000080">, </font>i43<font color="#000080">, </font>i50 <font color="#000080">: </font>pointer<font color="#000080">;
+                                   </font>l25<font color="#000080">, </font>l43<font color="#000080">, </font>l50 <font color="#000080">: </font>word<font color="#000080">);
+
+</font><font color="#FF0000"><b>begin
+  inherited </b></font>Init <font color="#000080">(</font>Bounds<font color="#000080">,</font><font color="#800000">#176</font><font color="#000080">);
+  </font>Background25 <font color="#000080">:= </font>i25<font color="#000080">;
+  </font>Background43 <font color="#000080">:= </font>i43<font color="#000080">;
+  </font>Background50 <font color="#000080">:= </font>i50<font color="#000080">;
+  </font>BGLen25 <font color="#000080">:= </font>l25<font color="#000080">;
+  </font>BGLen43 <font color="#000080">:= </font>l43<font color="#000080">;
+  </font>BGLen50 <font color="#000080">:= </font>l50<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TColorBackground<font color="#000080">.</font>Draw<font color="#000080">;
+
+</font><font color="#FF0000"><b>var
+  </b></font>Background <font color="#000080">: </font>pointer<font color="#000080">;
+  </font>R <font color="#000080">: </font>TRect<font color="#000080">;
+
+</font><font color="#FF0000"><b>begin
+  </b></font>getextent <font color="#000080">(</font>R<font color="#000080">);
+  </font><font color="#FF0000"><b>case </b></font>R<font color="#000080">.</font>B<font color="#000080">.</font>Y <font color="#FF0000"><b>of
+    </b></font><font color="#800000">23 </font><font color="#000080">.. </font><font color="#800000">25 </font><font color="#000080">: </font>BackGround <font color="#000080">:= </font>Background25<font color="#000080">;
+    </font><font color="#800000">41 </font><font color="#000080">.. </font><font color="#800000">43 </font><font color="#000080">: </font>BackGround <font color="#000080">:= </font>Background43<font color="#000080">;
+    </font><font color="#800000">48 </font><font color="#000080">.. </font><font color="#800000">50 </font><font color="#000080">: </font>BackGround <font color="#000080">:= </font>Background50<font color="#000080">;
+  </font><font color="#FF0000"><b>else
+    </b></font>BackGround <font color="#000080">:= </font>Background25<font color="#000080">;
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+  </font>WriteBuf <font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font>R<font color="#000080">.</font>B<font color="#000080">.</font>X<font color="#000080">,</font>R<font color="#000080">.</font>B<font color="#000080">.</font>Y<font color="#000080">,</font>Background<font color="#000080">^);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">.
+
+</font><font color="#008000"><i>{ -----------------------   DEMO ----------------------------- }
+</i></font><font color="#FF0000"><b>program </b></font>Colordesk<font color="#000080">;
+
+</font><font color="#008000"><i>{
+ CA-DEMO.PAS -- Demonstration for the ColorApp Unit
+
+ Written by Scott F. Earnest (scott@whiplash.res.cmu.edu)
+
+
+ It's almost the same as a normal application!
+}
+
+</i></font><font color="#FF0000"><b>uses
+  </b></font>ColorApp<font color="#000080">, </font>App<font color="#000080">, </font>Objects<font color="#000080">, </font>Views<font color="#000080">, </font>Menus<font color="#000080">, </font>Drivers<font color="#000080">, </font>Msgbox<font color="#000080">, </font>Dialogs<font color="#000080">;
+
+</font><font color="#008000"><i>{Command constants}
+
+</i></font><font color="#FF0000"><b>const
+  </b></font>cmOptionsVideo <font color="#000080">= </font><font color="#800000">1501</font><font color="#000080">;
+  </font>cmMessageHello <font color="#000080">= </font><font color="#800000">1502</font><font color="#000080">;
+  </font>cmAppAbout     <font color="#000080">= </font><font color="#800000">1503</font><font color="#000080">;
+
+</font><font color="#008000"><i>{These are the raw screen images}
+
+</i></font><font color="#FF0000"><b>procedure </b></font>data_25_lines<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;
+</font><font color="#008000"><i>{$L LINES_25}  { OBJ code  -- extract XX3402 OBJ files at end of this snipet}
+
+</i></font><font color="#FF0000"><b>procedure </b></font>data_43_lines<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;
+</font><font color="#008000"><i>{$L LINES_43}
+
+</i></font><font color="#FF0000"><b>procedure </b></font>data_50_lines<font color="#000080">; </font><font color="#FF0000"><b>external</b></font><font color="#000080">;
+</font><font color="#008000"><i>{$L LINES_50}
+
+{ -- Application Object --------------------------------------------------- }
+
+</i></font><font color="#FF0000"><b>type
+  </b></font>PDemoApp <font color="#000080">= ^</font>TDemoApp<font color="#000080">;
+  </font>TDemoApp <font color="#000080">= </font><font color="#FF0000"><b>object</b></font><font color="#000080">(</font>TColorApplication<font color="#000080">)
+    </font><font color="#FF0000"><b>procedure </b></font>LoadImages<font color="#000080">; </font><font color="#FF0000"><b>virtual</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>procedure </b></font>initmenubar<font color="#000080">; </font><font color="#FF0000"><b>virtual</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>procedure </b></font>About<font color="#000080">; </font><font color="#FF0000"><b>virtual</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>procedure </b></font>HandleEvent <font color="#000080">(</font><font color="#FF0000"><b>var </b></font>Event <font color="#000080">: </font>TEvent<font color="#000080">); </font><font color="#FF0000"><b>virtual</b></font><font color="#000080">;
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TDemoApp<font color="#000080">.</font>LoadImages<font color="#000080">;
+
+</font><font color="#FF0000"><b>begin
+  </b></font>image25 <font color="#000080">:= @</font>data_25_lines<font color="#000080">;
+  </font>len25 <font color="#000080">:= </font><font color="#800000">2000</font><font color="#000080">;
+  </font>image43 <font color="#000080">:= @</font>data_43_lines<font color="#000080">;
+  </font>len43 <font color="#000080">:= </font><font color="#800000">3440</font><font color="#000080">;
+  </font>image50 <font color="#000080">:= @</font>data_50_lines<font color="#000080">;
+  </font>len50 <font color="#000080">:= </font><font color="#800000">4000</font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TDemoApp<font color="#000080">.</font>InitMenuBar<font color="#000080">;
+
+</font><font color="#FF0000"><b>var
+  </b></font>r <font color="#000080">: </font>TRect<font color="#000080">;
+
+</font><font color="#FF0000"><b>begin
+  </b></font>getextent<font color="#000080">(</font>R<font color="#000080">);
+  </font>R<font color="#000080">.</font>B<font color="#000080">.</font>Y <font color="#000080">:= </font>R<font color="#000080">.</font>A<font color="#000080">.</font>Y <font color="#000080">+ </font><font color="#800000">1</font><font color="#000080">;
+  </font>menubar <font color="#000080">:= </font>new<font color="#000080">(</font>pmenubar<font color="#000080">, </font>init<font color="#000080">(</font>R<font color="#000080">, </font>NewMenu<font color="#000080">(
+    </font>NewSubMenu<font color="#000080">(</font><font color="#800000">'~A~ction'</font><font color="#000080">, </font>hcNoContext<font color="#000080">, </font>NewMenu<font color="#000080">(
+      </font>NewItem<font color="#000080">(</font><font color="#800000">'Toggle ~L~ines'</font><font color="#000080">, </font><font color="#800000">'F7'</font><font color="#000080">, </font>kbF7<font color="#000080">, </font>cmOptionsVideo<font color="#000080">, </font>hcNoContext<font color="#000080">,
+      </font>NewItem<font color="#000080">(</font><font color="#800000">'Say ~H~ello...'</font><font color="#000080">, </font><font color="#800000">'F8'</font><font color="#000080">, </font>kbF8<font color="#000080">, </font>cmMessageHello<font color="#000080">, </font>hcNoContext<font color="#000080">,
+      </font>NewLine<font color="#000080">(
+      </font>NewItem<font color="#000080">(</font><font color="#800000">'About...'</font><font color="#000080">, </font><font color="#800000">'F1'</font><font color="#000080">, </font>kbF1<font color="#000080">, </font>cmAppAbout<font color="#000080">, </font>hcNoContext<font color="#000080">,
+      </font>NewLine<font color="#000080">(
+      </font>NewItem<font color="#000080">(</font><font color="#800000">'E~x~it'</font><font color="#000080">, </font><font color="#800000">'Alt-X'</font><font color="#000080">,</font>kbAltX<font color="#000080">, </font>cmQuit<font color="#000080">, </font>hcNoContext<font color="#000080">,
+      </font><font color="#FF0000"><b>nil</b></font><font color="#000080">))))))),
+    </font><font color="#FF0000"><b>nil</b></font><font color="#000080">)
+  )));
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TDemoApp<font color="#000080">.</font>About<font color="#000080">;
+
+</font><font color="#FF0000"><b>var
+  </b></font>D<font color="#000080">: </font>PDialog<font color="#000080">;
+  </font>Control<font color="#000080">: </font>PView<font color="#000080">;
+  </font>R<font color="#000080">: </font>TRect<font color="#000080">;
+
+</font><font color="#FF0000"><b>begin
+  </b></font>R<font color="#000080">.</font>Assign <font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">40</font><font color="#000080">,</font><font color="#800000">12</font><font color="#000080">);
+  </font>D <font color="#000080">:= </font>New<font color="#000080">(</font>PDialog<font color="#000080">, </font>Init<font color="#000080">(</font>R<font color="#000080">, </font><font color="#800000">'About'</font><font color="#000080">));
+  </font><font color="#FF0000"><b>with </b></font>D<font color="#000080">^ </font><font color="#FF0000"><b>do
+  begin
+    </b></font>Options <font color="#000080">:= </font>Options <font color="#FF0000"><b>or </b></font>ofCentered<font color="#000080">;
+    </font>Flags <font color="#000080">:= </font>Flags <font color="#FF0000"><b>and not </b></font><font color="#000080">(</font>wfMove <font color="#FF0000"><b>or </b></font>wfGrow <font color="#FF0000"><b>or </b></font>wfZoom <font color="#FF0000"><b>or </b></font>wfClose<font color="#000080">);
+    </font>R<font color="#000080">.</font>Grow<font color="#000080">(-</font><font color="#800000">1</font><font color="#000080">, -</font><font color="#800000">1</font><font color="#000080">);
+    </font>Dec<font color="#000080">(</font>R<font color="#000080">.</font>B<font color="#000080">.</font>Y<font color="#000080">, </font><font color="#800000">1</font><font color="#000080">);
+    </font>Insert<font color="#000080">(</font>New<font color="#000080">(</font>PStaticText<font color="#000080">, </font>Init<font color="#000080">(</font>R<font color="#000080">,
+      </font><font color="#800000">#13#3'Color DeskTop Demo'#13#13</font><font color="#000080">+
+      </font><font color="#800000">#3'by Scott F. Earnest'#13</font><font color="#000080">+
+      </font><font color="#800000">#3'(scott@whiplash.res.cmu.edu)'#13#13</font><font color="#000080">+
+      </font><font color="#800000">#3'Screens created with TheDraw(TM)'#13</font><font color="#000080">)));
+    </font>R<font color="#000080">.</font>Assign <font color="#000080">(</font><font color="#800000">15</font><font color="#000080">,</font><font color="#800000">9</font><font color="#000080">,</font><font color="#800000">25</font><font color="#000080">,</font><font color="#800000">11</font><font color="#000080">);
+    </font>Insert<font color="#000080">(</font>New<font color="#000080">(</font>PButton<font color="#000080">, </font>Init<font color="#000080">(</font>R<font color="#000080">, </font><font color="#800000">'O~K'</font><font color="#000080">, </font>cmOk<font color="#000080">, </font>bfDefault<font color="#000080">)));
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+  </font><font color="#FF0000"><b>if </b></font>ValidView<font color="#000080">(</font>D<font color="#000080">)&lt;&gt;</font><font color="#FF0000"><b>nil then
+  begin
+    </b></font>DeskTop<font color="#000080">^.</font>ExecView<font color="#000080">(</font>D<font color="#000080">);
+    </font>Dispose<font color="#000080">(</font>D<font color="#000080">, </font>Done<font color="#000080">);
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TDemoApp<font color="#000080">.</font>HandleEvent <font color="#000080">(</font><font color="#FF0000"><b>var </b></font>Event <font color="#000080">: </font>TEvent<font color="#000080">);
+
+</font><font color="#FF0000"><b>begin
+  inherited </b></font>HandleEvent <font color="#000080">(</font>Event<font color="#000080">);
+  </font><font color="#FF0000"><b>if </b></font>Event<font color="#000080">.</font>What<font color="#000080">=</font>evCommand <font color="#FF0000"><b>then
+    case </b></font>Event<font color="#000080">.</font>Command <font color="#FF0000"><b>of
+      </b></font>cmOptionsVideo <font color="#000080">: </font><font color="#FF0000"><b>begin
+                         </b></font>SetScreenMode<font color="#000080">(</font>ScreenMode <font color="#FF0000"><b>xor </b></font>smFont8x8<font color="#000080">);
+                         </font>ClearEvent <font color="#000080">(</font>Event<font color="#000080">);
+                       </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+      </font>cmMessageHello <font color="#000080">: </font><font color="#FF0000"><b>begin
+                         </b></font>messagebox <font color="#000080">(</font><font color="#800000">#3'Hello!  Move me around!'#13</font><font color="#000080">,</font><font color="#FF0000"><b>nil</b></font><font color="#000080">,
+                                      </font>mfInformation <font color="#FF0000"><b>or </b></font>mfOKButton<font color="#000080">);
+                         </font>ClearEvent <font color="#000080">(</font>Event<font color="#000080">);
+                       </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+      </font>cmAppAbout     <font color="#000080">: </font><font color="#FF0000"><b>begin
+                         </b></font>About<font color="#000080">;
+                         </font>ClearEvent <font color="#000080">(</font>Event<font color="#000080">);
+                       </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>var
+  </b></font>Appl <font color="#000080">: </font>TDemoApp<font color="#000080">;
+
+</font><font color="#FF0000"><b>begin
+  </b></font>Appl<font color="#000080">.</font>init<font color="#000080">;
+  </font>Appl<font color="#000080">.</font>About<font color="#000080">;
+  </font>Appl<font color="#000080">.</font>run<font color="#000080">;
+  </font>Appl<font color="#000080">.</font>done<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">.
+
+</font><font color="#008000"><i>{ {------------------------- snip, snip ----------------------------}
+
+ENCODED LINES25.OBJ FILE REMOVED.  PLEASE <A HREF="0080.LINES.ZIP">DOWNLOAD</A> EITHER THE 
+ATTACHMENT OR THE COMPLETE ZIP FILE.
+
+{------------------------- snip, snip ----------------------------}
+
+ENCODED LINES43.OBJ FILE REMOVED.  PLEASE <A HREF="0080.LINES.ZIP">DOWNLOAD</A> EITHER THE 
+ATTACHMENT OR THE COMPLETE ZIP FILE.
+{------------------------- snip, snip ----------------------------}
+
+ENCODED LINES50.OBJ FILE REMOVED.  PLEASE <A HREF="0080.LINES.ZIP">DOWNLOAD</A> EITHER THE 
+ATTACHMENT OR THE COMPLETE ZIP FILE.
+</I>
+
+</font>
+</code></pre><!--EndFragment--><p align="center"><b>[</b><a href="index.html">Back to OOP SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0080.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0080.LINES.ZIP">Attachment</a><b>]</b>
+</p></body>
+</html>

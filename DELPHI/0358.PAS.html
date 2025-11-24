@@ -1,0 +1,469 @@
+<html>
+<head><title> "CGI handler with demo" by SWAG SUPPORT TEAM</title><link rel="STYLESHEET" type="text/css" href="../swagsource.css"></head>
+<body><p align="center">
+<b>[</b><a href="index.html">Back to DELPHI SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0358.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0358.SAMPLE.ZIP">Attachment</a><b>]</b>
+
+</p><!--StartFragment--><pre><code>
+<font color="#008000"><i>{ NOTE THE Sample DEMO is included in XX34 format at the end }
+</i></font><font color="#FF0000"><b>unit </b></font>cgi_h<font color="#000080">;
+
+</font><font color="#FF0000"><b>interface
+uses </b></font>classes<font color="#000080">;
+
+</font><font color="#008000"><i>{intitialize and cleanup procedures}
+</i></font><font color="#FF0000"><b>procedure </b></font>InitializeCGI<font color="#000080">;
+          </font><font color="#008000"><i>{call this at the beginning of the program, it reads in and separates}
+          {all the Form variables to allow easy calling from the functions}
+</i></font><font color="#FF0000"><b>procedure </b></font>freeCGI<font color="#000080">;
+          </font><font color="#008000"><i>{call this at end of program to free the string list containing}
+          {the form input}
+
+{output special HTML codes easily}
+</i></font><font color="#FF0000"><b>procedure </b></font>writeHTMLHeader<font color="#000080">;
+          </font><font color="#008000"><i>{writes out the header for an HTML document}
+</i></font><font color="#FF0000"><b>function </b></font>sendFile<font color="#000080">(</font>fileName<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">):</font>boolean<font color="#000080">;
+          </font><font color="#008000"><i>{sends a file to the server for output}
+</i></font><font color="#FF0000"><b>function </b></font>sendFileBinary<font color="#000080">(</font>fileName<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">):</font>boolean<font color="#000080">;
+          </font><font color="#008000"><i>{sends a binary file to the server for output}
+</i></font><font color="#FF0000"><b>function </b></font>sendFileBinary2<font color="#000080">( </font>fileName<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">): </font>boolean<font color="#000080">;
+           </font><font color="#008000"><i>{same but sends length header}
+</i></font><font color="#FF0000"><b>procedure </b></font>br<font color="#000080">;
+          </font><font color="#008000"><i>{writes a &lt;BR&gt; code}
+</i></font><font color="#FF0000"><b>procedure </b></font>hr<font color="#000080">;
+          </font><font color="#008000"><i>{writes an &lt;HR&gt; code}
+</i></font><font color="#FF0000"><b>function </b></font>HRef<font color="#000080">(</font>location<font color="#000080">, </font>text<font color="#000080">: </font><font color="#FF0000"><b>string</b></font><font color="#000080">):</font><font color="#FF0000"><b>string</b></font><font color="#000080">;
+         </font><font color="#008000"><i>{returns a string containing the link to [location] around [text]}
+</i></font><font color="#FF0000"><b>function </b></font>Image<font color="#000080">(</font>location<font color="#000080">: </font><font color="#FF0000"><b>string</b></font><font color="#000080">):</font><font color="#FF0000"><b>string</b></font><font color="#000080">;
+         </font><font color="#008000"><i>{returns a string containing a reference to image at [location]}
+
+
+{retrieve and output Form variables}
+</i></font><font color="#FF0000"><b>procedure </b></font>outputList<font color="#000080">;
+          </font><font color="#008000"><i>{Outputs the list of form variables, one per line}
+</i></font><font color="#FF0000"><b>procedure </b></font>outputListToFile<font color="#000080">(</font>s<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">);
+          </font><font color="#008000"><i>{Outputs all variables to an HTML file for easy reading}
+          {Used for guestbooks.  It appends if fileExists}
+</i></font><font color="#FF0000"><b>function </b></font>getInputVar<font color="#000080">(</font>s<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">):</font><font color="#FF0000"><b>string</b></font><font color="#000080">;
+         </font><font color="#008000"><i>{return the value of the input variable}
+</i></font><font color="#FF0000"><b>function </b></font>getAsField<font color="#000080">(</font>s<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">):</font><font color="#FF0000"><b>string</b></font><font color="#000080">;
+         </font><font color="#008000"><i>{returns the value of the input variable with Field codes}
+         {this one works when the Field name is the same as the Form variable}
+</i></font><font color="#FF0000"><b>function </b></font>getAsFieldName<font color="#000080">(</font>s<font color="#000080">,</font>f<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">):</font><font color="#FF0000"><b>string</b></font><font color="#000080">;
+         </font><font color="#008000"><i>{similar to getAsField, except, this allows you to specify a different
+         name for the field}
+</i></font><font color="#FF0000"><b>function </b></font>getRemoteHost<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>function </b></font>getRemoteIP<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>function </b></font>getCookie<font color="#000080">(</font>s<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">):</font><font color="#FF0000"><b>string</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>function </b></font>WinExecuteWait<font color="#000080">(</font>s<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">):</font>boolean<font color="#000080">;
+
+
+</font><font color="#008000"><i>{string manipulations}
+</i></font><font color="#FF0000"><b>procedure </b></font>findRepl<font color="#000080">(</font><font color="#FF0000"><b>var </b></font>s<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">; </font>f<font color="#000080">,</font>r<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">);
+          </font><font color="#008000"><i>{finds and replaces substrings in a string}
+</i></font><font color="#FF0000"><b>function </b></font>EncodeURL<font color="#000080">(</font>s<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">):</font><font color="#FF0000"><b>string</b></font><font color="#000080">;
+         </font><font color="#008000"><i>{puts the hex equivolent in for special characters}
+         {(opposite of decodeFormInfo)}
+</i></font><font color="#FF0000"><b>function </b></font>DecodeFormInfo<font color="#000080">(</font>s<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">):</font><font color="#FF0000"><b>string</b></font><font color="#000080">;
+         </font><font color="#008000"><i>{Convert Form Info to regular text (remove Special Character Codes}
+
+
+{Internally used functions...but you could use them if you know how}
+</i></font><font color="#FF0000"><b>function </b></font>getRequestMethod<font color="#000080">:</font><font color="#FF0000"><b>String</b></font><font color="#000080">;
+         </font><font color="#008000"><i>{gets the request method (POST or GET)}
+</i></font><font color="#FF0000"><b>function </b></font>decodeHEXChr<font color="#000080">(</font>s<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">):</font>char<font color="#000080">;
+         </font><font color="#008000"><i>{Converts a two digit Hex number to it's character equivolent}
+</i></font><font color="#FF0000"><b>function </b></font>getContentLength<font color="#000080">:</font>integer<font color="#000080">;
+         </font><font color="#008000"><i>{Returns the length of the Form Info}
+</i></font><font color="#FF0000"><b>procedure </b></font>retrieveInput<font color="#000080">(</font><font color="#FF0000"><b>var </b></font>s<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">);
+          </font><font color="#008000"><i>{Pulls in all Form variables}
+</i></font><font color="#FF0000"><b>procedure </b></font>separateInput<font color="#000080">( </font>s<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">);
+          </font><font color="#008000"><i>{Separates the Form variables and put in string list}
+
+
+</i></font><font color="#FF0000"><b>implementation
+uses </b></font>windows<font color="#000080">,</font>sysUtils<font color="#000080">;
+</font><font color="#FF0000"><b>const
+  </b></font>ValidURLChars<font color="#000080">:</font><font color="#FF0000"><b>set of </b></font>char<font color="#000080">=[</font><font color="#800000">'A'</font><font color="#000080">..</font><font color="#800000">'Z'</font><font color="#000080">,</font><font color="#800000">'a'</font><font color="#000080">..</font><font color="#800000">'z'</font><font color="#000080">,</font><font color="#800000">'~'</font><font color="#000080">,</font><font color="#800000">'_'</font><font color="#000080">,</font><font color="#800000">'0'</font><font color="#000080">..</font><font color="#800000">'9'</font><font color="#000080">];
+  </font>alreadyRetrieved<font color="#000080">:</font>boolean<font color="#000080">=</font>false<font color="#000080">;
+  </font>clOpen<font color="#000080">:</font>boolean<font color="#000080">=</font>false<font color="#000080">;
+
+</font><font color="#FF0000"><b>var </b></font>cl<font color="#000080">:</font>TStringList<font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>writeHTMLHeader<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>writeln<font color="#000080">(</font><font color="#800000">'Content-type:  text/html'</font><font color="#000080">);
+  </font>writeln<font color="#000080">;
+  </font>writeln<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>writeHTMLHeaderCookie<font color="#000080">(</font>n<font color="#000080">,</font>v<font color="#000080">,</font>d<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">);
+</font><font color="#FF0000"><b>begin
+  </b></font>writeln<font color="#000080">(</font><font color="#800000">'Content-type:  text/html'</font><font color="#000080">);
+  </font><font color="#FF0000"><b>if </b></font>d<font color="#000080">&lt;&gt;</font><font color="#800000">'' </font><font color="#FF0000"><b>then
+  </b></font>writeln<font color="#000080">(</font><font color="#800000">'Set-cookie: '</font><font color="#000080">+</font>n<font color="#000080">+</font><font color="#800000">'='</font><font color="#000080">+</font>v<font color="#000080">+</font><font color="#800000">'; domain='</font><font color="#000080">+</font>d<font color="#000080">)
+  </font><font color="#FF0000"><b>else
+  </b></font>writeln<font color="#000080">(</font><font color="#800000">'Set-cookie: '</font><font color="#000080">+</font>n<font color="#000080">+</font><font color="#800000">'='</font><font color="#000080">+</font>v<font color="#000080">);
+  </font>writeln<font color="#000080">;
+  </font>writeln<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+
+</font><font color="#FF0000"><b>procedure </b></font>fr<font color="#000080">(</font><font color="#FF0000"><b>var </b></font>s<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">; </font>f<font color="#000080">,</font>r<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">);
+</font><font color="#FF0000"><b>var </b></font>x<font color="#000080">:</font>longint<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  while </b></font>pos<font color="#000080">(</font>f<font color="#000080">,</font>s<font color="#000080">)&lt;&gt;</font><font color="#800000">0 </font><font color="#FF0000"><b>do begin
+     </b></font>x<font color="#000080">:=</font>pos<font color="#000080">(</font>f<font color="#000080">,</font>s<font color="#000080">);
+     </font>delete<font color="#000080">(</font>s<font color="#000080">,</font>x<font color="#000080">,</font>length<font color="#000080">(</font>f<font color="#000080">));
+     </font>insert<font color="#000080">(</font>r<font color="#000080">,</font>s<font color="#000080">,</font>x<font color="#000080">);
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>findRepl<font color="#000080">(</font><font color="#FF0000"><b>var </b></font>s<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">; </font>f<font color="#000080">,</font>r<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">);
+</font><font color="#FF0000"><b>begin
+ </b></font>fr<font color="#000080">(</font>s<font color="#000080">,</font>f<font color="#000080">,</font><font color="#800000">#25</font><font color="#000080">);
+ </font>fr<font color="#000080">(</font>s<font color="#000080">,</font><font color="#800000">#25</font><font color="#000080">,</font>r<font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+
+</font><font color="#FF0000"><b>procedure </b></font>br<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>writeln<font color="#000080">(</font><font color="#800000">'&lt;BR&gt;'</font><font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>hr<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>writeln<font color="#000080">(</font><font color="#800000">'&lt;HR&gt;'</font><font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+
+</font><font color="#FF0000"><b>function </b></font>HexDigit<font color="#000080">(</font>c<font color="#000080">:</font>char<font color="#000080">):</font>integer<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>c<font color="#000080">:=</font>upcase<font color="#000080">(</font>c<font color="#000080">);
+  </font><font color="#FF0000"><b>if </b></font><font color="#000080">(</font>c<font color="#000080">&gt;=</font><font color="#800000">'0'</font><font color="#000080">) </font><font color="#FF0000"><b>and </b></font><font color="#000080">(</font>c<font color="#000080">&lt;=</font><font color="#800000">'9'</font><font color="#000080">) </font><font color="#FF0000"><b>then </b></font>result<font color="#000080">:=</font>ord<font color="#000080">(</font>c<font color="#000080">)-</font>ord<font color="#000080">(</font><font color="#800000">'0'</font><font color="#000080">);
+  </font><font color="#FF0000"><b>if </b></font><font color="#000080">(</font>c<font color="#000080">&gt;=</font><font color="#800000">'A'</font><font color="#000080">) </font><font color="#FF0000"><b>and </b></font><font color="#000080">(</font>c<font color="#000080">&lt;=</font><font color="#800000">'F'</font><font color="#000080">) </font><font color="#FF0000"><b>then </b></font>result<font color="#000080">:=</font>ord<font color="#000080">(</font>c<font color="#000080">)-</font>ord<font color="#000080">(</font><font color="#800000">'A'</font><font color="#000080">)+</font><font color="#800000">10</font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>freeCGI<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>clOpen<font color="#000080">:=</font>false<font color="#000080">;
+  </font>cl<font color="#000080">.</font>free<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>InitializeCGI<font color="#000080">;
+</font><font color="#FF0000"><b>var </b></font>s<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>begin
+   </b></font>cl<font color="#000080">:=</font>tStringList<font color="#000080">.</font>create<font color="#000080">;
+   </font>clOpen<font color="#000080">:=</font>true<font color="#000080">;
+   </font>retrieveInput<font color="#000080">(</font>s<font color="#000080">);
+   </font>SeparateInput<font color="#000080">(</font>s<font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+
+</font><font color="#FF0000"><b>function </b></font>decodeHEXChr<font color="#000080">(</font>s<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">):</font>char<font color="#000080">;
+</font><font color="#FF0000"><b>var </b></font>x<font color="#000080">:</font>integer<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>x<font color="#000080">:=</font><font color="#800000">16</font><font color="#000080">*</font>hexDigit<font color="#000080">(</font>s<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">])+</font>hexDigit<font color="#000080">(</font>s<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">]);
+  </font>result<font color="#000080">:=</font>chr<font color="#000080">(</font>x<font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+
+</font><font color="#FF0000"><b>function </b></font>EncodeURL<font color="#000080">(</font>s<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">):</font><font color="#FF0000"><b>string</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>var </b></font>i<font color="#000080">:</font>integer<font color="#000080">;
+    </font>c<font color="#000080">:</font>char<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+   </b></font>i<font color="#000080">:=</font><font color="#800000">1</font><font color="#000080">;
+   </font>findRepl<font color="#000080">(</font>s<font color="#000080">,</font><font color="#800000">'!'</font><font color="#000080">,</font><font color="#800000">'!21'</font><font color="#000080">);
+   </font><font color="#FF0000"><b>while </b></font><font color="#000080">(</font>i<font color="#000080">&lt;=</font>length<font color="#000080">(</font>s<font color="#000080">)) </font><font color="#FF0000"><b>and </b></font><font color="#000080">(</font>i<font color="#000080">&lt;</font><font color="#800000">2000</font><font color="#000080">) </font><font color="#FF0000"><b>do begin
+       if </b></font><font color="#000080">(</font><font color="#FF0000"><b>not </b></font><font color="#000080">(</font>s<font color="#000080">[</font>i<font color="#000080">] </font><font color="#FF0000"><b>in </b></font>validURLChars<font color="#000080">)) </font><font color="#FF0000"><b>and </b></font><font color="#000080">(</font>s<font color="#000080">[</font>i<font color="#000080">]&lt;&gt;</font><font color="#800000">' '</font><font color="#000080">) </font><font color="#FF0000"><b>and </b></font><font color="#000080">(</font>s<font color="#000080">[</font>i<font color="#000080">]&lt;&gt;</font><font color="#800000">'!'</font><font color="#000080">) </font><font color="#FF0000"><b>then begin
+          </b></font>c<font color="#000080">:=</font>s<font color="#000080">[</font>i<font color="#000080">];
+          </font>findRepl<font color="#000080">(</font>s<font color="#000080">,</font>c<font color="#000080">,</font><font color="#800000">'!'</font><font color="#000080">+</font>intToHex<font color="#000080">(</font>ord<font color="#000080">(</font>c<font color="#000080">),</font><font color="#800000">2</font><font color="#000080">));
+          </font>i<font color="#000080">:=</font>i<font color="#000080">+</font><font color="#800000">2</font><font color="#000080">;
+       </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+       </font>i<font color="#000080">:=</font>i<font color="#000080">+</font><font color="#800000">1</font><font color="#000080">;
+   </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+   </font>findRepl<font color="#000080">(</font>s<font color="#000080">,</font><font color="#800000">' '</font><font color="#000080">,</font><font color="#800000">'+'</font><font color="#000080">);
+   </font>result<font color="#000080">:=</font>s<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>function </b></font>DecodeFormInfo<font color="#000080">(</font>s<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">):</font><font color="#FF0000"><b>string</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>begin
+   </b></font>result<font color="#000080">:=</font><font color="#800000">''</font><font color="#000080">;
+   </font>findRepl<font color="#000080">(</font>s<font color="#000080">,</font><font color="#800000">'+'</font><font color="#000080">,</font><font color="#800000">' '</font><font color="#000080">);
+   </font>findRepl<font color="#000080">(</font>s<font color="#000080">,</font><font color="#800000">'!'</font><font color="#000080">,</font><font color="#800000">'%'</font><font color="#000080">);
+   </font><font color="#FF0000"><b>while </b></font>length<font color="#000080">(</font>s<font color="#000080">)&gt;</font><font color="#800000">0 </font><font color="#FF0000"><b>do begin
+         if </b></font>s<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">]=</font><font color="#800000">'%' </font><font color="#FF0000"><b>then begin
+             </b></font>delete<font color="#000080">(</font>s<font color="#000080">,</font><font color="#800000">1</font><font color="#000080">,</font><font color="#800000">1</font><font color="#000080">);
+             </font><font color="#FF0000"><b>if </b></font>s<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">]=</font><font color="#800000">'%' </font><font color="#FF0000"><b>then begin
+                 </b></font>result<font color="#000080">:=</font>result<font color="#000080">+</font><font color="#800000">'%'</font><font color="#000080">;
+                 </font>delete<font color="#000080">(</font>s<font color="#000080">,</font><font color="#800000">1</font><font color="#000080">,</font><font color="#800000">1</font><font color="#000080">);
+             </font><font color="#FF0000"><b>end else begin
+                 </b></font>result<font color="#000080">:=</font>result<font color="#000080">+</font>decodeHEXChr<font color="#000080">(</font>copy<font color="#000080">(</font>s<font color="#000080">,</font><font color="#800000">1</font><font color="#000080">,</font><font color="#800000">2</font><font color="#000080">));
+                 </font>delete<font color="#000080">(</font>s<font color="#000080">,</font><font color="#800000">1</font><font color="#000080">,</font><font color="#800000">2</font><font color="#000080">);
+             </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+         </font><font color="#FF0000"><b>end else begin
+             </b></font>result<font color="#000080">:=</font>result<font color="#000080">+</font>s<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">];
+             </font>delete<font color="#000080">(</font>s<font color="#000080">,</font><font color="#800000">1</font><font color="#000080">,</font><font color="#800000">1</font><font color="#000080">);
+         </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+   </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>function </b></font>getRemoteHost<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>var </b></font>PC<font color="#000080">: </font><font color="#FF0000"><b>array</b></font><font color="#000080">[</font><font color="#800000">0</font><font color="#000080">..</font><font color="#800000">255</font><font color="#000080">] </font><font color="#FF0000"><b>of </b></font>char<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+   </b></font>getEnvironmentVariable<font color="#000080">(</font><font color="#800000">'REMOTE_HOST'</font><font color="#000080">,</font>PC<font color="#000080">,</font><font color="#800000">255</font><font color="#000080">);
+   </font>Result<font color="#000080">:=</font>StrPas<font color="#000080">(</font>pc<font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>function </b></font>getRemoteIP<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>var </b></font>PC<font color="#000080">: </font><font color="#FF0000"><b>array</b></font><font color="#000080">[</font><font color="#800000">0</font><font color="#000080">..</font><font color="#800000">255</font><font color="#000080">] </font><font color="#FF0000"><b>of </b></font>char<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+   </b></font>getEnvironmentVariable<font color="#000080">(</font><font color="#800000">'REMOTE_ADDR'</font><font color="#000080">,</font>PC<font color="#000080">,</font><font color="#800000">255</font><font color="#000080">);
+   </font>Result<font color="#000080">:=</font>StrPas<font color="#000080">(</font>pc<font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+
+</font><font color="#FF0000"><b>function </b></font>getCookie<font color="#000080">(</font>s<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">):</font><font color="#FF0000"><b>string</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>var </b></font>PC<font color="#000080">: </font><font color="#FF0000"><b>array</b></font><font color="#000080">[</font><font color="#800000">0</font><font color="#000080">..</font><font color="#800000">1023</font><font color="#000080">] </font><font color="#FF0000"><b>of </b></font>char<font color="#000080">;
+   </font>x<font color="#000080">:</font>integer<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+   </b></font>getEnvironmentVariable<font color="#000080">(</font><font color="#800000">'HTTP_COOKIE'</font><font color="#000080">,</font>PC<font color="#000080">,</font><font color="#800000">1023</font><font color="#000080">);
+   </font>Result<font color="#000080">:=</font>StrPas<font color="#000080">(</font>pc<font color="#000080">);
+   </font>x<font color="#000080">:=</font>pos<font color="#000080">(</font>uppercase<font color="#000080">(</font>s<font color="#000080">),</font>uppercase<font color="#000080">(</font>result<font color="#000080">));
+   </font><font color="#FF0000"><b>if </b></font>x<font color="#000080">=</font><font color="#800000">0 </font><font color="#FF0000"><b>then begin
+      </b></font>result<font color="#000080">:=</font><font color="#800000">''</font><font color="#000080">;
+      </font>exit<font color="#000080">;
+   </font><font color="#FF0000"><b>end</b></font><font color="#000080">;  
+   </font>delete<font color="#000080">(</font>result<font color="#000080">,</font><font color="#800000">1</font><font color="#000080">,</font>x<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">+</font>length<font color="#000080">(</font>s<font color="#000080">));
+   </font>x<font color="#000080">:=</font>pos<font color="#000080">(</font><font color="#800000">';'</font><font color="#000080">,</font>result<font color="#000080">);
+   </font><font color="#FF0000"><b>if </b></font>x<font color="#000080">&lt;&gt;</font><font color="#800000">0 </font><font color="#FF0000"><b>then </b></font>delete<font color="#000080">(</font>result<font color="#000080">,</font>x<font color="#000080">,</font>length<font color="#000080">(</font>result<font color="#000080">));
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+
+
+
+</font><font color="#FF0000"><b>function </b></font>getContentLength<font color="#000080">:</font>integer<font color="#000080">;
+</font><font color="#FF0000"><b>var </b></font>PC<font color="#000080">: </font><font color="#FF0000"><b>array</b></font><font color="#000080">[</font><font color="#800000">0</font><font color="#000080">..</font><font color="#800000">255</font><font color="#000080">] </font><font color="#FF0000"><b>of </b></font>char<font color="#000080">;
+    </font>Content_Length<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">;
+    </font>x<font color="#000080">:</font>integer<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+   </b></font>result<font color="#000080">:=</font><font color="#800000">0</font><font color="#000080">;
+   </font>getEnvironmentVariable<font color="#000080">(</font><font color="#800000">'CONTENT_LENGTH'</font><font color="#000080">,</font>PC<font color="#000080">,</font><font color="#800000">255</font><font color="#000080">);
+   </font>Content_Length<font color="#000080">:=</font>StrPas<font color="#000080">(</font>pc<font color="#000080">);
+   </font>val<font color="#000080">(</font>Content_Length<font color="#000080">,</font>result<font color="#000080">,</font>x<font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>function </b></font>getRequestMethod<font color="#000080">:</font><font color="#FF0000"><b>String</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>var </b></font>PC<font color="#000080">: </font><font color="#FF0000"><b>array</b></font><font color="#000080">[</font><font color="#800000">0</font><font color="#000080">..</font><font color="#800000">255</font><font color="#000080">] </font><font color="#FF0000"><b>of </b></font>char<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+   </b></font>getEnvironmentVariable<font color="#000080">(</font><font color="#800000">'REQUEST_METHOD'</font><font color="#000080">,</font>PC<font color="#000080">,</font><font color="#800000">255</font><font color="#000080">);
+   </font>Result<font color="#000080">:=</font>StrPas<font color="#000080">(</font>pc<font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>function </b></font>getQueryString<font color="#000080">:</font><font color="#FF0000"><b>String</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>var </b></font>PC<font color="#000080">: </font><font color="#FF0000"><b>array</b></font><font color="#000080">[</font><font color="#800000">0</font><font color="#000080">..</font><font color="#800000">1023</font><font color="#000080">] </font><font color="#FF0000"><b>of </b></font>char<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+   </b></font>getEnvironmentVariable<font color="#000080">(</font><font color="#800000">'QUERY_STRING'</font><font color="#000080">,</font>PC<font color="#000080">,</font><font color="#800000">1024</font><font color="#000080">);
+   </font>Result<font color="#000080">:=</font>StrPas<font color="#000080">(</font>pc<font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+
+
+</font><font color="#FF0000"><b>procedure </b></font>retrieveInput<font color="#000080">(</font><font color="#FF0000"><b>var </b></font>s<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">);
+</font><font color="#FF0000"><b>var </b></font>c<font color="#000080">:</font>char<font color="#000080">;
+    </font>i<font color="#000080">:</font>integer<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+</b></font>s<font color="#000080">:=</font><font color="#800000">''</font><font color="#000080">;
+</font><font color="#FF0000"><b>if </b></font>alreadyRetrieved <font color="#FF0000"><b>then </b></font>exit<font color="#000080">;
+</font>alreadyRetrieved<font color="#000080">:=</font>true<font color="#000080">;
+</font><font color="#FF0000"><b>if </b></font>getRequestMethod<font color="#000080">=</font><font color="#800000">'POST' </font><font color="#FF0000"><b>then
+for </b></font>i<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>to </b></font>getContentLength <font color="#FF0000"><b>do begin
+    </b></font>read<font color="#000080">(</font>c<font color="#000080">);
+    </font>s<font color="#000080">:=</font>s<font color="#000080">+</font>c<font color="#000080">;
+</font><font color="#FF0000"><b>end
+else
+  </b></font>s<font color="#000080">:=</font>getQueryString<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>separateInput<font color="#000080">( </font>s<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">);
+</font><font color="#FF0000"><b>begin
+   if not </b></font>clOpen <font color="#FF0000"><b>then </b></font>exit<font color="#000080">;
+   </font><font color="#FF0000"><b>while </b></font><font color="#000080">(</font>length<font color="#000080">(</font>s<font color="#000080">)&gt;</font><font color="#800000">0</font><font color="#000080">) </font><font color="#FF0000"><b>do begin
+      if </b></font>pos<font color="#000080">(</font><font color="#800000">'&amp;'</font><font color="#000080">,</font>s<font color="#000080">)&lt;&gt;</font><font color="#800000">0 </font><font color="#FF0000"><b>then begin
+         </b></font>cl<font color="#000080">.</font>add<font color="#000080">(</font>copy<font color="#000080">(</font>s<font color="#000080">,</font><font color="#800000">1</font><font color="#000080">,</font>pos<font color="#000080">(</font><font color="#800000">'&amp;'</font><font color="#000080">,</font>s<font color="#000080">)-</font><font color="#800000">1</font><font color="#000080">));
+         </font>delete<font color="#000080">(</font>s<font color="#000080">,</font><font color="#800000">1</font><font color="#000080">,</font>pos<font color="#000080">(</font><font color="#800000">'&amp;'</font><font color="#000080">,</font>s<font color="#000080">));
+      </font><font color="#FF0000"><b>end else begin
+         </b></font>cl<font color="#000080">.</font>add<font color="#000080">(</font>s<font color="#000080">);
+         </font>s<font color="#000080">:=</font><font color="#800000">''</font><font color="#000080">;
+      </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+   </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>outputList<font color="#000080">;
+</font><font color="#FF0000"><b>var </b></font>i<font color="#000080">:</font>integer<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+   if not </b></font>clOpen <font color="#FF0000"><b>then </b></font>exit<font color="#000080">;
+   </font><font color="#FF0000"><b>for </b></font>i<font color="#000080">:=</font><font color="#800000">0 </font><font color="#FF0000"><b>to </b></font>cl<font color="#000080">.</font>count<font color="#000080">-</font><font color="#800000">1 </font><font color="#FF0000"><b>do
+     </b></font>writeln<font color="#000080">(</font>decodeFormInfo<font color="#000080">(</font>cl<font color="#000080">.</font>strings<font color="#000080">[</font>i<font color="#000080">])+</font><font color="#800000">'&lt;BR&gt;'</font><font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>outputListToFile<font color="#000080">(</font>s<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">);
+</font><font color="#FF0000"><b>var </b></font>i<font color="#000080">,</font>j<font color="#000080">:</font>integer<font color="#000080">;
+    </font>f<font color="#000080">:</font>textFile<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+   if not </b></font>clOpen <font color="#FF0000"><b>then </b></font>exit<font color="#000080">;
+   </font><font color="#FF0000"><b>if </b></font>s<font color="#000080">=</font><font color="#800000">'' </font><font color="#FF0000"><b>then </b></font>exit<font color="#000080">;
+   </font>assignFile<font color="#000080">(</font>f<font color="#000080">,</font>s<font color="#000080">);
+   </font><font color="#FF0000"><b>if </b></font>fileExists<font color="#000080">(</font>s<font color="#000080">) </font><font color="#FF0000"><b>then </b></font>append<font color="#000080">(</font>f<font color="#000080">) </font><font color="#FF0000"><b>else </b></font>rewrite<font color="#000080">(</font>f<font color="#000080">);
+   </font><font color="#FF0000"><b>try
+      </b></font>writeln<font color="#000080">(</font>f<font color="#000080">,</font><font color="#800000">'&lt;HR&gt;('</font><font color="#000080">+</font>timeToStr<font color="#000080">(</font>time<font color="#000080">)+</font><font color="#800000">')---&gt;['</font><font color="#000080">+</font>dateToStr<font color="#000080">(</font>date<font color="#000080">)+</font><font color="#800000">']&lt;BR&gt;'</font><font color="#000080">);
+      </font><font color="#FF0000"><b>for </b></font>i<font color="#000080">:=</font><font color="#800000">0 </font><font color="#FF0000"><b>to </b></font>cl<font color="#000080">.</font>count<font color="#000080">-</font><font color="#800000">1 </font><font color="#FF0000"><b>do begin
+         </b></font>s<font color="#000080">:=</font>decodeFormInfo<font color="#000080">(</font>cl<font color="#000080">.</font>strings<font color="#000080">[</font>i<font color="#000080">]);
+         </font><font color="#FF0000"><b>if </b></font>pos<font color="#000080">(</font><font color="#800000">'='</font><font color="#000080">,</font>s<font color="#000080">)&lt;&gt;</font><font color="#800000">0 </font><font color="#FF0000"><b>then begin
+            </b></font>j<font color="#000080">:=</font>pos<font color="#000080">(</font><font color="#800000">'='</font><font color="#000080">,</font>s<font color="#000080">);
+            </font>delete<font color="#000080">(</font>s<font color="#000080">,</font>j<font color="#000080">,</font><font color="#800000">1</font><font color="#000080">);
+            </font>insert<font color="#000080">(</font><font color="#800000">'&lt;/Strong&gt;&lt;DD&gt;'</font><font color="#000080">,</font>s<font color="#000080">,</font>j<font color="#000080">);
+         </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+         </font>findRepl<font color="#000080">(</font>s<font color="#000080">,</font><font color="#800000">#13</font><font color="#000080">,</font><font color="#800000">'&lt;DD&gt;'</font><font color="#000080">);
+         </font>writeln<font color="#000080">(</font>f<font color="#000080">,</font><font color="#800000">'&lt;strong&gt;'</font><font color="#000080">+</font>s<font color="#000080">);
+         </font>writeln<font color="#000080">(</font>f<font color="#000080">,</font><font color="#800000">'&lt;BR&gt;'</font><font color="#000080">);
+      </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+   </font><font color="#FF0000"><b>finally
+      </b></font>closeFile<font color="#000080">(</font>f<font color="#000080">);
+   </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+
+
+</font><font color="#FF0000"><b>function </b></font>getInputVar<font color="#000080">(</font>s<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">):</font><font color="#FF0000"><b>string</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>var </b></font>i<font color="#000080">:</font>integer<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  if not </b></font>clOpen <font color="#FF0000"><b>then </b></font>exit<font color="#000080">;
+  </font>i<font color="#000080">:=</font><font color="#800000">0</font><font color="#000080">;
+  </font>result<font color="#000080">:=</font><font color="#800000">''</font><font color="#000080">;
+  </font><font color="#FF0000"><b>while </b></font>i<font color="#000080">&lt;</font>cl<font color="#000080">.</font>count <font color="#FF0000"><b>do begin
+     if </b></font>uppercase<font color="#000080">(</font>copy<font color="#000080">(</font>cl<font color="#000080">.</font>strings<font color="#000080">[</font>i<font color="#000080">],</font><font color="#800000">1</font><font color="#000080">,</font>length<font color="#000080">(</font>s<font color="#000080">)))=</font>uppercase<font color="#000080">(</font>s<font color="#000080">) </font><font color="#FF0000"><b>then begin
+        </b></font>result<font color="#000080">:=</font>copy<font color="#000080">(</font>cl<font color="#000080">.</font>strings<font color="#000080">[</font>i<font color="#000080">],</font>pos<font color="#000080">(</font><font color="#800000">'='</font><font color="#000080">,</font>cl<font color="#000080">.</font>strings<font color="#000080">[</font>i<font color="#000080">])+</font><font color="#800000">1</font><font color="#000080">,</font>length<font color="#000080">(</font>cl<font color="#000080">.</font>strings<font color="#000080">[</font>i<font color="#000080">]));
+        </font>result<font color="#000080">:=</font>decodeFormInfo<font color="#000080">(</font>result<font color="#000080">);
+        </font>exit<font color="#000080">;
+     </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+     </font>inc<font color="#000080">(</font>i<font color="#000080">);
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>function </b></font>getAsField<font color="#000080">(</font>s<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">):</font><font color="#FF0000"><b>string</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>result<font color="#000080">:=</font>getInputVar<font color="#000080">(</font>s<font color="#000080">);
+  </font><font color="#FF0000"><b>if </b></font>result<font color="#000080">&lt;&gt;</font><font color="#800000">'' </font><font color="#FF0000"><b>then </b></font>result<font color="#000080">:=</font><font color="#800000">'[Field '</font><font color="#000080">+</font>s<font color="#000080">+</font><font color="#800000">':'</font><font color="#000080">+</font>result<font color="#000080">+</font><font color="#800000">']'</font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+
+</font><font color="#FF0000"><b>function </b></font>getAsFieldName<font color="#000080">(</font>s<font color="#000080">,</font>f<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">):</font><font color="#FF0000"><b>string</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>result<font color="#000080">:=</font>getInputVar<font color="#000080">(</font>s<font color="#000080">);
+  </font><font color="#FF0000"><b>if </b></font>result<font color="#000080">&lt;&gt;</font><font color="#800000">'' </font><font color="#FF0000"><b>then </b></font>result<font color="#000080">:=</font><font color="#800000">'[Field '</font><font color="#000080">+</font>f<font color="#000080">+</font><font color="#800000">':'</font><font color="#000080">+</font>result<font color="#000080">+</font><font color="#800000">']'</font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>function </b></font>HRef<font color="#000080">(</font>location<font color="#000080">, </font>text<font color="#000080">: </font><font color="#FF0000"><b>string</b></font><font color="#000080">):</font><font color="#FF0000"><b>string</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>begin
+   </b></font>result<font color="#000080">:=</font><font color="#800000">'&lt;A HREF=&quot;'</font><font color="#000080">+</font>location<font color="#000080">+</font><font color="#800000">'&quot;&gt;'</font><font color="#000080">+</font>text<font color="#000080">+</font><font color="#800000">'&lt;/A&gt;'</font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>function </b></font>Image<font color="#000080">(</font>location<font color="#000080">: </font><font color="#FF0000"><b>string</b></font><font color="#000080">):</font><font color="#FF0000"><b>string</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>begin
+   </b></font>result<font color="#000080">:=</font><font color="#800000">'&lt;IMG SRC=&quot;'</font><font color="#000080">+</font>location<font color="#000080">+</font><font color="#800000">'&quot;&gt;'</font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>function </b></font>sendFileBinary<font color="#000080">( </font>fileName<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">): </font>boolean<font color="#000080">;
+</font><font color="#FF0000"><b>var </b></font>fileHandle<font color="#000080">:</font>HFile<font color="#000080">;
+    </font>f<font color="#000080">:</font>char<font color="#000080">;
+    </font>x<font color="#000080">,</font>i<font color="#000080">:</font>integer<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+</b></font>result<font color="#000080">:=</font>false<font color="#000080">;
+</font>FileHandle<font color="#000080">:= </font>CreateFile<font color="#000080">( </font>PChar<font color="#000080">(</font>fileName<font color="#000080">), </font>Generic_Read<font color="#000080">, </font>File_Share_Read<font color="#000080">,
+   </font><font color="#FF0000"><b>nil</b></font><font color="#000080">, </font>Open_Existing<font color="#000080">, </font>File_Attribute_Normal<font color="#000080">, </font><font color="#800000">0</font><font color="#000080">);
+</font><font color="#FF0000"><b>if </b></font>FileHandle <font color="#000080">= </font>Invalid_Handle_Value <font color="#FF0000"><b>then </b></font>exit<font color="#000080">;
+</font>fileSeek<font color="#000080">(</font>fileHandle<font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">);
+</font><font color="#FF0000"><b>repeat
+</b></font>x<font color="#000080">:=</font>fileRead<font color="#000080">(</font>FileHandle<font color="#000080">,</font>f<font color="#000080">,</font>sizeOf<font color="#000080">(</font>f<font color="#000080">));
+</font>write<font color="#000080">(</font>f<font color="#000080">);
+</font><font color="#FF0000"><b>until </b></font>x<font color="#000080">&lt;&gt;</font>sizeOf<font color="#000080">(</font>f<font color="#000080">);
+</font>closeHandle<font color="#000080">(</font>fileHandle<font color="#000080">);
+</font>result<font color="#000080">:=</font>true<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+
+</font><font color="#FF0000"><b>function </b></font>sendFileBinary2<font color="#000080">( </font>fileName<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">): </font>boolean<font color="#000080">;
+</font><font color="#FF0000"><b>var </b></font>fileHandle<font color="#000080">:</font>HFile<font color="#000080">;
+    </font>f<font color="#000080">:</font>char<font color="#000080">;
+    </font>x<font color="#000080">,</font>i<font color="#000080">:</font>integer<font color="#000080">;
+    </font>l<font color="#000080">:</font>longInt<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+</b></font>result<font color="#000080">:=</font>false<font color="#000080">;
+</font>FileHandle<font color="#000080">:= </font>CreateFile<font color="#000080">( </font>PChar<font color="#000080">(</font>fileName<font color="#000080">), </font>Generic_Read<font color="#000080">, </font>File_Share_Read<font color="#000080">,
+   </font><font color="#FF0000"><b>nil</b></font><font color="#000080">, </font>Open_Existing<font color="#000080">, </font>File_Attribute_Normal<font color="#000080">, </font><font color="#800000">0</font><font color="#000080">);
+</font><font color="#FF0000"><b>if </b></font>FileHandle <font color="#000080">= </font>Invalid_Handle_Value <font color="#FF0000"><b>then </b></font>exit<font color="#000080">;
+</font>l<font color="#000080">:=</font>getFileSize<font color="#000080">(</font>fileHandle<font color="#000080">,@</font>l<font color="#000080">);
+</font>writeln<font color="#000080">(</font><font color="#800000">'Content-type: application/octet-string'</font><font color="#000080">);
+</font>writeln<font color="#000080">(</font><font color="#800000">'Content-Length: '</font><font color="#000080">+</font>intToStr<font color="#000080">(</font>l<font color="#000080">));
+</font>writeln<font color="#000080">;
+</font>fileSeek<font color="#000080">(</font>fileHandle<font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">);
+</font><font color="#FF0000"><b>repeat
+</b></font>x<font color="#000080">:=</font>fileRead<font color="#000080">(</font>FileHandle<font color="#000080">,</font>f<font color="#000080">,</font>sizeOf<font color="#000080">(</font>f<font color="#000080">));
+</font>write<font color="#000080">((</font>f<font color="#000080">));
+</font><font color="#FF0000"><b>until </b></font>x<font color="#000080">&lt;&gt;</font>sizeOf<font color="#000080">(</font>f<font color="#000080">);
+</font>closeHandle<font color="#000080">(</font>fileHandle<font color="#000080">);
+</font>result<font color="#000080">:=</font>true<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+
+</font><font color="#FF0000"><b>function </b></font>sendFile<font color="#000080">( </font>fileName<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">): </font>boolean<font color="#000080">;
+</font><font color="#FF0000"><b>var </b></font>fileHandle<font color="#000080">:</font>HFile<font color="#000080">;
+    </font>f<font color="#000080">:</font><font color="#FF0000"><b>array </b></font><font color="#000080">[</font><font color="#800000">0</font><font color="#000080">..</font><font color="#800000">2000</font><font color="#000080">] </font><font color="#FF0000"><b>of </b></font>char<font color="#000080">;
+    </font>x<font color="#000080">,</font>i<font color="#000080">:</font>integer<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+</b></font>result<font color="#000080">:=</font>false<font color="#000080">;
+</font>FileHandle<font color="#000080">:= </font>CreateFile<font color="#000080">( </font>PChar<font color="#000080">(</font>fileName<font color="#000080">), </font>Generic_Read<font color="#000080">, </font>File_Share_Read<font color="#000080">,
+   </font><font color="#FF0000"><b>nil</b></font><font color="#000080">, </font>Open_Existing<font color="#000080">, </font>File_Attribute_Normal<font color="#000080">, </font><font color="#800000">0</font><font color="#000080">);
+</font><font color="#FF0000"><b>if </b></font>FileHandle <font color="#000080">= </font>Invalid_Handle_Value <font color="#FF0000"><b>then </b></font>exit<font color="#000080">;
+</font>fileSeek<font color="#000080">(</font>fileHandle<font color="#000080">,</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">);
+</font><font color="#FF0000"><b>repeat
+</b></font>x<font color="#000080">:=</font>fileRead<font color="#000080">(</font>FileHandle<font color="#000080">,</font>f<font color="#000080">,</font>sizeOf<font color="#000080">(</font>f<font color="#000080">));
+</font>write<font color="#000080">(</font>f<font color="#000080">);
+</font><font color="#FF0000"><b>until </b></font>x<font color="#000080">&lt;&gt;</font>sizeOf<font color="#000080">(</font>f<font color="#000080">);
+</font>closeHandle<font color="#000080">(</font>fileHandle<font color="#000080">);
+</font>result<font color="#000080">:=</font>true<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+
+</font><font color="#FF0000"><b>function </b></font>WinExecuteWait<font color="#000080">(</font>s<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">):</font>boolean<font color="#000080">;
+</font><font color="#FF0000"><b>var </b></font>StartupInfo<font color="#000080">:</font>TStartupInfo<font color="#000080">;
+     </font>ProcessInfo<font color="#000080">: </font>TProcessInformation<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+   if </b></font><font color="#000080">(</font>CreateProcess<font color="#000080">(</font><font color="#FF0000"><b>nil</b></font><font color="#000080">, </font>pchar<font color="#000080">(</font>s<font color="#000080">), </font><font color="#FF0000"><b>Nil</b></font><font color="#000080">, </font><font color="#FF0000"><b>Nil</b></font><font color="#000080">, </font>FALSE<font color="#000080">,
+                     </font><font color="#800000">0</font><font color="#000080">, </font><font color="#FF0000"><b>nil</b></font><font color="#000080">, </font><font color="#FF0000"><b>nil</b></font><font color="#000080">, </font>StartupInfo<font color="#000080">, </font>Processinfo<font color="#000080">))
+   </font><font color="#FF0000"><b>then begin
+   </b></font>waitForSingleObject<font color="#000080">(</font>ProcessInfo<font color="#000080">.</font>Hprocess<font color="#000080">, </font>INFINITE<font color="#000080">);
+   </font>result<font color="#000080">:=</font>true<font color="#000080">;
+   </font><font color="#FF0000"><b>end else begin
+   </b></font>result<font color="#000080">:=</font>false<font color="#000080">;
+   </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">.
+
+</font><font color="#008000"><i>{ ------------------------- snip, snip ----------------------------}
+
+ENCODED SAMPLE.ZIP FILE REMOVED.  PLEASE <A HREF="0358.SAMPLE.ZIP">DOWNLOAD</A> EITHER THE 
+ATTACHMENT OR THE COMPLETE ZIP FILE.
+</I>
+</font>
+</code></pre><!--EndFragment--><p align="center"><b>[</b><a href="index.html">Back to DELPHI SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0358.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0358.SAMPLE.ZIP">Attachment</a><b>]</b>
+</p></body>
+</html>

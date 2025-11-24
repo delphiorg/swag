@@ -1,0 +1,470 @@
+<html>
+<head><title> "A Complete String Library" by SWAG SUPPORT TEAM</title><link rel="STYLESHEET" type="text/css" href="../swagsource.css"></head>
+<body><p align="center">
+<b>[</b><a href="index.html">Back to STRINGS SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0022.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0022.STRASM.ZIP">Attachment</a><b>]</b>
+
+</p><!--StartFragment--><pre><code><font color="#008000"><i>(*
+    TURBO PASCAL LIBRARY 2.0
+    STRINGS unit: Extended string-handling routines
+*)
+
+</i></font><font color="#FF0000"><b>UNIT </b></font>STRINGS<font color="#000080">;
+
+</font><font color="#008000"><i>{ THESE FILES ARE XX34 AT THE BOTTOM OF THE LISTING }
+
+{$L SUCASE}
+{$L SUTRIM}
+{$L SUPAD}
+{$L SUTRUNC}
+{$L SUCNVRT}
+{$L SUMISC}
+
+{$V-}
+
+</i></font><font color="#FF0000"><b>INTERFACE
+
+TYPE
+    </b></font>FormatConfigRec <font color="#000080">=   </font><font color="#FF0000"><b>RECORD
+                            </b></font>Fill<font color="#000080">,               </font><font color="#008000"><i>{ Symbol for padding }
+                            </i></font>Currency<font color="#000080">,           </font><font color="#008000"><i>{ Floating currency sign }
+                            </i></font>Overflow<font color="#000080">,           </font><font color="#008000"><i>{ Overflow indicator }
+                            </i></font>FracSep<font color="#000080">:    </font>CHAR<font color="#000080">;   </font><font color="#008000"><i>{ Int/frac seperator }
+                        </i></font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+
+</font><font color="#FF0000"><b>CONST
+    </b></font>UCaseLetters <font color="#000080">= </font><font color="#800000">'ABCDEFGHIJKLMNOPQRSTUVWXYZ'</font><font color="#000080">;
+    </font>LCaseLetters <font color="#000080">= </font><font color="#800000">'abcdefghijklmnopqrstuvwxyz'</font><font color="#000080">;
+    </font>Letters <font color="#000080">= </font>UCaseLetters<font color="#000080">+</font>LCaseLetters<font color="#000080">;
+    </font>DecDigits <font color="#000080">= </font><font color="#800000">'0123456789'</font><font color="#000080">;
+    </font>HexDigits <font color="#000080">= </font><font color="#800000">'0123456789ABCDEF'</font><font color="#000080">;
+    </font>OctDigits <font color="#000080">= </font><font color="#800000">'01234567'</font><font color="#000080">;
+    </font>BinDigits <font color="#000080">= </font><font color="#800000">'01'</font><font color="#000080">;
+
+    </font><font color="#008000"><i>{ Format symbol record }
+    </i></font>FormatConfig<font color="#000080">: </font>FormatConfigRec <font color="#000080">=
+            (</font>Fill<font color="#000080">: </font><font color="#800000">'*'</font><font color="#000080">; </font>Currency<font color="#000080">: </font><font color="#800000">'$'</font><font color="#000080">; </font>Overflow<font color="#000080">: </font><font color="#800000">'?'</font><font color="#000080">; </font>FracSep<font color="#000080">: </font><font color="#800000">'-'</font><font color="#000080">);
+
+
+
+</font><font color="#FF0000"><b>FUNCTION </b></font>LoCase<font color="#000080">(</font>ch<font color="#000080">: </font>CHAR<font color="#000080">): </font>CHAR<font color="#000080">;
+</font><font color="#FF0000"><b>FUNCTION </b></font>UpperCase<font color="#000080">(</font>s<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>FUNCTION </b></font>LowerCase<font color="#000080">(</font>s<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>FUNCTION </b></font>DuplChar<font color="#000080">(</font>ch<font color="#000080">: </font>CHAR<font color="#000080">; </font>count<font color="#000080">: </font>BYTE<font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>FUNCTION </b></font>DuplStr<font color="#000080">(</font>s<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">; </font>count<font color="#000080">: </font>BYTE<font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>FUNCTION </b></font>TrimL<font color="#000080">(</font>s<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>FUNCTION </b></font>TrimR<font color="#000080">(</font>s<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>FUNCTION </b></font>PadL<font color="#000080">(</font>s<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">; </font>width<font color="#000080">: </font>BYTE<font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>FUNCTION </b></font>PadR<font color="#000080">(</font>s<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">; </font>width<font color="#000080">: </font>BYTE<font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>FUNCTION </b></font>TruncL<font color="#000080">(</font>s<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">; </font>width<font color="#000080">: </font>BYTE<font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>FUNCTION </b></font>TruncR<font color="#000080">(</font>s<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">; </font>width<font color="#000080">: </font>BYTE<font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>FUNCTION </b></font>JustL<font color="#000080">(</font>s<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">; </font>width<font color="#000080">: </font>BYTE<font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>FUNCTION </b></font>JustR<font color="#000080">(</font>s<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">; </font>width<font color="#000080">: </font>BYTE<font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>FUNCTION </b></font>JustC<font color="#000080">(</font>s<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">; </font>width<font color="#000080">: </font>BYTE<font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>FUNCTION </b></font>Precede<font color="#000080">(</font>s<font color="#000080">,</font>target<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>FUNCTION </b></font>Follow<font color="#000080">(</font>s<font color="#000080">,</font>target<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>FUNCTION </b></font>Break<font color="#000080">(</font><font color="#FF0000"><b>VAR </b></font>s<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">; </font>d<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>FUNCTION </b></font>Span<font color="#000080">(</font><font color="#FF0000"><b>VAR </b></font>s<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">; </font>d<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>FUNCTION </b></font>Replace<font color="#000080">(</font>s<font color="#000080">,</font>srch<font color="#000080">,</font>repl<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>FUNCTION </b></font>Remove<font color="#000080">(</font>s<font color="#000080">,</font>srch<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>FUNCTION </b></font>StripBit7<font color="#000080">(</font>s<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>FUNCTION </b></font>FileSpecDefault<font color="#000080">(</font>s<font color="#000080">,</font>path<font color="#000080">,</font>name<font color="#000080">,</font>extn<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>FUNCTION </b></font>HexStr<font color="#000080">(</font>n<font color="#000080">: </font>WORD<font color="#000080">; </font>count<font color="#000080">: </font>BYTE<font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>FUNCTION </b></font>OctStr<font color="#000080">(</font>n<font color="#000080">: </font>WORD<font color="#000080">; </font>count<font color="#000080">: </font>BYTE<font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>FUNCTION </b></font>BinStr<font color="#000080">(</font>n<font color="#000080">: </font>WORD<font color="#000080">; </font>count<font color="#000080">: </font>BYTE<font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>FUNCTION </b></font>Format<font color="#000080">(</font>n<font color="#000080">: </font>REAL<font color="#000080">; </font>form<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+
+
+</font><font color="#FF0000"><b>IMPLEMENTATION
+
+USES
+    </b></font>DOS<font color="#000080">;
+
+
+</font><font color="#FF0000"><b>FUNCTION </b></font>LoCase<font color="#000080">(</font>ch<font color="#000080">: </font>CHAR<font color="#000080">): </font>CHAR<font color="#000080">; </font><font color="#FF0000"><b>EXTERNAL</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>FUNCTION </b></font>UpperCase<font color="#000080">(</font>s<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">; </font><font color="#FF0000"><b>EXTERNAL</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>FUNCTION </b></font>LowerCase<font color="#000080">(</font>s<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">; </font><font color="#FF0000"><b>EXTERNAL</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>FUNCTION </b></font>DuplChar<font color="#000080">(</font>ch<font color="#000080">: </font>CHAR<font color="#000080">; </font>count<font color="#000080">: </font>BYTE<font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">; </font><font color="#FF0000"><b>EXTERNAL</b></font><font color="#000080">;
+
+
+</font><font color="#FF0000"><b>FUNCTION </b></font>DuplStr<font color="#000080">(</font>s<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">; </font>count<font color="#000080">: </font>BYTE<font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+
+    </font><font color="#FF0000"><b>VAR
+        </b></font>ds<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+        </font>i<font color="#000080">:  </font>BYTE<font color="#000080">;
+
+    </font><font color="#FF0000"><b>BEGIN
+        </b></font>ds<font color="#000080">:=</font><font color="#800000">''</font><font color="#000080">;
+        </font><font color="#FF0000"><b>FOR </b></font>i<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>TO </b></font>count <font color="#FF0000"><b>DO
+            </b></font>ds<font color="#000080">:=</font>CONCAT<font color="#000080">(</font>ds<font color="#000080">,</font>s<font color="#000080">);
+        </font>DuplStr<font color="#000080">:=</font>ds<font color="#000080">;
+    </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+
+</font><font color="#FF0000"><b>FUNCTION </b></font>TrimL<font color="#000080">(</font>s<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">; </font><font color="#FF0000"><b>EXTERNAL</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>FUNCTION </b></font>TrimR<font color="#000080">(</font>s<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">; </font><font color="#FF0000"><b>EXTERNAL</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>FUNCTION </b></font>PadL<font color="#000080">(</font>s<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">; </font>width<font color="#000080">: </font>BYTE<font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">; </font><font color="#FF0000"><b>EXTERNAL</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>FUNCTION </b></font>PadR<font color="#000080">(</font>s<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">; </font>width<font color="#000080">: </font>BYTE<font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">; </font><font color="#FF0000"><b>EXTERNAL</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>FUNCTION </b></font>TruncL<font color="#000080">(</font>s<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">; </font>width<font color="#000080">: </font>BYTE<font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">; </font><font color="#FF0000"><b>EXTERNAL</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>FUNCTION </b></font>TruncR<font color="#000080">(</font>s<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">; </font>width<font color="#000080">: </font>BYTE<font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">; </font><font color="#FF0000"><b>EXTERNAL</b></font><font color="#000080">;
+
+
+</font><font color="#FF0000"><b>FUNCTION </b></font>JustL<font color="#000080">(</font>s<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">; </font>width<font color="#000080">: </font>BYTE<font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+
+    </font><font color="#FF0000"><b>BEGIN
+        </b></font>JustL<font color="#000080">:=</font>PadR<font color="#000080">(</font>TruncR<font color="#000080">(</font>TrimL<font color="#000080">(</font>TrimR<font color="#000080">(</font>s<font color="#000080">)),</font>width<font color="#000080">),</font>width<font color="#000080">);
+    </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+
+</font><font color="#FF0000"><b>FUNCTION </b></font>JustR<font color="#000080">(</font>s<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">; </font>width<font color="#000080">: </font>BYTE<font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+
+    </font><font color="#FF0000"><b>BEGIN
+        </b></font>JustR<font color="#000080">:=</font>PadL<font color="#000080">(</font>TruncL<font color="#000080">(</font>TrimL<font color="#000080">(</font>TrimR<font color="#000080">(</font>s<font color="#000080">)),</font>width<font color="#000080">),</font>width<font color="#000080">);
+    </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+
+</font><font color="#FF0000"><b>FUNCTION </b></font>JustC<font color="#000080">(</font>s<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">; </font>width<font color="#000080">: </font>BYTE<font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+
+    </font><font color="#FF0000"><b>BEGIN
+        </b></font>s<font color="#000080">:=</font>TruncR<font color="#000080">(</font>TrimL<font color="#000080">(</font>TrimR<font color="#000080">(</font>s<font color="#000080">)),</font>width<font color="#000080">);
+        </font><font color="#FF0000"><b>IF </b></font>LENGTH<font color="#000080">(</font>s<font color="#000080">)&gt;=</font>width <font color="#FF0000"><b>THEN
+            </b></font>JustC<font color="#000080">:=</font>s
+        <font color="#FF0000"><b>ELSE
+            </b></font>JustC<font color="#000080">:=</font>PadR<font color="#000080">(</font>CONCAT<font color="#000080">(</font>DuplChar<font color="#000080">(</font><font color="#800000">#32</font><font color="#000080">,(</font>width<font color="#000080">-</font>LENGTH<font color="#000080">(</font>s<font color="#000080">)) </font><font color="#FF0000"><b>DIV </b></font><font color="#800000">2</font><font color="#000080">),</font>s<font color="#000080">),</font>width<font color="#000080">);
+    </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+
+</font><font color="#FF0000"><b>FUNCTION </b></font>Precede<font color="#000080">(</font>s<font color="#000080">,</font>target<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+
+    </font><font color="#FF0000"><b>VAR
+        </b></font>i<font color="#000080">:  </font>BYTE<font color="#000080">;
+
+    </font><font color="#FF0000"><b>BEGIN
+        </b></font>i<font color="#000080">:=</font>POS<font color="#000080">(</font>target<font color="#000080">,</font>s<font color="#000080">);
+        </font><font color="#FF0000"><b>IF </b></font>i<font color="#000080">=</font><font color="#800000">0 </font><font color="#FF0000"><b>THEN             </b></font><font color="#008000"><i>{ Return entire string if target not found }
+            </i></font>Precede<font color="#000080">:=</font>s
+        <font color="#FF0000"><b>ELSE
+            </b></font>Precede<font color="#000080">:=</font>COPY<font color="#000080">(</font>s<font color="#000080">,</font><font color="#800000">1</font><font color="#000080">,</font>i<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">);
+    </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+
+</font><font color="#FF0000"><b>FUNCTION </b></font>Follow<font color="#000080">(</font>s<font color="#000080">,</font>target<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+
+    </font><font color="#FF0000"><b>VAR
+        </b></font>i<font color="#000080">:  </font>BYTE<font color="#000080">;
+
+    </font><font color="#FF0000"><b>BEGIN
+        </b></font>i<font color="#000080">:=</font>POS<font color="#000080">(</font>target<font color="#000080">,</font>s<font color="#000080">);
+        </font><font color="#FF0000"><b>IF </b></font>i<font color="#000080">=</font><font color="#800000">0 </font><font color="#FF0000"><b>THEN             </b></font><font color="#008000"><i>{ Return null string if target not found }
+            </i></font>Follow<font color="#000080">:=</font><font color="#800000">''
+        </font><font color="#FF0000"><b>ELSE
+            </b></font>Follow<font color="#000080">:=</font>COPY<font color="#000080">(</font>s<font color="#000080">,</font>i<font color="#000080">+</font>LENGTH<font color="#000080">(</font>target<font color="#000080">),</font><font color="#800000">255</font><font color="#000080">);
+    </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+
+</font><font color="#FF0000"><b>FUNCTION </b></font>Break<font color="#000080">(</font><font color="#FF0000"><b>VAR </b></font>s<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">; </font>d<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+
+    </font><font color="#FF0000"><b>VAR
+        </b></font>i<font color="#000080">,</font>j<font color="#000080">:    </font>BYTE<font color="#000080">;
+        </font>f<font color="#000080">:      </font>BOOLEAN<font color="#000080">;
+
+    </font><font color="#FF0000"><b>BEGIN
+        </b></font>i<font color="#000080">:=</font><font color="#800000">0</font><font color="#000080">;                                   </font><font color="#008000"><i>{ Index to input string }
+        </i></font>f<font color="#000080">:=</font>FALSE<font color="#000080">;                               </font><font color="#008000"><i>{ Set when delim. found }
+        </i></font><font color="#FF0000"><b>WHILE </b></font><font color="#000080">(</font>i<font color="#000080">&lt;</font>LENGTH<font color="#000080">(</font>s<font color="#000080">)) </font><font color="#FF0000"><b>AND </b></font><font color="#000080">(</font><font color="#FF0000"><b>NOT</b></font><font color="#000080">(</font>f<font color="#000080">)) </font><font color="#FF0000"><b>DO     </b></font><font color="#008000"><i>{ For each char. in input }
+            </i></font><font color="#FF0000"><b>BEGIN
+                </b></font>INC<font color="#000080">(</font>i<font color="#000080">);
+                </font>j<font color="#000080">:=</font><font color="#800000">1</font><font color="#000080">;                           </font><font color="#008000"><i>{ Index to delim. string }
+                </i></font><font color="#FF0000"><b>WHILE </b></font><font color="#000080">(</font>j<font color="#000080">&lt;=</font>LENGTH<font color="#000080">(</font>d<font color="#000080">)) </font><font color="#FF0000"><b>AND </b></font><font color="#000080">(</font><font color="#FF0000"><b>NOT</b></font><font color="#000080">(</font>f<font color="#000080">)) </font><font color="#FF0000"><b>DO </b></font><font color="#008000"><i>{ Scan for each delim. }
+                    </i></font><font color="#FF0000"><b>IF </b></font>s<font color="#000080">[</font>i<font color="#000080">]=</font>d<font color="#000080">[</font>j<font color="#000080">] </font><font color="#FF0000"><b>THEN
+                        </b></font>f<font color="#000080">:=</font>TRUE
+                    <font color="#FF0000"><b>ELSE
+                        </b></font>INC<font color="#000080">(</font>j<font color="#000080">);
+            </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+        </font><font color="#FF0000"><b>IF NOT</b></font><font color="#000080">(</font>f<font color="#000080">) </font><font color="#FF0000"><b>THEN
+            </b></font>INC<font color="#000080">(</font>i<font color="#000080">);
+        </font>Break<font color="#000080">:=</font>COPY<font color="#000080">(</font>s<font color="#000080">,</font><font color="#800000">1</font><font color="#000080">,</font>i<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">);           </font><font color="#008000"><i>{ Return sub-string up to delimiter }
+        </i></font>s<font color="#000080">:=</font>COPY<font color="#000080">(</font>s<font color="#000080">,</font>i<font color="#000080">,</font><font color="#800000">255</font><font color="#000080">);               </font><font color="#008000"><i>{ and remove from the input string }
+    </i></font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+
+</font><font color="#FF0000"><b>FUNCTION </b></font>Span<font color="#000080">(</font><font color="#FF0000"><b>VAR </b></font>s<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">; </font>d<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+
+    </font><font color="#FF0000"><b>VAR
+        </b></font>i<font color="#000080">,</font>j<font color="#000080">:    </font>BYTE<font color="#000080">;
+        </font>f<font color="#000080">:      </font>BOOLEAN<font color="#000080">;
+
+    </font><font color="#FF0000"><b>BEGIN
+        </b></font>i<font color="#000080">:=</font><font color="#800000">0</font><font color="#000080">;                               </font><font color="#008000"><i>{ Index to input string }
+        </i></font>f<font color="#000080">:=</font>FALSE<font color="#000080">;
+        </font><font color="#FF0000"><b>WHILE </b></font><font color="#000080">(</font>i<font color="#000080">&lt;</font>LENGTH<font color="#000080">(</font>s<font color="#000080">)) </font><font color="#FF0000"><b>AND </b></font><font color="#000080">(</font><font color="#FF0000"><b>NOT</b></font><font color="#000080">(</font>f<font color="#000080">)) </font><font color="#FF0000"><b>DO </b></font><font color="#008000"><i>{ For each char. in input }
+            </i></font><font color="#FF0000"><b>BEGIN
+                </b></font>INC<font color="#000080">(</font>i<font color="#000080">);
+                </font><font color="#FF0000"><b>FOR </b></font>j<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>TO </b></font>LENGTH<font color="#000080">(</font>d<font color="#000080">) </font><font color="#FF0000"><b>DO    </b></font><font color="#008000"><i>{ Check for specified chars. }
+                    </i></font><font color="#FF0000"><b>IF </b></font>s<font color="#000080">[</font>i<font color="#000080">]=</font>d<font color="#000080">[</font>j<font color="#000080">] </font><font color="#FF0000"><b>THEN
+                        </b></font>f<font color="#000080">:=</font>TRUE<font color="#000080">;
+                </font>f<font color="#000080">:=</font><font color="#FF0000"><b>NOT</b></font><font color="#000080">(</font>f<font color="#000080">);
+            </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+        </font><font color="#FF0000"><b>IF NOT</b></font><font color="#000080">(</font>f<font color="#000080">) </font><font color="#FF0000"><b>THEN
+            </b></font>INC<font color="#000080">(</font>i<font color="#000080">);
+        </font>Span<font color="#000080">:=</font>COPY<font color="#000080">(</font>s<font color="#000080">,</font><font color="#800000">1</font><font color="#000080">,</font>i<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">);                </font><font color="#008000"><i>{ Return span of specified chrs }
+        </i></font>s<font color="#000080">:=</font>COPY<font color="#000080">(</font>s<font color="#000080">,</font>i<font color="#000080">,</font><font color="#800000">255</font><font color="#000080">);                   </font><font color="#008000"><i>{ and remove from the input }
+    </i></font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+
+
+</font><font color="#FF0000"><b>FUNCTION </b></font>Replace<font color="#000080">(</font>s<font color="#000080">,</font>srch<font color="#000080">,</font>repl<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+
+    </font><font color="#FF0000"><b>VAR
+        </b></font>i<font color="#000080">,</font>j<font color="#000080">:    </font>BYTE<font color="#000080">;
+        </font>f<font color="#000080">:      </font>BOOLEAN<font color="#000080">;
+
+    </font><font color="#FF0000"><b>BEGIN
+        IF </b></font>LENGTH<font color="#000080">(</font>srch<font color="#000080">)&gt;</font>LENGTH<font color="#000080">(</font>repl<font color="#000080">) </font><font color="#FF0000"><b>THEN       </b></font><font color="#008000"><i>{ Ignore search chrs. }
+            </i></font>srch<font color="#000080">[</font><font color="#800000">0</font><font color="#000080">]:=</font>CHR<font color="#000080">(</font>LENGTH<font color="#000080">(</font>repl<font color="#000080">));         </font><font color="#008000"><i>{ without replacements }
+        </i></font><font color="#FF0000"><b>FOR </b></font>i<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>TO </b></font>LENGTH<font color="#000080">(</font>s<font color="#000080">) </font><font color="#FF0000"><b>DO                </b></font><font color="#008000"><i>{ For each char. in input }
+            </i></font><font color="#FF0000"><b>BEGIN
+                </b></font>j<font color="#000080">:=</font><font color="#800000">1</font><font color="#000080">;
+                </font>f<font color="#000080">:=</font>FALSE<font color="#000080">;                       </font><font color="#008000"><i>{ Scan all search characters }
+                </i></font><font color="#FF0000"><b>WHILE </b></font><font color="#000080">(</font>j<font color="#000080">&lt;=</font>LENGTH<font color="#000080">(</font>srch<font color="#000080">)) </font><font color="#FF0000"><b>AND </b></font><font color="#000080">(</font><font color="#FF0000"><b>NOT</b></font><font color="#000080">(</font>f<font color="#000080">)) </font><font color="#FF0000"><b>DO
+                    IF </b></font>s<font color="#000080">[</font>i<font color="#000080">]=</font>srch<font color="#000080">[</font>j<font color="#000080">] </font><font color="#FF0000"><b>THEN
+                        BEGIN
+                            </b></font>s<font color="#000080">[</font>i<font color="#000080">]:=</font>repl<font color="#000080">[</font>j<font color="#000080">];      </font><font color="#008000"><i>{ Replace if found }
+                            </i></font>f<font color="#000080">:=</font>TRUE<font color="#000080">;
+                        </font><font color="#FF0000"><b>END
+                    ELSE
+                        </b></font>INC<font color="#000080">(</font>j<font color="#000080">);
+            </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+        </font>Replace<font color="#000080">:=</font>s<font color="#000080">;
+    </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+
+</font><font color="#FF0000"><b>FUNCTION </b></font>Remove<font color="#000080">(</font>s<font color="#000080">,</font>srch<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+
+    </font><font color="#FF0000"><b>VAR
+        </b></font>i<font color="#000080">,</font>j<font color="#000080">:    </font>BYTE<font color="#000080">;
+
+    </font><font color="#FF0000"><b>BEGIN
+        FOR </b></font>i<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>TO </b></font>LENGTH<font color="#000080">(</font>srch<font color="#000080">) </font><font color="#FF0000"><b>DO     </b></font><font color="#008000"><i>{ For each search character }
+            </i></font><font color="#FF0000"><b>REPEAT
+                </b></font>j<font color="#000080">:=</font>POS<font color="#000080">(</font>srch<font color="#000080">[</font>i<font color="#000080">],</font>s<font color="#000080">);      </font><font color="#008000"><i>{ Repeat search in input string &amp; }
+                </i></font><font color="#FF0000"><b>IF </b></font>j<font color="#000080">&lt;&gt;</font><font color="#800000">0 </font><font color="#FF0000"><b>THEN            </b></font><font color="#008000"><i>{ delete if found until no more }
+                    </i></font>DELETE<font color="#000080">(</font>s<font color="#000080">,</font>j<font color="#000080">,</font><font color="#800000">1</font><font color="#000080">);
+            </font><font color="#FF0000"><b>UNTIL </b></font>j<font color="#000080">=</font><font color="#800000">0</font><font color="#000080">;
+        </font>Remove<font color="#000080">:=</font>s<font color="#000080">;
+    </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+
+</font><font color="#FF0000"><b>FUNCTION </b></font>StripBit7<font color="#000080">(</font>s<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">; </font><font color="#FF0000"><b>EXTERNAL</b></font><font color="#000080">;
+
+
+</font><font color="#FF0000"><b>FUNCTION </b></font>FileSpecDefault<font color="#000080">(</font>s<font color="#000080">,</font>path<font color="#000080">,</font>name<font color="#000080">,</font>extn<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+
+    </font><font color="#FF0000"><b>VAR
+        </b></font>d<font color="#000080">:  </font>DirStr<font color="#000080">;
+        </font>n<font color="#000080">:  </font>NameStr<font color="#000080">;
+        </font>e<font color="#000080">:  </font>ExtStr<font color="#000080">;
+
+    </font><font color="#FF0000"><b>BEGIN
+        </b></font>FSplit<font color="#000080">(</font>s<font color="#000080">,</font>d<font color="#000080">,</font>n<font color="#000080">,</font>e<font color="#000080">);        </font><font color="#008000"><i>{ Split file spec. into path, name, &amp; ext. }
+        </i></font><font color="#FF0000"><b>IF </b></font>LENGTH<font color="#000080">(</font>d<font color="#000080">)=</font><font color="#800000">0 </font><font color="#FF0000"><b>THEN     </b></font><font color="#008000"><i>{ For each field, add default if none }
+            </i></font>d<font color="#000080">:=</font>path<font color="#000080">;
+        </font><font color="#FF0000"><b>IF </b></font>LENGTH<font color="#000080">(</font>n<font color="#000080">)=</font><font color="#800000">0 </font><font color="#FF0000"><b>THEN
+            </b></font>n<font color="#000080">:=</font>name<font color="#000080">;
+        </font><font color="#FF0000"><b>IF </b></font>LENGTH<font color="#000080">(</font>e<font color="#000080">)=</font><font color="#800000">0 </font><font color="#FF0000"><b>THEN
+            </b></font>e<font color="#000080">:=</font>extn<font color="#000080">;
+        </font>FileSpecDefault<font color="#000080">:=</font>CONCAT<font color="#000080">(</font>d<font color="#000080">,</font>n<font color="#000080">,</font>e<font color="#000080">);
+    </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+
+</font><font color="#FF0000"><b>FUNCTION </b></font>HexStr<font color="#000080">(</font>n<font color="#000080">: </font>WORD<font color="#000080">; </font>count<font color="#000080">: </font>BYTE<font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">; </font><font color="#FF0000"><b>EXTERNAL</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>FUNCTION </b></font>OctStr<font color="#000080">(</font>n<font color="#000080">: </font>WORD<font color="#000080">; </font>count<font color="#000080">: </font>BYTE<font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">; </font><font color="#FF0000"><b>EXTERNAL</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>FUNCTION </b></font>BinStr<font color="#000080">(</font>n<font color="#000080">: </font>WORD<font color="#000080">; </font>count<font color="#000080">: </font>BYTE<font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">; </font><font color="#FF0000"><b>EXTERNAL</b></font><font color="#000080">;
+
+
+</font><font color="#FF0000"><b>FUNCTION </b></font>Format<font color="#000080">(</font>n<font color="#000080">: </font>REAL<font color="#000080">; </font>form<font color="#000080">: </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">): </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+
+    </font><font color="#FF0000"><b>VAR
+        </b></font>s1<font color="#000080">,</font>s2<font color="#000080">:                  </font><font color="#FF0000"><b>STRING</b></font><font color="#000080">;
+        </font>width<font color="#000080">,</font>dp<font color="#000080">,</font>sign<font color="#000080">,</font>i<font color="#000080">,</font>j<font color="#000080">:      </font>BYTE<font color="#000080">;
+        </font>pad<font color="#000080">,</font>currency<font color="#000080">:           </font>CHAR<font color="#000080">;
+        </font>blank<font color="#000080">,</font>zero<font color="#000080">,</font>left<font color="#000080">,</font>paren<font color="#000080">,
+        </font>comma<font color="#000080">,</font>adjust<font color="#000080">,</font>reduce<font color="#000080">:    </font>BOOLEAN<font color="#000080">;
+        </font>x<font color="#000080">:                      </font>INTEGER<font color="#000080">;
+
+
+    </font><font color="#008000"><i>{ Reduce fraction to lowest possible denominator }
+
+    </i></font><font color="#FF0000"><b>PROCEDURE </b></font>ReduceFraction<font color="#000080">(</font><font color="#FF0000"><b>VAR </b></font>num<font color="#000080">,</font>denom<font color="#000080">: </font>BYTE<font color="#000080">);
+
+        </font><font color="#FF0000"><b>VAR
+            </b></font>i<font color="#000080">:  </font>BYTE<font color="#000080">;
+
+        </font><font color="#FF0000"><b>BEGIN
+            FOR </b></font>i<font color="#000080">:=</font>denom <font color="#FF0000"><b>DOWNTO </b></font><font color="#800000">2 </font><font color="#FF0000"><b>DO
+                IF </b></font><font color="#000080">((</font>num <font color="#FF0000"><b>MOD </b></font>i<font color="#000080">)=</font><font color="#800000">0</font><font color="#000080">) </font><font color="#FF0000"><b>AND </b></font><font color="#000080">((</font>denom <font color="#FF0000"><b>MOD </b></font>i<font color="#000080">)=</font><font color="#800000">0</font><font color="#000080">) </font><font color="#FF0000"><b>THEN
+                    BEGIN
+                        </b></font>num<font color="#000080">:=</font>num <font color="#FF0000"><b>DIV </b></font>i<font color="#000080">;
+                        </font>denom<font color="#000080">:=</font>denom <font color="#FF0000"><b>DIV </b></font>i<font color="#000080">;
+                    </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+        </font><font color="#FF0000"><b>END</b></font><font color="#000080">;  </font><font color="#008000"><i>{ ReduceFraction }
+
+
+    </i></font><font color="#FF0000"><b>BEGIN  </b></font><font color="#008000"><i>{ Format }
+        </i></font>form<font color="#000080">:=</font>UpperCase<font color="#000080">(</font>form<font color="#000080">);
+        </font>s1<font color="#000080">:=</font>Break<font color="#000080">(</font>form<font color="#000080">,</font>CONCAT<font color="#000080">(</font>DecDigits<font color="#000080">,</font><font color="#800000">':'</font><font color="#000080">));      </font><font color="#008000"><i>{ Get leading options }
+        </i></font><font color="#FF0000"><b>IF </b></font>POS<font color="#000080">(</font><font color="#800000">'A'</font><font color="#000080">,</font>s1<font color="#000080">)&lt;&gt;</font><font color="#800000">0 </font><font color="#FF0000"><b>THEN                      </b></font><font color="#008000"><i>{ Absolute value, no sign }
+            </i></font>n<font color="#000080">:=</font>ABS<font color="#000080">(</font>n<font color="#000080">);
+        </font>blank<font color="#000080">:=</font>POS<font color="#000080">(</font><font color="#800000">'B'</font><font color="#000080">,</font>s1<font color="#000080">)&lt;&gt;</font><font color="#800000">0</font><font color="#000080">;                      </font><font color="#008000"><i>{ Blank if zero }
+        </i></font>zero<font color="#000080">:=</font>POS<font color="#000080">(</font><font color="#800000">'Z'</font><font color="#000080">,</font>s1<font color="#000080">)&lt;&gt;</font><font color="#800000">0</font><font color="#000080">;                       </font><font color="#008000"><i>{ Zero-fill/zero-show }
+        </i></font>left<font color="#000080">:=</font>POS<font color="#000080">(</font><font color="#800000">'L'</font><font color="#000080">,</font>s1<font color="#000080">)&lt;&gt;</font><font color="#800000">0</font><font color="#000080">;                       </font><font color="#008000"><i>{ Left justify }
+        </i></font>comma<font color="#000080">:=(</font>POS<font color="#000080">(</font><font color="#800000">','</font><font color="#000080">,</font>s1<font color="#000080">)&lt;&gt;</font><font color="#800000">0</font><font color="#000080">) </font><font color="#FF0000"><b>OR </b></font><font color="#000080">(</font>POS<font color="#000080">(</font><font color="#800000">'C'</font><font color="#000080">,</font>s1<font color="#000080">)&lt;&gt;</font><font color="#800000">0</font><font color="#000080">);    </font><font color="#008000"><i>{ Commas }
+        </i></font>reduce<font color="#000080">:=</font>POS<font color="#000080">(</font><font color="#800000">'R'</font><font color="#000080">,</font>s1<font color="#000080">)=</font><font color="#800000">0</font><font color="#000080">;                      </font><font color="#008000"><i>{ No reduction }
+        </i></font>paren<font color="#000080">:=</font>POS<font color="#000080">(</font><font color="#800000">'P'</font><font color="#000080">,</font>s1<font color="#000080">)&lt;&gt;</font><font color="#800000">0</font><font color="#000080">;                      </font><font color="#008000"><i>{ Negative in parenth. }
+        </i></font><font color="#FF0000"><b>IF </b></font>POS<font color="#000080">(</font><font color="#800000">'+'</font><font color="#000080">,</font>s1<font color="#000080">)&lt;&gt;</font><font color="#800000">0 </font><font color="#FF0000"><b>THEN                      </b></font><font color="#008000"><i>{ Check leading + }
+            </i></font>sign<font color="#000080">:=</font><font color="#800000">1
+        </font><font color="#FF0000"><b>ELSE
+            </b></font>sign<font color="#000080">:=</font><font color="#800000">0</font><font color="#000080">;
+        </font><font color="#FF0000"><b>IF </b></font>POS<font color="#000080">(</font><font color="#800000">'*'</font><font color="#000080">,</font>s1<font color="#000080">)&lt;&gt;</font><font color="#800000">0 </font><font color="#FF0000"><b>THEN                      </b></font><font color="#008000"><i>{ Set fill character }
+            </i></font>pad<font color="#000080">:=</font><font color="#800000">'*'
+        </font><font color="#FF0000"><b>ELSE
+            IF </b></font>POS<font color="#000080">(</font><font color="#800000">'F'</font><font color="#000080">,</font>s1<font color="#000080">)&lt;&gt;</font><font color="#800000">0 </font><font color="#FF0000"><b>THEN
+                </b></font>pad<font color="#000080">:=</font>FormatConfig<font color="#000080">.</font>Fill
+            <font color="#FF0000"><b>ELSE
+                </b></font>pad<font color="#000080">:=</font><font color="#800000">' '</font><font color="#000080">;
+        </font><font color="#FF0000"><b>IF </b></font>POS<font color="#000080">(</font><font color="#800000">'$'</font><font color="#000080">,</font>s1<font color="#000080">)&lt;&gt;</font><font color="#800000">0 </font><font color="#FF0000"><b>THEN                      </b></font><font color="#008000"><i>{ Set currency symbol }
+            </i></font>currency<font color="#000080">:=</font>FormatConfig<font color="#000080">.</font>Currency
+        <font color="#FF0000"><b>ELSE
+            </b></font>currency<font color="#000080">:=</font><font color="#800000">#0</font><font color="#000080">;
+        </font>s1<font color="#000080">:=</font>Break<font color="#000080">(</font>form<font color="#000080">,</font>CONCAT<font color="#000080">(</font><font color="#800000">'+- '</font><font color="#000080">,</font><font color="#800000">#9</font><font color="#000080">));           </font><font color="#008000"><i>{ Get width:decimals }
+        </i></font><font color="#FF0000"><b>IF </b></font>POS<font color="#000080">(</font><font color="#800000">'-'</font><font color="#000080">,</font>form<font color="#000080">)&lt;&gt;</font><font color="#800000">0 </font><font color="#FF0000"><b>THEN                    </b></font><font color="#008000"><i>{ Check trailing +/- sign }
+            </i></font>sign<font color="#000080">:=</font><font color="#800000">3</font><font color="#000080">;
+        </font><font color="#FF0000"><b>IF </b></font>POS<font color="#000080">(</font><font color="#800000">'+'</font><font color="#000080">,</font>form<font color="#000080">)&lt;&gt;</font><font color="#800000">0 </font><font color="#FF0000"><b>THEN                    
+            </b></font>sign<font color="#000080">:=</font><font color="#800000">2</font><font color="#000080">;
+
+        </font>s2<font color="#000080">:=</font>Follow<font color="#000080">(</font>s1<font color="#000080">,</font><font color="#800000">':'</font><font color="#000080">);             </font><font color="#008000"><i>{ s2 is decimals }
+        </i></font>s1<font color="#000080">:=</font>Precede<font color="#000080">(</font>s1<font color="#000080">,</font><font color="#800000">':'</font><font color="#000080">);            </font><font color="#008000"><i>{ s1 is width }
+        </i></font>VAL<font color="#000080">(</font>s1<font color="#000080">,</font>width<font color="#000080">,</font>x<font color="#000080">);
+        </font><font color="#FF0000"><b>IF </b></font>x<font color="#000080">&lt;&gt;</font><font color="#800000">0 </font><font color="#FF0000"><b>THEN                    </b></font><font color="#008000"><i>{ Default width 12 }
+            </i></font>width<font color="#000080">:=</font><font color="#800000">12</font><font color="#000080">;
+        </font><font color="#FF0000"><b>IF </b></font>COPY<font color="#000080">(</font>s2<font color="#000080">,</font><font color="#800000">1</font><font color="#000080">,</font><font color="#800000">1</font><font color="#000080">)=</font><font color="#800000">'/' </font><font color="#FF0000"><b>THEN        </b></font><font color="#008000"><i>{ Use vulgar fractions }
+            </i></font><font color="#FF0000"><b>BEGIN
+                </b></font>n<font color="#000080">:=</font>ABS<font color="#000080">(</font>n<font color="#000080">);                          </font><font color="#008000"><i>{ Force absolute value }
+                </i></font>sign<font color="#000080">:=</font><font color="#800000">0</font><font color="#000080">;                            </font><font color="#008000"><i>{ Disable sign display }
+                </i></font>DELETE<font color="#000080">(</font>s2<font color="#000080">,</font><font color="#800000">1</font><font color="#000080">,</font><font color="#800000">1</font><font color="#000080">);
+                </font>VAL<font color="#000080">(</font>s2<font color="#000080">,</font>i<font color="#000080">,</font>x<font color="#000080">);
+                </font><font color="#FF0000"><b>IF </b></font><font color="#000080">(</font>x<font color="#000080">&lt;&gt;</font><font color="#800000">0</font><font color="#000080">) </font><font color="#FF0000"><b>OR </b></font><font color="#000080">(</font>i<font color="#000080">&lt;</font><font color="#800000">2</font><font color="#000080">) </font><font color="#FF0000"><b>OR </b></font><font color="#000080">(</font>i<font color="#000080">&gt;</font><font color="#800000">99</font><font color="#000080">) </font><font color="#FF0000"><b>THEN   </b></font><font color="#008000"><i>{ Default resolution 1/2 }
+                    </i></font>i<font color="#000080">:=</font><font color="#800000">2</font><font color="#000080">;
+                </font>j<font color="#000080">:=</font>ROUND<font color="#000080">(</font>FRAC<font color="#000080">(</font>n<font color="#000080">)/(</font><font color="#800000">1.0</font><font color="#000080">/</font>i<font color="#000080">));          </font><font color="#008000"><i>{ Calculate fraction }
+                </i></font>adjust<font color="#000080">:=(</font>j<font color="#000080">=</font>i<font color="#000080">);                      </font><font color="#008000"><i>{ Allow for rounding }
+                </i></font><font color="#FF0000"><b>IF </b></font>adjust <font color="#FF0000"><b>THEN
+                    </b></font>j<font color="#000080">:=</font><font color="#800000">0</font><font color="#000080">;
+                </font><font color="#FF0000"><b>IF </b></font>reduce <font color="#FF0000"><b>THEN                      </b></font><font color="#008000"><i>{ Reduce fraction }
+                    </i></font>ReduceFraction<font color="#000080">(</font>j<font color="#000080">,</font>i<font color="#000080">);
+                </font>STR<font color="#000080">(</font>j<font color="#000080">,</font>s1<font color="#000080">);
+                </font>STR<font color="#000080">(</font>i<font color="#000080">,</font>s2<font color="#000080">);
+                </font><font color="#FF0000"><b>IF </b></font>j<font color="#000080">=</font><font color="#800000">0 </font><font color="#FF0000"><b>THEN                         </b></font><font color="#008000"><i>{ Format fraction }
+                    </i></font>s2<font color="#000080">:=</font>DuplChar<font color="#000080">(</font>pad<font color="#000080">,</font><font color="#800000">6</font><font color="#000080">)
+                </font><font color="#FF0000"><b>ELSE
+                    BEGIN
+                        </b></font>s2<font color="#000080">:=</font>CONCAT<font color="#000080">(</font>s1<font color="#000080">,</font><font color="#800000">'/'</font><font color="#000080">,</font>s2<font color="#000080">);
+                        </font><font color="#FF0000"><b>IF </b></font><font color="#000080">(</font>INT<font color="#000080">(</font>n<font color="#000080">)=</font><font color="#800000">0</font><font color="#000080">) </font><font color="#FF0000"><b>AND NOT</b></font><font color="#000080">(</font>zero<font color="#000080">) </font><font color="#FF0000"><b>THEN
+                            </b></font>s2<font color="#000080">:=</font>CONCAT<font color="#000080">(</font>pad<font color="#000080">,</font>s2<font color="#000080">)
+                        </font><font color="#FF0000"><b>ELSE
+                            </b></font>s2<font color="#000080">:=</font>CONCAT<font color="#000080">(</font>FormatConfig<font color="#000080">.</font>FracSep<font color="#000080">,</font>s2<font color="#000080">);
+                        </font>s2<font color="#000080">:=</font>CONCAT<font color="#000080">(</font>s2<font color="#000080">,</font>DuplChar<font color="#000080">(</font>pad<font color="#000080">,</font><font color="#800000">6</font><font color="#000080">-</font>LENGTH<font color="#000080">(</font>s2<font color="#000080">)));
+                    </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+                </font><font color="#FF0000"><b>IF </b></font><font color="#000080">(</font>INT<font color="#000080">(</font>n<font color="#000080">)=</font><font color="#800000">0</font><font color="#000080">) </font><font color="#FF0000"><b>AND NOT</b></font><font color="#000080">(</font>zero<font color="#000080">) </font><font color="#FF0000"><b>AND </b></font><font color="#000080">(</font>j<font color="#000080">&lt;&gt;</font><font color="#800000">0</font><font color="#000080">) </font><font color="#FF0000"><b>THEN
+                    </b></font>s1<font color="#000080">:=</font>s2
+                <font color="#FF0000"><b>ELSE
+                    BEGIN                           </b></font><font color="#008000"><i>{ Format integral part }
+                        </i></font><font color="#FF0000"><b>IF </b></font>adjust <font color="#FF0000"><b>THEN
+                            </b></font>STR<font color="#000080">(</font>INT<font color="#000080">(</font>n<font color="#000080">)+</font><font color="#800000">1</font><font color="#000080">:</font><font color="#800000">0</font><font color="#000080">:</font><font color="#800000">0</font><font color="#000080">,</font>s1<font color="#000080">)
+                        </font><font color="#FF0000"><b>ELSE
+                            </b></font>STR<font color="#000080">(</font>INT<font color="#000080">(</font>n<font color="#000080">):</font><font color="#800000">0</font><font color="#000080">:</font><font color="#800000">0</font><font color="#000080">,</font>s1<font color="#000080">);
+                        </font>s1<font color="#000080">:=</font>CONCAT<font color="#000080">(</font>s1<font color="#000080">,</font>s2<font color="#000080">);
+                    </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+                </font>zero<font color="#000080">:=</font>FALSE<font color="#000080">;                        </font><font color="#008000"><i>{ Disable zero-fill }
+            </i></font><font color="#FF0000"><b>END
+        ELSE
+            BEGIN                       </b></font><font color="#008000"><i>{ Use decimal fractions }
+                </i></font>VAL<font color="#000080">(</font>s2<font color="#000080">,</font>dp<font color="#000080">,</font>x<font color="#000080">);               </font><font color="#008000"><i>{ Get number of decimal places }
+                </i></font><font color="#FF0000"><b>IF </b></font>x<font color="#000080">&lt;&gt;</font><font color="#800000">0 </font><font color="#FF0000"><b>THEN                </b></font><font color="#008000"><i>{ Default to zero decimals }
+                    </i></font>dp<font color="#000080">:=</font><font color="#800000">0</font><font color="#000080">;
+                </font>STR<font color="#000080">(</font>ABS<font color="#000080">(</font>n<font color="#000080">):</font><font color="#800000">0</font><font color="#000080">:</font>dp<font color="#000080">,</font>s1<font color="#000080">);
+            </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+        </font><font color="#FF0000"><b>IF </b></font>comma <font color="#FF0000"><b>THEN                   </b></font><font color="#008000"><i>{ Insert commas if necessary }
+            </i></font><font color="#FF0000"><b>BEGIN
+                </b></font>s2<font color="#000080">:=</font>Span<font color="#000080">(</font>s1<font color="#000080">,</font>DecDigits<font color="#000080">);
+                </font>i<font color="#000080">:=(</font>LENGTH<font color="#000080">(</font>s2<font color="#000080">)-</font><font color="#800000">1</font><font color="#000080">) </font><font color="#FF0000"><b>DIV </b></font><font color="#800000">3</font><font color="#000080">;    </font><font color="#008000"><i>{ i is no. of commas to insert }
+                </i></font><font color="#FF0000"><b>FOR </b></font>j<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>TO </b></font>i <font color="#FF0000"><b>DO
+                    </b></font>INSERT<font color="#000080">(</font><font color="#800000">','</font><font color="#000080">,</font>s2<font color="#000080">,</font>LENGTH<font color="#000080">(</font>s2<font color="#000080">)-(</font>j<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">)-(</font>j<font color="#000080">*</font><font color="#800000">3</font><font color="#000080">-</font><font color="#800000">1</font><font color="#000080">));
+                </font>s1<font color="#000080">:=</font>CONCAT<font color="#000080">(</font>s2<font color="#000080">,</font>s1<font color="#000080">);
+            </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+        </font><font color="#FF0000"><b>IF </b></font>currency<font color="#000080">&lt;&gt;</font><font color="#800000">#0 </font><font color="#FF0000"><b>THEN            </b></font><font color="#008000"><i>{ Add floating currency symbol }
+            </i></font>s1<font color="#000080">:=</font>CONCAT<font color="#000080">(</font>currency<font color="#000080">,</font>s1<font color="#000080">);
+        </font><font color="#FF0000"><b>IF </b></font>paren <font color="#FF0000"><b>THEN                   </b></font><font color="#008000"><i>{ Add signs as required }
+            </i></font><font color="#FF0000"><b>BEGIN
+                IF </b></font>n<font color="#000080">&lt;</font><font color="#800000">0 </font><font color="#FF0000"><b>THEN
+                    </b></font>s1<font color="#000080">:=</font>CONCAT<font color="#000080">(</font><font color="#800000">'('</font><font color="#000080">,</font>s1<font color="#000080">,</font><font color="#800000">')'</font><font color="#000080">)
+                </font><font color="#FF0000"><b>ELSE
+                    IF NOT</b></font><font color="#000080">(</font>left<font color="#000080">) </font><font color="#FF0000"><b>THEN
+                        </b></font>s1<font color="#000080">:=</font>CONCAT<font color="#000080">(</font>s1<font color="#000080">,</font><font color="#800000">' '</font><font color="#000080">);
+            </font><font color="#FF0000"><b>END
+        ELSE
+            CASE </b></font>sign <font color="#FF0000"><b>OF
+                </b></font><font color="#800000">0</font><font color="#000080">:  </font><font color="#FF0000"><b>IF </b></font>n<font color="#000080">&lt;</font><font color="#800000">0 </font><font color="#FF0000"><b>THEN                 </b></font><font color="#008000"><i>{ Leading - }
+                        </i></font>s1<font color="#000080">:=</font>CONCAT<font color="#000080">(</font><font color="#800000">'-'</font><font color="#000080">,</font>s1<font color="#000080">);
+                </font><font color="#800000">1</font><font color="#000080">:  </font><font color="#FF0000"><b>IF </b></font>n<font color="#000080">&lt;</font><font color="#800000">0 </font><font color="#FF0000"><b>THEN                 </b></font><font color="#008000"><i>{ Leading + }
+                        </i></font>s1<font color="#000080">:=</font>CONCAT<font color="#000080">(</font><font color="#800000">'-'</font><font color="#000080">, </font>s1<font color="#000080">)
+                    </font><font color="#FF0000"><b>ELSE
+                        </b></font>s1<font color="#000080">:=</font>CONCAT<font color="#000080">(</font><font color="#800000">'+'</font><font color="#000080">,</font>s1<font color="#000080">);
+                </font><font color="#800000">2</font><font color="#000080">:  </font><font color="#FF0000"><b>IF </b></font>n<font color="#000080">&lt;</font><font color="#800000">0 </font><font color="#FF0000"><b>THEN                 </b></font><font color="#008000"><i>{ Trailing + }
+                        </i></font>s1<font color="#000080">:=</font>CONCAT<font color="#000080">(</font>s1<font color="#000080">,</font><font color="#800000">'-'</font><font color="#000080">)
+                    </font><font color="#FF0000"><b>ELSE
+                        </b></font>s1<font color="#000080">:=</font>CONCAT<font color="#000080">(</font>s1<font color="#000080">,</font><font color="#800000">'+'</font><font color="#000080">);
+                </font><font color="#800000">3</font><font color="#000080">:  </font><font color="#FF0000"><b>IF </b></font>n<font color="#000080">&lt;</font><font color="#800000">0 </font><font color="#FF0000"><b>THEN                 </b></font><font color="#008000"><i>{ Trailing - }
+                        </i></font>s1<font color="#000080">:=</font>CONCAT<font color="#000080">(</font>s1<font color="#000080">,</font><font color="#800000">'-'</font><font color="#000080">)
+                    </font><font color="#FF0000"><b>ELSE
+                        IF NOT</b></font><font color="#000080">(</font>left<font color="#000080">) </font><font color="#FF0000"><b>THEN
+                            </b></font>s1<font color="#000080">:=</font>CONCAT<font color="#000080">(</font>s1<font color="#000080">,</font><font color="#800000">' '</font><font color="#000080">);
+            </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+        </font><font color="#FF0000"><b>WITH </b></font>FormatConfig <font color="#FF0000"><b>DO
+            IF </b></font>LENGTH<font color="#000080">(</font>s1<font color="#000080">)&gt;</font>width <font color="#FF0000"><b>THEN            </b></font><font color="#008000"><i>{ Check for field overflow }
+                </i></font>Format<font color="#000080">:=</font>DuplChar<font color="#000080">(</font>Overflow<font color="#000080">,</font>width<font color="#000080">)
+            </font><font color="#FF0000"><b>ELSE
+                IF </b></font>blank <font color="#FF0000"><b>AND
+                </b></font><font color="#000080">(</font>LENGTH<font color="#000080">(</font>Remove<font color="#000080">(</font>s1<font color="#000080">,</font>CONCAT<font color="#000080">(</font><font color="#800000">'0. ()+-*'</font><font color="#000080">,</font>Fill<font color="#000080">,</font>Currency<font color="#000080">)))=</font><font color="#800000">0</font><font color="#000080">) </font><font color="#FF0000"><b>THEN
+                    </b></font>Format<font color="#000080">:=</font>DuplChar<font color="#000080">(</font><font color="#800000">#32</font><font color="#000080">,</font>width<font color="#000080">) </font><font color="#008000"><i>{ Blank if rounded=zero }
+                </i></font><font color="#FF0000"><b>ELSE
+                    IF </b></font>zero <font color="#FF0000"><b>THEN                </b></font><font color="#008000"><i>{ Pad field to width }
+                        </i></font><font color="#FF0000"><b>BEGIN
+                            </b></font>s2<font color="#000080">:=</font>Break<font color="#000080">(</font>s1<font color="#000080">,</font>DecDigits<font color="#000080">);
+                            </font>Format<font color="#000080">:=</font>CONCAT<font color="#000080">(</font>s2<font color="#000080">,</font>DuplChar<font color="#000080">(</font><font color="#800000">'0'</font><font color="#000080">,
+                                        </font>width<font color="#000080">-(</font>LENGTH<font color="#000080">(</font>s2<font color="#000080">)+</font>LENGTH<font color="#000080">(</font>s1<font color="#000080">))),</font>s1<font color="#000080">);
+                        </font><font color="#FF0000"><b>END
+                    ELSE
+                        IF </b></font>left <font color="#FF0000"><b>THEN
+                            </b></font>Format<font color="#000080">:=</font>CONCAT<font color="#000080">(</font>s1<font color="#000080">,</font>DuplChar<font color="#000080">(</font>pad<font color="#000080">,</font>width<font color="#000080">-</font>LENGTH<font color="#000080">(</font>s1<font color="#000080">)))
+                        </font><font color="#FF0000"><b>ELSE
+                            </b></font>Format<font color="#000080">:=</font>CONCAT<font color="#000080">(</font>DuplChar<font color="#000080">(</font>pad<font color="#000080">,</font>width<font color="#000080">-</font>LENGTH<font color="#000080">(</font>s1<font color="#000080">)),</font>s1<font color="#000080">);
+    </font><font color="#FF0000"><b>END</b></font><font color="#000080">;  </font><font color="#008000"><i>{ Format }
+
+
+</i></font><font color="#FF0000"><b>END</b></font><font color="#000080">.
+
+</font><font color="#008000"><i>(*
+
+ENCODED STRASM.ZIP FILE REMOVED.  PLEASE <A HREF="0022.STRASM.ZIP">DOWNLOAD</A> EITHER THE 
+ATTACHMENT OR THE COMPLETE ZIP FILE.
+</i>
+</code></pre><!--EndFragment--><p align="center"><b>[</b><a href="index.html">Back to STRINGS SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0022.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0022.STRASM.ZIP">Attachment</a><b>]</b>
+</p></body>
+</html>

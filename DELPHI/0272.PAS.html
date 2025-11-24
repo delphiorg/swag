@@ -1,0 +1,299 @@
+<html>
+<head><title> "LCDControl for Delphi 2.0" by MATTHEW CSULIK</title><link rel="STYLESHEET" type="text/css" href="../swagsource.css"></head>
+<body><p align="center">
+<b>[</b><a href="index.html">Back to DELPHI SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0272.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0272.LCDRES.ZIP">Attachment</a><b>]</b>
+
+</p><!--StartFragment--><pre><code><font color="#008000"><i>{
+Hello!
+
+I'm from Hungary, and I love the SWAG!
+
+It's a very useful site, and I use it since 2 years.
+I send to You a Delphi 2.0 component:
+ - TLCDControl (it looks like WinNT 4.0 Task Manager's LCD)
+      resource file included (XX3402)
+
+This component was made for Delphi 2.0, but it is also working on Delphi 1.0
+(I think).
+I send it to You, because I don't know any other addresses about SWAG.
+I hope, this component will be useful for somebody.
+
+Kind regards
+        Matthew Csulik
+        matthew-c@usa.net
+
+P.S.: To extract the resource file, use WinZip95 (the 32bit version)!
+
+-----------------------------------------------------------------------
+-                                                                     -
+-   LCDControl.pas                                                    -
+-   **************                                                    -
+-   This component is completely FREE.                                -
+-                                                                     -
+-----------------------------------------------------------------------
+
+unit LCDControl;
+
+{ written by Matthew }
+{ matthew-c@usa.net  }
+
+</i></font><font color="#FF0000"><b>interface
+
+uses
+   </b></font>Windows<font color="#000080">, </font>Messages<font color="#000080">, </font>SysUtils<font color="#000080">, </font>Classes<font color="#000080">, </font>Graphics<font color="#000080">, </font>Controls<font color="#000080">, </font>Forms<font color="#000080">, </font>Dialogs<font color="#000080">;
+
+</font><font color="#FF0000"><b>type
+   </b></font>TNumberType <font color="#000080">= (</font>ntNone<font color="#000080">, </font>ntCharK<font color="#000080">, </font>ntPercent<font color="#000080">);
+
+   </font>TLCDControl <font color="#000080">= </font><font color="#FF0000"><b>class</b></font><font color="#000080">(</font>TGraphicControl<font color="#000080">)
+   </font><font color="#FF0000"><b>private
+      </b></font>NumBmp<font color="#000080">: </font><font color="#FF0000"><b>array</b></font><font color="#000080">[</font><font color="#800000">0</font><font color="#000080">..</font><font color="#800000">9</font><font color="#000080">] </font><font color="#FF0000"><b>of </b></font>TBitmap<font color="#000080">;
+      </font>CharKBmp<font color="#000080">: </font>TBitmap<font color="#000080">;
+      </font>PercentBmp<font color="#000080">: </font>TBitmap<font color="#000080">;
+      </font>OnBmp<font color="#000080">: </font>TBitmap<font color="#000080">;
+      </font>OffBmp<font color="#000080">: </font>TBitmap<font color="#000080">;
+      </font>FNumber<font color="#000080">: </font>integer<font color="#000080">;
+      </font>FNumberType<font color="#000080">: </font>TNumberType<font color="#000080">;
+      </font>FNumberMax<font color="#000080">: </font>integer<font color="#000080">;
+      </font><font color="#FF0000"><b>procedure </b></font>SetNumber<font color="#000080">(</font>Value<font color="#000080">: </font>integer<font color="#000080">);
+      </font><font color="#FF0000"><b>procedure </b></font>SetNumberType<font color="#000080">(</font>Value<font color="#000080">: </font>TNumberType<font color="#000080">);
+      </font><font color="#FF0000"><b>procedure </b></font>SetNumberMax<font color="#000080">(</font>Value<font color="#000080">: </font>integer<font color="#000080">);
+   </font><font color="#FF0000"><b>protected
+      procedure </b></font>Paint<font color="#000080">; </font><font color="#FF0000"><b>override</b></font><font color="#000080">;
+   </font><font color="#FF0000"><b>public
+      constructor </b></font>Create<font color="#000080">(</font>AOwner<font color="#000080">: </font>TComponent<font color="#000080">); </font><font color="#FF0000"><b>override</b></font><font color="#000080">;
+      </font><font color="#FF0000"><b>destructor </b></font>Destroy<font color="#000080">; </font><font color="#FF0000"><b>override</b></font><font color="#000080">;
+      </font><font color="#FF0000"><b>procedure </b></font>WriteLCDNum<font color="#000080">(</font>Num<font color="#000080">: </font>integer<font color="#000080">; </font>X<font color="#000080">,</font>Y<font color="#000080">: </font>integer<font color="#000080">; </font>ACanvas<font color="#000080">: </font>TCanvas<font color="#000080">);
+      </font><font color="#FF0000"><b>procedure </b></font>WriteNumber<font color="#000080">(</font>Num<font color="#000080">: </font>integer<font color="#000080">; </font>NumType<font color="#000080">: </font>TNumberType<font color="#000080">; </font>X<font color="#000080">,</font>Y<font color="#000080">:
+</font>integer<font color="#000080">; </font>ACanvas<font color="#000080">: </font>TCanvas<font color="#000080">);
+      </font><font color="#FF0000"><b>function </b></font>GetNumberLength<font color="#000080">(</font>Num<font color="#000080">: </font>integer<font color="#000080">; </font>NumType<font color="#000080">: </font>TNumberType<font color="#000080">): </font>integer<font color="#000080">;
+      </font><font color="#FF0000"><b>procedure </b></font>DisplayTicks<font color="#000080">(</font>Rect<font color="#000080">: </font>TRect<font color="#000080">; </font>Num<font color="#000080">: </font>integer<font color="#000080">; </font>ACanvas<font color="#000080">: </font>TCanvas<font color="#000080">);
+      </font><font color="#FF0000"><b>procedure </b></font>UpdateLCD<font color="#000080">(</font>UpdateCanvas<font color="#000080">: </font>TCanvas<font color="#000080">);
+   </font><font color="#FF0000"><b>published
+      property </b></font>Number<font color="#000080">: </font>integer <font color="#FF0000"><b>read </b></font>FNumber <font color="#FF0000"><b>write </b></font>SetNumber<font color="#000080">;
+      </font><font color="#FF0000"><b>property </b></font>NumberType<font color="#000080">: </font>TNumberType <font color="#FF0000"><b>read </b></font>FNumberType <font color="#FF0000"><b>write </b></font>SetNumberType<font color="#000080">;
+      </font><font color="#FF0000"><b>property </b></font>NumberMax<font color="#000080">: </font>integer <font color="#FF0000"><b>read </b></font>FNumberMax <font color="#FF0000"><b>write </b></font>SetNumberMax<font color="#000080">;
+   </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure Register</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>implementation
+
+</b></font><font color="#008000"><i>{$R LCD.RES}
+
+</i></font><font color="#FF0000"><b>constructor </b></font>TLCDControl<font color="#000080">.</font>Create<font color="#000080">(</font>AOwner<font color="#000080">: </font>TComponent<font color="#000080">);
+</font><font color="#FF0000"><b>var
+   </b></font>i<font color="#000080">: </font>integer<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+   inherited </b></font>Create<font color="#000080">(</font>AOwner<font color="#000080">);
+   </font><font color="#FF0000"><b>for </b></font>i<font color="#000080">:= </font><font color="#800000">0 </font><font color="#FF0000"><b>to </b></font><font color="#800000">9 </font><font color="#FF0000"><b>do
+   begin
+      </b></font>NumBmp<font color="#000080">[</font>i<font color="#000080">]:= </font>TBitmap<font color="#000080">.</font>Create<font color="#000080">;
+      </font>NumBmp<font color="#000080">[</font>i<font color="#000080">].</font>LoadFromResourceID<font color="#000080">(</font>HInstance<font color="#000080">, </font>i<font color="#000080">);
+   </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+   </font>CharKBmp<font color="#000080">:= </font>TBitmap<font color="#000080">.</font>Create<font color="#000080">;
+   </font>CharKBmp<font color="#000080">.</font>LoadFromResourceName<font color="#000080">(</font>HInstance<font color="#000080">, </font><font color="#800000">'CHARK'</font><font color="#000080">);
+   </font>PercentBmp<font color="#000080">:= </font>TBitmap<font color="#000080">.</font>Create<font color="#000080">;
+   </font>PercentBmp<font color="#000080">.</font>LoadFromResourceName<font color="#000080">(</font>HInstance<font color="#000080">, </font><font color="#800000">'PERCENT'</font><font color="#000080">);
+   </font>OnBmp<font color="#000080">:= </font>TBitmap<font color="#000080">.</font>Create<font color="#000080">;
+   </font>OnBmp<font color="#000080">.</font>LoadFromResourceName<font color="#000080">(</font>HInstance<font color="#000080">, </font><font color="#800000">'ON'</font><font color="#000080">);
+   </font>OffBmp<font color="#000080">:= </font>TBitmap<font color="#000080">.</font>Create<font color="#000080">;
+   </font>OffBmp<font color="#000080">.</font>LoadFromResourceName<font color="#000080">(</font>HInstance<font color="#000080">, </font><font color="#800000">'OFF'</font><font color="#000080">);
+   </font>FNumber<font color="#000080">:= </font><font color="#800000">0</font><font color="#000080">;
+   </font>FNumberMax<font color="#000080">:= </font><font color="#800000">100</font><font color="#000080">;
+   </font>FNumberType<font color="#000080">:= </font>ntNone<font color="#000080">;
+   </font>Width<font color="#000080">:= </font><font color="#800000">100</font><font color="#000080">;
+   </font>Height<font color="#000080">:= </font><font color="#800000">120</font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TLCDControl<font color="#000080">.</font>Paint<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+   with inherited </b></font>Canvas <font color="#FF0000"><b>do
+   begin
+      </b></font>Brush<font color="#000080">.</font>Color<font color="#000080">:= </font>clBlack<font color="#000080">;
+      </font>FillRect<font color="#000080">(</font>Self<font color="#000080">.</font>ClientRect<font color="#000080">);
+      </font>Pen<font color="#000080">.</font>Color<font color="#000080">:= </font>clbtnShadow<font color="#000080">;
+      </font>Polyline<font color="#000080">([</font>Point<font color="#000080">(</font>Width<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">),</font>Point<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font><font color="#800000">0</font><font color="#000080">),</font>Point<font color="#000080">(</font><font color="#800000">0</font><font color="#000080">,</font>Height<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">)]);
+      </font>Pen<font color="#000080">.</font>Color<font color="#000080">:= </font>clbtnHighlight<font color="#000080">;
+      </font>Polyline<font color="#000080">([</font>Point<font color="#000080">(</font>Width<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">,</font><font color="#800000">1</font><font color="#000080">),</font>Point<font color="#000080">(</font>Width<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">,</font>Height<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">),</font>Point<font color="#000080">(</font><font color="#800000">1</font><font color="#000080">,</font>Height<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">)]);
+   </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+   </font>UpdateLCD<font color="#000080">(</font>Canvas<font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>destructor </b></font>TLCDControl<font color="#000080">.</font>Destroy<font color="#000080">;
+</font><font color="#FF0000"><b>var
+   </b></font>i<font color="#000080">: </font>integer<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+   for </b></font>i<font color="#000080">:= </font><font color="#800000">0 </font><font color="#FF0000"><b>to </b></font><font color="#800000">9 </font><font color="#FF0000"><b>do
+   begin
+      </b></font>NumBmp<font color="#000080">[</font>i<font color="#000080">].</font>Free<font color="#000080">;
+   </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+   </font>CharKBmp<font color="#000080">.</font>Free<font color="#000080">;
+   </font>PercentBmp<font color="#000080">.</font>Free<font color="#000080">;
+   </font>OnBmp<font color="#000080">.</font>Free<font color="#000080">;
+   </font>OffBmp<font color="#000080">.</font>Free<font color="#000080">;
+   </font><font color="#FF0000"><b>inherited </b></font>Destroy<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TLCDControl<font color="#000080">.</font>SetNumber<font color="#000080">(</font>Value<font color="#000080">: </font>integer<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+   if </b></font><font color="#000080">(</font>FNumber <font color="#000080">&lt;&gt; </font>Value<font color="#000080">) </font><font color="#FF0000"><b>and </b></font><font color="#000080">(</font>Value <font color="#000080">&lt;= </font>NumberMax<font color="#000080">) </font><font color="#FF0000"><b>then
+   begin
+      </b></font>FNumber<font color="#000080">:= </font>Value<font color="#000080">;
+      </font>UpdateLCD<font color="#000080">(</font>Canvas<font color="#000080">);
+   </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TLCDControl<font color="#000080">.</font>SetNumberMax<font color="#000080">(</font>Value<font color="#000080">: </font>integer<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+   if </b></font><font color="#000080">(</font>Value <font color="#000080">&gt; </font><font color="#800000">0</font><font color="#000080">) </font><font color="#FF0000"><b>and </b></font><font color="#000080">(</font>Value <font color="#000080">&gt;= </font>Number<font color="#000080">) </font><font color="#FF0000"><b>then
+   begin
+      </b></font>FNumberMax<font color="#000080">:= </font>Value<font color="#000080">;
+      </font>Invalidate<font color="#000080">;
+   </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TLCDControl<font color="#000080">.</font>SetNumberType<font color="#000080">(</font>Value<font color="#000080">: </font>TNumberType<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+   if </b></font>FNumberType <font color="#000080">&lt;&gt; </font>Value <font color="#FF0000"><b>then
+   begin
+      </b></font>FNumberType<font color="#000080">:= </font>Value<font color="#000080">;
+      </font>UpdateLCD<font color="#000080">(</font>Canvas<font color="#000080">);
+   </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TLCDControl<font color="#000080">.</font>WriteLCDNum<font color="#000080">(</font>Num<font color="#000080">: </font>integer<font color="#000080">; </font>X<font color="#000080">,</font>Y<font color="#000080">: </font>integer<font color="#000080">; </font>ACanvas<font color="#000080">: </font>TCanvas<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+   with </b></font>ACanvas <font color="#FF0000"><b>do
+   begin
+      </b></font>Brush<font color="#000080">.</font>Color<font color="#000080">:= </font>clBlack<font color="#000080">;
+      </font>Draw<font color="#000080">(</font>X<font color="#000080">,</font>Y<font color="#000080">,</font>NumBmp<font color="#000080">[</font>Num<font color="#000080">]);
+   </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TLCDControl<font color="#000080">.</font>WriteNumber<font color="#000080">(</font>Num<font color="#000080">: </font>integer<font color="#000080">; </font>NumType<font color="#000080">: </font>TNumberType<font color="#000080">; </font>X<font color="#000080">,</font>Y<font color="#000080">:
+</font>integer<font color="#000080">; </font>ACanvas<font color="#000080">: </font>TCanvas<font color="#000080">);
+</font><font color="#FF0000"><b>var
+   </b></font>NumLength<font color="#000080">: </font>integer<font color="#000080">;
+   </font>NumStr<font color="#000080">: </font><font color="#FF0000"><b>string</b></font><font color="#000080">;
+   </font>CNum<font color="#000080">: </font>integer<font color="#000080">;
+   </font>CX<font color="#000080">: </font>integer<font color="#000080">;
+   </font>i<font color="#000080">: </font>integer<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+   </b></font>CX<font color="#000080">:= </font>X<font color="#000080">;
+   </font>NumStr<font color="#000080">:= </font>IntToStr<font color="#000080">(</font>Num<font color="#000080">);
+   </font>NumLength<font color="#000080">:= </font>Length<font color="#000080">(</font>NumStr<font color="#000080">);
+   </font><font color="#FF0000"><b>for </b></font>i<font color="#000080">:= </font><font color="#800000">1 </font><font color="#FF0000"><b>to </b></font>NumLength <font color="#FF0000"><b>do
+   begin
+      </b></font>CNum<font color="#000080">:= </font>StrToInt<font color="#000080">(</font>NumStr<font color="#000080">[</font>i<font color="#000080">]);
+      </font>WriteLCDNum<font color="#000080">(</font>CNum<font color="#000080">, </font>CX<font color="#000080">, </font>Y<font color="#000080">, </font>ACanvas<font color="#000080">);
+      </font>Inc<font color="#000080">(</font>CX<font color="#000080">, </font><font color="#800000">8</font><font color="#000080">);
+   </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+   </font><font color="#FF0000"><b>if </b></font>NumType <font color="#000080">&lt;&gt; </font>ntNone <font color="#FF0000"><b>then
+   begin
+      with </b></font>ACanvas <font color="#FF0000"><b>do
+      begin
+         </b></font>Brush<font color="#000080">.</font>Color<font color="#000080">:= </font>clBlack<font color="#000080">;
+         </font><font color="#FF0000"><b>case </b></font>NumType <font color="#FF0000"><b>of
+            </b></font>ntCharK<font color="#000080">:
+            </font><font color="#FF0000"><b>begin
+               </b></font>Draw<font color="#000080">(</font>CX<font color="#000080">,</font>Y<font color="#000080">,</font>CharKBmp<font color="#000080">);
+            </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+            </font>ntPercent<font color="#000080">:
+            </font><font color="#FF0000"><b>begin
+               </b></font>Draw<font color="#000080">(</font>CX<font color="#000080">,</font>Y<font color="#000080">,</font>PercentBmp<font color="#000080">);
+            </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+         </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+      </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+   </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>function </b></font>TLCDControl<font color="#000080">.</font>GetNumberLength<font color="#000080">(</font>Num<font color="#000080">: </font>integer<font color="#000080">; </font>NumType<font color="#000080">: </font>TNumberType<font color="#000080">):
+</font>integer<font color="#000080">;
+</font><font color="#FF0000"><b>var
+   </b></font>NumLength<font color="#000080">: </font>integer<font color="#000080">;
+   </font>NumStr<font color="#000080">: </font><font color="#FF0000"><b>string</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>begin
+   </b></font>Result<font color="#000080">:= </font><font color="#800000">0</font><font color="#000080">;
+   </font>NumStr<font color="#000080">:= </font>IntToStr<font color="#000080">(</font>Num<font color="#000080">);
+   </font>NumLength<font color="#000080">:= </font>Length<font color="#000080">(</font>NumStr<font color="#000080">);
+   </font><font color="#FF0000"><b>case </b></font>NumType <font color="#FF0000"><b>of
+      </b></font>ntNone<font color="#000080">:
+         </font>Result<font color="#000080">:= </font>NumLength <font color="#000080">* </font><font color="#800000">8</font><font color="#000080">;
+      </font>ntCharK<font color="#000080">:
+         </font>Result<font color="#000080">:= (</font>NumLength <font color="#000080">+ </font><font color="#800000">1</font><font color="#000080">) * </font><font color="#800000">8</font><font color="#000080">;
+      </font>ntPercent<font color="#000080">:
+         </font>Result<font color="#000080">:= (</font>NumLength <font color="#000080">+ </font><font color="#800000">1</font><font color="#000080">) * </font><font color="#800000">8</font><font color="#000080">;
+   </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+
+</font><font color="#FF0000"><b>procedure </b></font>TLCDControl<font color="#000080">.</font>DisplayTicks<font color="#000080">(</font>Rect<font color="#000080">: </font>TRect<font color="#000080">; </font>Num<font color="#000080">: </font>integer<font color="#000080">; </font>ACanvas<font color="#000080">: </font>TCanvas<font color="#000080">);
+</font><font color="#FF0000"><b>var
+   </b></font>TicksH<font color="#000080">: </font>integer<font color="#000080">;
+   </font>Ticks<font color="#000080">: </font>integer<font color="#000080">;
+   </font>TicksOn<font color="#000080">: </font>integer<font color="#000080">;
+   </font>TicksOff<font color="#000080">: </font>integer<font color="#000080">;
+   </font>i<font color="#000080">: </font>integer<font color="#000080">;
+   </font>Center<font color="#000080">: </font>integer<font color="#000080">;
+   </font>SY<font color="#000080">: </font>integer<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+   </b></font>SY<font color="#000080">:= </font>Rect<font color="#000080">.</font>Top<font color="#000080">;
+   </font>TicksH<font color="#000080">:= </font>Rect<font color="#000080">.</font>Bottom<font color="#000080">-</font>Rect<font color="#000080">.</font>Top<font color="#000080">;
+   </font>Center<font color="#000080">:= (</font>Rect<font color="#000080">.</font>Right<font color="#000080">-</font>Rect<font color="#000080">.</font>Left<font color="#000080">) </font><font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">;
+   </font>Ticks<font color="#000080">:= </font>TicksH <font color="#FF0000"><b>div </b></font><font color="#800000">3</font><font color="#000080">;
+   </font>TicksOn<font color="#000080">:= (</font>Ticks <font color="#000080">* </font>Num<font color="#000080">) </font><font color="#FF0000"><b>div </b></font>NumberMax<font color="#000080">;
+   </font>TicksOff<font color="#000080">:= </font>Ticks<font color="#000080">-</font>TicksOn<font color="#000080">;
+   </font><font color="#FF0000"><b>with </b></font>ACanvas <font color="#FF0000"><b>do
+   begin
+      </b></font>Brush<font color="#000080">.</font>Color<font color="#000080">:= </font>clBlack<font color="#000080">;
+      </font><font color="#FF0000"><b>for </b></font>i<font color="#000080">:= </font><font color="#800000">1 </font><font color="#FF0000"><b>to </b></font>TicksOff <font color="#FF0000"><b>do
+      begin
+         </b></font>Draw<font color="#000080">(</font>Center<font color="#000080">-</font><font color="#800000">17</font><font color="#000080">,</font>SY<font color="#000080">,</font>OffBmp<font color="#000080">);
+         </font>Draw<font color="#000080">(</font>Center<font color="#000080">+</font><font color="#800000">1</font><font color="#000080">,</font>SY<font color="#000080">,</font>OffBmp<font color="#000080">);
+         </font>Inc<font color="#000080">(</font>SY<font color="#000080">,</font><font color="#800000">3</font><font color="#000080">);
+      </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+      </font><font color="#FF0000"><b>for </b></font>i<font color="#000080">:= </font><font color="#800000">1 </font><font color="#FF0000"><b>to </b></font>TicksOn <font color="#FF0000"><b>do
+      begin
+         </b></font>Draw<font color="#000080">(</font>Center<font color="#000080">-</font><font color="#800000">17</font><font color="#000080">,</font>SY<font color="#000080">,</font>OnBmp<font color="#000080">);
+         </font>Draw<font color="#000080">(</font>Center<font color="#000080">+</font><font color="#800000">1</font><font color="#000080">,</font>SY<font color="#000080">,</font>OnBmp<font color="#000080">);
+         </font>Inc<font color="#000080">(</font>SY<font color="#000080">,</font><font color="#800000">3</font><font color="#000080">);
+      </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+   </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TLCDControl<font color="#000080">.</font>UpdateLCD<font color="#000080">(</font>UpdateCanvas<font color="#000080">: </font>TCanvas<font color="#000080">);
+</font><font color="#FF0000"><b>var
+   </b></font>CX<font color="#000080">: </font>integer<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+   </b></font>DisplayTicks<font color="#000080">(</font>Rect<font color="#000080">(</font><font color="#800000">2</font><font color="#000080">,</font><font color="#800000">2</font><font color="#000080">,</font>Self<font color="#000080">.</font>Width<font color="#000080">-</font><font color="#800000">2</font><font color="#000080">,</font>Self<font color="#000080">.</font>Height<font color="#000080">-</font><font color="#800000">20</font><font color="#000080">),</font>Number<font color="#000080">,</font>UpdateCanvas<font color="#000080">);
+   </font>CX<font color="#000080">:= (</font>Self<font color="#000080">.</font>Width <font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">)-(</font>GetNumberLength<font color="#000080">(</font>Number<font color="#000080">,</font>NumberType<font color="#000080">) </font><font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">);
+   </font>UpdateCanvas<font color="#000080">.</font>Brush<font color="#000080">.</font>Color<font color="#000080">:= </font>clBlack<font color="#000080">;
+   </font>UpdateCanvas<font color="#000080">.</font>FillRect<font color="#000080">(</font>Rect<font color="#000080">(</font><font color="#800000">2</font><font color="#000080">,</font>Self<font color="#000080">.</font>Height<font color="#000080">-</font><font color="#800000">15</font><font color="#000080">,</font>Self<font color="#000080">.</font>Width<font color="#000080">-</font><font color="#800000">2</font><font color="#000080">,</font>Self<font color="#000080">.</font>Height<font color="#000080">-</font><font color="#800000">2</font><font color="#000080">));
+   </font>WriteNumber<font color="#000080">(</font>Number<font color="#000080">,</font>NumberType<font color="#000080">,</font>CX<font color="#000080">,</font>Self<font color="#000080">.</font>Height<font color="#000080">-</font><font color="#800000">15</font><font color="#000080">,</font>UpdateCanvas<font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+
+</font><font color="#FF0000"><b>procedure Register</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>begin
+   </b></font>RegisterComponents<font color="#000080">(</font><font color="#800000">'Matthew'</font><font color="#000080">, [</font>TLCDControl<font color="#000080">]);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">.
+
+</font><font color="#008000"><i>{{ {------------------------- snip, snip ----------------------------}
+
+ENCODED LCDRES.ZIP FILE REMOVED.  PLEASE <A HREF="0272.LCDRES.ZIP">DOWNLOAD</A> EITHER THE 
+ATTACHMENT OR THE COMPLETE ZIP FILE.
+</i>
+
+</font>
+</code></pre><!--EndFragment--><p align="center"><b>[</b><a href="index.html">Back to DELPHI SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0272.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0272.LCDRES.ZIP">Attachment</a><b>]</b>
+</p></body>
+</html>

@@ -1,0 +1,416 @@
+<html>
+<head><title> "Shadowed Label Component" by ENDRE I. SIMAY</title><link rel="STYLESHEET" type="text/css" href="../swagsource.css"></head>
+<body><p align="center">
+<b>[</b><a href="index.html">Back to DELPHI SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0335.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0335.SHDLABEL.ZIP">Attachment</a><b>]</b>
+
+</p><!--StartFragment--><pre><code><font color="#FF0000"><b>unit </b></font>ShdLabel<font color="#000080">;
+</font><font color="#008000"><i>(********************************************************************
+  TShadowedLabel Component For Delphi.
+
+  It Is A &quot;Special&quot; Label-Component Developed For
+  Allow To Shadow A Single Lined Caption Text
+  Of A Label.
+  For The Correct Draw of Text The Properties Transparent
+  And WordWrap Are Set False And Hidden.
+
+  Author:  Endre I. Simay;
+           Budapest, HUNGARY; 1997.
+
+  Freeware: Feel Free To Use And Improve, But Mention The Source
+
+  This Source Is Compatible With Both DELPHI 1.0 &amp; DELPHI 3.0
+*********************************************************************)
+</i></font><font color="#FF0000"><b>interface
+
+uses
+  </b></font>SysUtils<font color="#000080">, </font>WinTypes<font color="#000080">, </font>WinProcs<font color="#000080">, </font>Messages<font color="#000080">, </font>Classes<font color="#000080">, </font>Graphics<font color="#000080">, </font>Controls<font color="#000080">,
+  </font>Forms<font color="#000080">, </font>Dialogs<font color="#000080">, </font>StdCtrls<font color="#000080">, </font>Menus<font color="#000080">;
+</font><font color="#FF0000"><b>type
+  </b></font>TShadowType<font color="#000080">=(</font>shdULeft<font color="#000080">,</font>shdDLeft<font color="#000080">,</font>shdURight<font color="#000080">,</font>shdDRight<font color="#000080">);
+</font><font color="#FF0000"><b>type
+  </b></font>TShadowedLabel <font color="#000080">= </font><font color="#FF0000"><b>class</b></font><font color="#000080">(</font>TCustomLabel<font color="#000080">)
+  </font><font color="#FF0000"><b>private
+    </b></font><font color="#008000"><i>{ Private declarations }
+    </i></font>FShadColor<font color="#000080">:</font>TColor<font color="#000080">;
+    </font>FShadSolid<font color="#000080">:</font>Boolean<font color="#000080">;
+    </font>FShadLeft<font color="#000080">,
+    </font>FShadDown<font color="#000080">:</font>Word<font color="#000080">;
+    </font>TxtH<font color="#000080">,</font>TxtW<font color="#000080">:</font>Word<font color="#000080">;
+    </font>FShadowType<font color="#000080">:</font>TShadowType<font color="#000080">;
+  </font><font color="#FF0000"><b>protected
+    </b></font><font color="#008000"><i>{ Protected declarations }
+    </i></font><font color="#FF0000"><b>Function </b></font>GetShadLeft<font color="#000080">:</font>Word<font color="#000080">;
+    </font><font color="#FF0000"><b>procedure </b></font>SetShadLeft<font color="#000080">(</font>Sl<font color="#000080">:</font>Word<font color="#000080">);
+    </font><font color="#FF0000"><b>Function </b></font>GetShadDown<font color="#000080">:</font>Word<font color="#000080">;
+    </font><font color="#FF0000"><b>procedure </b></font>SetShadDown<font color="#000080">(</font>Sd<font color="#000080">:</font>Word<font color="#000080">);
+    </font><font color="#FF0000"><b>Function </b></font>GetShadColor<font color="#000080">:</font>TColor<font color="#000080">;
+    </font><font color="#FF0000"><b>procedure </b></font>SetShadColor<font color="#000080">(</font>Sc<font color="#000080">:</font>TColor<font color="#000080">);
+    </font><font color="#FF0000"><b>procedure </b></font>SetShadSolid<font color="#000080">(</font>B<font color="#000080">:</font>Boolean<font color="#000080">);
+    </font><font color="#FF0000"><b>procedure </b></font>SetShadowType<font color="#000080">(</font>St<font color="#000080">:</font>TShadowType<font color="#000080">);
+  </font><font color="#FF0000"><b>public
+    </b></font><font color="#008000"><i>{ Public declarations }
+    </i></font><font color="#FF0000"><b>constructor </b></font>Create<font color="#000080">(</font>AOwner<font color="#000080">: </font>TComponent<font color="#000080">); </font><font color="#FF0000"><b>override</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>destructor </b></font>Destroy<font color="#000080">; </font><font color="#FF0000"><b>override</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>procedure </b></font>Paint<font color="#000080">; </font><font color="#FF0000"><b>override</b></font><font color="#000080">;
+  </font><font color="#FF0000"><b>published
+    </b></font><font color="#008000"><i>{ Published declarations }
+    </i></font><font color="#FF0000"><b>Function </b></font>TxtHeight<font color="#000080">:</font>Word<font color="#000080">;
+    </font><font color="#FF0000"><b>Function </b></font>TxtWidth<font color="#000080">:</font>Word<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>ShadowType<font color="#000080">:</font>TShadowType <font color="#FF0000"><b>read </b></font>FShadowType <font color="#FF0000"><b>write </b></font>SetShadowType<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>SolidShadow<font color="#000080">:</font>Boolean <font color="#FF0000"><b>read </b></font>FShadSolid <font color="#FF0000"><b>write </b></font>SetShadSolid<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>ShadowColor<font color="#000080">:</font>TColor <font color="#FF0000"><b>read </b></font>GetShadColor <font color="#FF0000"><b>Write </b></font>SetShadColor<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>ShadowDown<font color="#000080">:</font>Word <font color="#FF0000"><b>read </b></font>GetShadDown <font color="#FF0000"><b>Write </b></font>SetShadDown<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>ShadowLeft<font color="#000080">:</font>Word <font color="#FF0000"><b>read </b></font>GetShadLeft <font color="#FF0000"><b>Write </b></font>SetShadLeft<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>Caption<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>Align<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>Alignment<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>AutoSize<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>Color<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>DragCursor<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>DragMode<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>Enabled<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>FocusControl<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>Font<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>ParentColor<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>ParentFont<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>ParentShowHint<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>PopupMenu<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>ShowAccelChar<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>ShowHint<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>Visible<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>OnClick<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>OnDblClick<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>OnDragDrop<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>OnDragOver<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>OnEndDrag<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>OnMouseDown<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>OnMouseMove<font color="#000080">;
+    </font><font color="#FF0000"><b>property </b></font>OnMouseUp<font color="#000080">;
+ </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure Register</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>implementation
+
+Function </b></font>WMax<font color="#000080">(</font>A<font color="#000080">,</font>B<font color="#000080">:</font>Word<font color="#000080">):</font>Word<font color="#000080">;
+ </font><font color="#FF0000"><b>begin
+  if </b></font>a<font color="#000080">&gt;=</font>b <font color="#FF0000"><b>then </b></font>WMax<font color="#000080">:=</font>a <font color="#FF0000"><b>else </b></font>WMax<font color="#000080">:=</font>b<font color="#000080">;
+ </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+
+</font><font color="#FF0000"><b>constructor </b></font>TShadowedLabel<font color="#000080">.</font>Create<font color="#000080">(</font>AOwner<font color="#000080">: </font>TComponent<font color="#000080">);
+ </font><font color="#FF0000"><b>begin
+  inherited </b></font>Create<font color="#000080">(</font>AOwner<font color="#000080">);
+  </font>Parent <font color="#000080">:= </font>TWinControl<font color="#000080">(</font>AOwner<font color="#000080">);
+  </font>AutoSize<font color="#000080">:=</font>True<font color="#000080">;
+  </font>FShadSolid<font color="#000080">:=</font>True<font color="#000080">;
+  </font>FShadColor<font color="#000080">:=</font>clWhite<font color="#000080">;
+  </font>FShadowType<font color="#000080">:=</font>shdDLeft<font color="#000080">;
+  </font>FShadLeft<font color="#000080">:=</font><font color="#800000">2</font><font color="#000080">;
+  </font>FShadDown<font color="#000080">:=</font><font color="#800000">2</font><font color="#000080">;
+  </font>Transparent<font color="#000080">:=</font>False<font color="#000080">;
+  </font>WordWrap<font color="#000080">:=</font>False<font color="#000080">;
+  </font>Alignment<font color="#000080">:=</font>taLeftJustify<font color="#000080">;
+  </font>ParentFont<font color="#000080">:=</font>False<font color="#000080">;
+  </font><font color="#FF0000"><b>With </b></font>Font <font color="#FF0000"><b>do
+   begin
+    </b></font>Color<font color="#000080">:=</font>clBlack<font color="#000080">;
+    </font>Name<font color="#000080">:=</font><font color="#800000">'Arial'</font><font color="#000080">;
+    </font>Pitch<font color="#000080">:=</font>fpDefault<font color="#000080">;
+    </font>Size<font color="#000080">:=</font><font color="#800000">10</font><font color="#000080">;
+    </font>Style<font color="#000080">:=[];
+   </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+ </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>destructor </b></font>TShadowedLabel<font color="#000080">.</font>Destroy<font color="#000080">;
+ </font><font color="#FF0000"><b>begin
+  inherited </b></font>Destroy<font color="#000080">;
+ </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TShadowedLabel<font color="#000080">.</font>Paint<font color="#000080">;
+ </font><font color="#FF0000"><b>const
+  </b></font>Alignments<font color="#000080">: </font><font color="#FF0000"><b>array</b></font><font color="#000080">[</font>TAlignment<font color="#000080">] </font><font color="#FF0000"><b>of </b></font>Word <font color="#000080">= (</font>DT_LEFT<font color="#000080">, </font>DT_RIGHT<font color="#000080">, </font>DT_CENTER<font color="#000080">);
+ </font><font color="#FF0000"><b>var
+  </b></font>LabRect1<font color="#000080">,</font>LabRect2<font color="#000080">:</font>TRect<font color="#000080">;
+  </font>Flags<font color="#000080">:</font>Word<font color="#000080">;
+  </font>Text<font color="#000080">: </font><font color="#FF0000"><b>array</b></font><font color="#000080">[</font><font color="#800000">0</font><font color="#000080">..</font><font color="#800000">255</font><font color="#000080">] </font><font color="#FF0000"><b>of </b></font>Char<font color="#000080">;
+  </font>FC<font color="#000080">:</font>TColor<font color="#000080">;
+  </font>TxtPt<font color="#000080">:</font>TPoint<font color="#000080">;
+  </font>I<font color="#000080">:</font>Integer<font color="#000080">;
+ </font><font color="#FF0000"><b>begin
+  inherited </b></font>Paint<font color="#000080">;
+  </font>GetTextBuf<font color="#000080">(</font>Text<font color="#000080">, </font>SizeOf<font color="#000080">(</font>Text<font color="#000080">));
+  </font>StrPCopy<font color="#000080">(</font>Text<font color="#000080">, </font>Caption<font color="#000080">);
+  </font>TxtH<font color="#000080">:=</font>Canvas<font color="#000080">.</font>TextHeight<font color="#000080">(</font>Caption<font color="#000080">);
+  </font>TxtW<font color="#000080">:=</font>Canvas<font color="#000080">.</font>TextWidth<font color="#000080">(</font>Caption<font color="#000080">);
+  </font><font color="#FF0000"><b>If </b></font>ShowAccelChar <font color="#FF0000"><b>and </b></font><font color="#000080">(</font>Pos<font color="#000080">(</font><font color="#800000">'&amp;'</font><font color="#000080">,</font>Caption<font color="#000080">)&lt;&gt;</font><font color="#800000">0</font><font color="#000080">)
+   </font><font color="#FF0000"><b>then </b></font>TxtW<font color="#000080">:=</font>TxtW<font color="#000080">-</font>Canvas<font color="#000080">.</font>TextWidth<font color="#000080">(</font><font color="#800000">'&amp;'</font><font color="#000080">);
+  </font>TxtPt<font color="#000080">.</font>y<font color="#000080">:=</font>ClientRect<font color="#000080">.</font>Top<font color="#000080">;
+  </font>Flags<font color="#000080">:=</font>Alignments<font color="#000080">[</font>Alignment<font color="#000080">];
+  </font><font color="#FF0000"><b>case </b></font>Flags <font color="#FF0000"><b>of
+   </b></font>DT_LEFT<font color="#000080">:</font>TxtPt<font color="#000080">.</font>x<font color="#000080">:=</font>ClientRect<font color="#000080">.</font>Left<font color="#000080">+</font>FShadLeft<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">;
+   </font>DT_RIGHT<font color="#000080">:</font>TxtPt<font color="#000080">.</font>x<font color="#000080">:=</font>ClientRect<font color="#000080">.</font>Right<font color="#000080">-</font>TxtW<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">;
+   </font>DT_CENTER<font color="#000080">:</font>TxtPt<font color="#000080">.</font>x<font color="#000080">:=</font>ClientRect<font color="#000080">.</font>Left<font color="#000080">+(</font>ClientRect<font color="#000080">.</font>Right<font color="#000080">-</font>TxtW<font color="#000080">) </font><font color="#FF0000"><b>div </b></font><font color="#800000">2</font><font color="#000080">+</font><font color="#800000">2</font><font color="#000080">;
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+  </font>Flags<font color="#000080">:=(</font>DT_EXPANDTABS <font color="#FF0000"><b>or </b></font>DT_WORDBREAK<font color="#000080">)</font><font color="#FF0000"><b>or </b></font>Alignments<font color="#000080">[</font>Alignment<font color="#000080">];
+  </font><font color="#FF0000"><b>if not </b></font>ShowAccelChar <font color="#FF0000"><b>then </b></font>Flags <font color="#000080">:= </font>Flags <font color="#FF0000"><b>or </b></font>DT_NOPREFIX<font color="#000080">;
+
+ </font><font color="#FF0000"><b>With </b></font>LabRect1 <font color="#FF0000"><b>do
+   begin
+     case </b></font>FShadowType <font color="#FF0000"><b>of
+      </b></font>shdULeft<font color="#000080">:
+       </font><font color="#FF0000"><b>begin
+        </b></font>Left<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>x<font color="#000080">-</font>FShadLeft<font color="#000080">;
+        </font>Top<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>y<font color="#000080">;
+        </font>Right<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>x<font color="#000080">+</font>TxtW<font color="#000080">-</font>FShadLeft<font color="#000080">;
+        </font>Bottom<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>y<font color="#000080">+</font>TxtH<font color="#000080">;
+       </font><font color="#FF0000"><b>end</b></font><font color="#000080">; </font><font color="#008000"><i>{Uleft}
+      </i></font>shdDLeft<font color="#000080">:
+       </font><font color="#FF0000"><b>begin
+        </b></font>Left<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>x<font color="#000080">-</font>FShadLeft<font color="#000080">;
+        </font>Top<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>y<font color="#000080">+</font>FShadDown<font color="#000080">;
+        </font>Right<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>x<font color="#000080">+</font>TxtW<font color="#000080">-</font>FShadLeft<font color="#000080">;
+        </font>Bottom<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>y<font color="#000080">+</font>TxtH<font color="#000080">+</font>FShadDown<font color="#000080">;
+       </font><font color="#FF0000"><b>end</b></font><font color="#000080">;    </font><font color="#008000"><i>{Dleft}
+      </i></font>shdDRight<font color="#000080">:
+       </font><font color="#FF0000"><b>begin
+        </b></font>Left<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>x<font color="#000080">;
+        </font>Top<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>y<font color="#000080">+</font>FShadDown<font color="#000080">;
+        </font>Right<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>x<font color="#000080">+</font>TxtW<font color="#000080">;
+        </font>Bottom<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>y<font color="#000080">+</font>TxtH<font color="#000080">+</font>FShadDown<font color="#000080">;
+       </font><font color="#FF0000"><b>end</b></font><font color="#000080">; </font><font color="#008000"><i>{DRight}
+      </i></font>shdURight<font color="#000080">:
+       </font><font color="#FF0000"><b>begin
+        </b></font>Left<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>x<font color="#000080">;
+        </font>Top<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>y<font color="#000080">;
+        </font>Right<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>x<font color="#000080">+</font>TxtW<font color="#000080">;
+        </font>Bottom<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>y<font color="#000080">+</font>TxtH<font color="#000080">;
+       </font><font color="#FF0000"><b>end</b></font><font color="#000080">; </font><font color="#008000"><i>{URight}
+     </i></font><font color="#FF0000"><b>end</b></font><font color="#000080">;</font><font color="#008000"><i>{Case in Labrect1}
+   </i></font><font color="#FF0000"><b>end</b></font><font color="#000080">; </font><font color="#008000"><i>{With Labrect1}
+
+ </i></font><font color="#FF0000"><b>With </b></font>LabRect2 <font color="#FF0000"><b>do
+   begin
+     case </b></font>FShadowType <font color="#FF0000"><b>of
+      </b></font>shdULeft<font color="#000080">:
+       </font><font color="#FF0000"><b>begin
+        </b></font>Left<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>x<font color="#000080">;
+        </font>Top<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>y<font color="#000080">+</font>FShadDown<font color="#000080">;
+        </font>Right<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>x<font color="#000080">+</font>TxtW<font color="#000080">;
+        </font>Bottom<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>y<font color="#000080">+</font>TxtH<font color="#000080">+</font>FShadDown<font color="#000080">;
+       </font><font color="#FF0000"><b>end</b></font><font color="#000080">;</font><font color="#008000"><i>{Uleft}
+      </i></font>shdDLeft<font color="#000080">:
+       </font><font color="#FF0000"><b>begin
+        </b></font>Left<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>x<font color="#000080">;
+        </font>Top<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>y<font color="#000080">;
+        </font>Right<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>x<font color="#000080">+</font>TxtW<font color="#000080">;
+        </font>Bottom<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>y<font color="#000080">+</font>TxtH<font color="#000080">;
+       </font><font color="#FF0000"><b>end</b></font><font color="#000080">; </font><font color="#008000"><i>{Dleft}
+      </i></font>shdDRight<font color="#000080">:
+       </font><font color="#FF0000"><b>begin
+        </b></font>Left<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>x<font color="#000080">-</font>FShadLeft<font color="#000080">;
+        </font>Top<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>y<font color="#000080">;
+        </font>Right<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>x<font color="#000080">+</font>TxtW<font color="#000080">-</font>FShadLeft<font color="#000080">;
+        </font>Bottom<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>y<font color="#000080">+</font>TxtH<font color="#000080">;
+       </font><font color="#FF0000"><b>end</b></font><font color="#000080">; </font><font color="#008000"><i>{DRight}
+      </i></font>shdURight<font color="#000080">:
+       </font><font color="#FF0000"><b>begin
+        </b></font>Left<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>x<font color="#000080">-</font>FShadLeft<font color="#000080">;
+        </font>Top<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>y<font color="#000080">+</font>FShadDown<font color="#000080">;
+        </font>Right<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>x<font color="#000080">+</font>TxtW<font color="#000080">-</font>FShadLeft<font color="#000080">;
+        </font>Bottom<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>y<font color="#000080">+</font>TxtH<font color="#000080">+</font>FShadDown<font color="#000080">;
+       </font><font color="#FF0000"><b>end</b></font><font color="#000080">; </font><font color="#008000"><i>{URight}
+     </i></font><font color="#FF0000"><b>end</b></font><font color="#000080">;  </font><font color="#008000"><i>{Case in Labrect2}
+   </i></font><font color="#FF0000"><b>end</b></font><font color="#000080">;   </font><font color="#008000"><i>{With Labrect2}
+
+ </i></font><font color="#FF0000"><b>if </b></font>AutoSize <font color="#FF0000"><b>then
+  begin
+   case </b></font>Align <font color="#FF0000"><b>of
+    </b></font>alTop<font color="#000080">, </font>alBottom<font color="#000080">:
+     </font><font color="#FF0000"><b>if </b></font>ClientHeight<font color="#000080">&lt;&gt;</font>TxtH<font color="#000080">+</font>FShadDown <font color="#FF0000"><b>then </b></font>ClientHeight<font color="#000080">:=</font>TxtH<font color="#000080">+</font>FShadDown<font color="#000080">;
+    </font>alLeft<font color="#000080">, </font>alRight<font color="#000080">:
+     </font><font color="#FF0000"><b>if </b></font>ClientWidth<font color="#000080">&lt;&gt;</font>TxtW<font color="#000080">+</font>FShadLeft <font color="#FF0000"><b>then </b></font>ClientWidth<font color="#000080">:=</font>TxtW<font color="#000080">+</font>FShadLeft<font color="#000080">;
+    </font>alNone<font color="#000080">:
+     </font><font color="#FF0000"><b>begin
+      if </b></font>ClientHeight<font color="#000080">&lt;&gt;</font>TxtH<font color="#000080">+</font>FShadDown <font color="#FF0000"><b>then </b></font>ClientHeight<font color="#000080">:=</font>TxtH<font color="#000080">+</font>FShadDown<font color="#000080">;
+      </font><font color="#FF0000"><b>if </b></font>ClientWidth<font color="#000080">&lt;&gt;</font>TxtW<font color="#000080">+</font>FShadLeft <font color="#FF0000"><b>then </b></font>ClientWidth<font color="#000080">:=</font>TxtW<font color="#000080">+</font>FShadLeft<font color="#000080">;
+     </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+   </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+ </font><font color="#FF0000"><b>with </b></font>Canvas <font color="#FF0000"><b>do
+  begin
+    if not </b></font>Transparent <font color="#FF0000"><b>then
+    begin
+      </b></font>Brush<font color="#000080">.</font>Color <font color="#000080">:= </font>Self<font color="#000080">.</font>Color<font color="#000080">;
+      </font>Brush<font color="#000080">.</font>Style <font color="#000080">:= </font>bsSolid<font color="#000080">;
+      </font>FillRect<font color="#000080">(</font>ClientRect<font color="#000080">);
+    </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+    </font>Brush<font color="#000080">.</font>Style <font color="#000080">:= </font>bsClear<font color="#000080">;
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+  </font>Fc<font color="#000080">:=</font>Canvas<font color="#000080">.</font>Font<font color="#000080">.</font>Color <font color="#000080">;
+
+  </font>Canvas<font color="#000080">.</font>Font<font color="#000080">.</font>Color <font color="#000080">:=</font>FShadColor<font color="#000080">;
+  </font><font color="#FF0000"><b>if not </b></font>Enabled <font color="#FF0000"><b>then </b></font>Canvas<font color="#000080">.</font>Font<font color="#000080">.</font>Color <font color="#000080">:= </font>clWhite<font color="#000080">;
+</font><font color="#008000"><i>{  if not FShadSolid then}
+   </i></font>DrawText<font color="#000080">(</font>Canvas<font color="#000080">.</font>Handle<font color="#000080">, </font>Text<font color="#000080">, </font>StrLen<font color="#000080">(</font>Text<font color="#000080">), </font>LabRect1<font color="#000080">, </font>Flags<font color="#000080">);
+  </font><font color="#FF0000"><b>if </b></font>FShadSolid <font color="#FF0000"><b>then
+  begin
+  for </b></font>I<font color="#000080">:=</font><font color="#800000">0 </font><font color="#FF0000"><b>to </b></font>WMax<font color="#000080">(</font>FShadLeft<font color="#000080">,</font>FShadDown<font color="#000080">) </font><font color="#FF0000"><b>do
+   begin
+    case </b></font>FShadowType <font color="#FF0000"><b>of
+     </b></font>shdULeft<font color="#000080">:
+      </font><font color="#FF0000"><b>begin
+       if </b></font>I<font color="#000080">&lt;=</font>FShadLeft <font color="#FF0000"><b>then
+        begin
+         </b></font>LabRect1<font color="#000080">.</font>Left<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>x<font color="#000080">-</font>FShadLeft<font color="#000080">+</font>I<font color="#000080">;
+         </font>LabRect1<font color="#000080">.</font>Right<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>x<font color="#000080">+</font>TxtW<font color="#000080">-</font>FShadLeft<font color="#000080">+</font>I<font color="#000080">;
+        </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+       </font><font color="#FF0000"><b>if </b></font>I<font color="#000080">&lt;=</font>FShadDown <font color="#FF0000"><b>then
+        begin
+         </b></font>LabRect1<font color="#000080">.</font>Top<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>y<font color="#000080">+</font>I<font color="#000080">;
+         </font>LabRect1<font color="#000080">.</font>Bottom<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>y<font color="#000080">+</font>TxtH<font color="#000080">+</font>I<font color="#000080">;
+        </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+      </font><font color="#FF0000"><b>end</b></font><font color="#000080">; </font><font color="#008000"><i>{ULeft}
+     </i></font>shdDLeft<font color="#000080">:
+      </font><font color="#FF0000"><b>begin
+       if </b></font>I<font color="#000080">&lt;=</font>FShadLeft <font color="#FF0000"><b>then
+        begin
+         </b></font>LabRect1<font color="#000080">.</font>Left<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>x<font color="#000080">-</font>FShadLeft<font color="#000080">+</font>I<font color="#000080">;
+         </font>LabRect1<font color="#000080">.</font>Right<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>x<font color="#000080">+</font>TxtW<font color="#000080">-</font>FShadLeft<font color="#000080">+</font>I<font color="#000080">;
+        </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+       </font><font color="#FF0000"><b>if </b></font>I<font color="#000080">&lt;=</font>FShadDown <font color="#FF0000"><b>then
+        begin
+         </b></font>LabRect1<font color="#000080">.</font>Top<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>y<font color="#000080">+</font>FShadDown<font color="#000080">-</font>I<font color="#000080">;
+         </font>LabRect1<font color="#000080">.</font>Bottom<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>y<font color="#000080">+</font>TxtH<font color="#000080">+</font>FShadDown<font color="#000080">-</font>I<font color="#000080">;
+        </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+      </font><font color="#FF0000"><b>end</b></font><font color="#000080">; </font><font color="#008000"><i>{DLeft}
+     </i></font>shdDRight<font color="#000080">:
+      </font><font color="#FF0000"><b>begin
+       if </b></font>I<font color="#000080">&lt;=</font>FShadLeft <font color="#FF0000"><b>then
+        begin
+         </b></font>LabRect1<font color="#000080">.</font>Left<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>x<font color="#000080">-</font>I<font color="#000080">;
+         </font>LabRect1<font color="#000080">.</font>Right<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>x<font color="#000080">+</font>TxtW<font color="#000080">-</font>I<font color="#000080">;
+        </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+       </font><font color="#FF0000"><b>if </b></font>I<font color="#000080">&lt;=</font>FShadDown <font color="#FF0000"><b>then
+        begin
+         </b></font>LabRect1<font color="#000080">.</font>Top<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>y<font color="#000080">+</font>FShadDown<font color="#000080">-</font>I<font color="#000080">;
+         </font>LabRect1<font color="#000080">.</font>Bottom<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>y<font color="#000080">+</font>TxtH<font color="#000080">+</font>FShadDown<font color="#000080">-</font>I<font color="#000080">;
+        </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+      </font><font color="#FF0000"><b>end</b></font><font color="#000080">; </font><font color="#008000"><i>{DRight}
+     </i></font>shdURight<font color="#000080">:
+      </font><font color="#FF0000"><b>begin
+       if </b></font>I<font color="#000080">&lt;=</font>FShadLeft <font color="#FF0000"><b>then
+        begin
+         </b></font>LabRect1<font color="#000080">.</font>Left<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>x<font color="#000080">-</font>I<font color="#000080">;
+         </font>LabRect1<font color="#000080">.</font>Right<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>x<font color="#000080">+</font>TxtW<font color="#000080">-</font>I<font color="#000080">;
+        </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+       </font><font color="#FF0000"><b>if </b></font>I<font color="#000080">&lt;=</font>FShadDown <font color="#FF0000"><b>then
+        begin
+         </b></font>LabRect1<font color="#000080">.</font>Top<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>y<font color="#000080">+</font>I<font color="#000080">;
+         </font>LabRect1<font color="#000080">.</font>Bottom<font color="#000080">:=</font>TxtPt<font color="#000080">.</font>y<font color="#000080">+</font>TxtH<font color="#000080">+</font>I<font color="#000080">;
+        </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+      </font><font color="#FF0000"><b>end</b></font><font color="#000080">; </font><font color="#008000"><i>{URight}
+     </i></font><font color="#FF0000"><b>end</b></font><font color="#000080">; </font><font color="#008000"><i>{Case}
+    </i></font>DrawText<font color="#000080">(</font>Canvas<font color="#000080">.</font>Handle<font color="#000080">, </font>Text<font color="#000080">, </font>StrLen<font color="#000080">(</font>Text<font color="#000080">), </font>LabRect1<font color="#000080">, </font>Flags<font color="#000080">);
+   </font><font color="#FF0000"><b>end</b></font><font color="#000080">;  </font><font color="#008000"><i>{for}
+  </i></font><font color="#FF0000"><b>end</b></font><font color="#000080">; </font><font color="#008000"><i>{if FShadSolid}
+
+  </i></font>Canvas<font color="#000080">.</font>Font<font color="#000080">.</font>Color <font color="#000080">:=</font>Fc<font color="#000080">;
+  </font><font color="#FF0000"><b>if not </b></font>Enabled <font color="#FF0000"><b>then </b></font>Canvas<font color="#000080">.</font>Font<font color="#000080">.</font>Color <font color="#000080">:= </font>clGray<font color="#000080">;
+  </font>DrawText<font color="#000080">(</font>Canvas<font color="#000080">.</font>Handle<font color="#000080">, </font>Text<font color="#000080">, </font>StrLen<font color="#000080">(</font>Text<font color="#000080">), </font>LabRect2<font color="#000080">, </font>Flags<font color="#000080">);
+  </font>Canvas<font color="#000080">.</font>Font<font color="#000080">.</font>Color <font color="#000080">:=</font>Fc<font color="#000080">;
+ </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>function </b></font>TShadowedLabel<font color="#000080">.</font>GetShadColor<font color="#000080">:</font>TColor<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+ </b></font>Result<font color="#000080">:=</font>FShadColor<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TShadowedLabel<font color="#000080">.</font>SetShadColor<font color="#000080">(</font>Sc<font color="#000080">:</font>TColor<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+ if </b></font>FShadColor<font color="#000080">&lt;&gt;</font>Sc <font color="#FF0000"><b>then
+  begin
+   </b></font>FShadColor<font color="#000080">:=</font>Sc<font color="#000080">;
+   </font>Invalidate<font color="#000080">;
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>Function </b></font>TShadowedLabel<font color="#000080">.</font>GetShadLeft<font color="#000080">:</font>Word<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+ </b></font>Result<font color="#000080">:=</font>FShadLeft<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TShadowedLabel<font color="#000080">.</font>SetShadLeft<font color="#000080">(</font>Sl<font color="#000080">:</font>Word<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+ if </b></font>FShadLeft<font color="#000080">&lt;&gt;</font>sl <font color="#FF0000"><b>then
+  begin
+   </b></font>FShadLeft<font color="#000080">:=</font>sl<font color="#000080">;
+   </font>Invalidate<font color="#000080">;
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>Function </b></font>TShadowedLabel<font color="#000080">.</font>GetShadDown<font color="#000080">:</font>Word<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+ </b></font>Result<font color="#000080">:=</font>FShadDown<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TShadowedLabel<font color="#000080">.</font>SetShadDown<font color="#000080">(</font>Sd<font color="#000080">:</font>Word<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+ if </b></font>FShadDown<font color="#000080">&lt;&gt;</font>sd <font color="#FF0000"><b>then
+ begin
+  </b></font>FShadDown<font color="#000080">:=</font>sd<font color="#000080">;
+  </font>Invalidate<font color="#000080">;
+ </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TShadowedLabel<font color="#000080">.</font>SetShadSolid<font color="#000080">(</font>B<font color="#000080">:</font>Boolean<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+ if </b></font>FShadSolid<font color="#000080">&lt;&gt;</font>B <font color="#FF0000"><b>then
+  begin
+   </b></font>FShadSolid<font color="#000080">:=</font>B<font color="#000080">;
+   </font>Invalidate<font color="#000080">;
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure </b></font>TShadowedLabel<font color="#000080">.</font>SetShadowType<font color="#000080">(</font>St<font color="#000080">:</font>TShadowType<font color="#000080">);
+</font><font color="#FF0000"><b>begin
+ if </b></font>FShadowType<font color="#000080">&lt;&gt;</font>St <font color="#FF0000"><b>then
+  begin
+   </b></font>FShadowType<font color="#000080">:=</font>St<font color="#000080">;
+   </font>Invalidate<font color="#000080">;
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+
+</font><font color="#FF0000"><b>function </b></font>TShadowedLabel<font color="#000080">.</font>TxtHeight<font color="#000080">:</font>Word<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+ </b></font>Result<font color="#000080">:=</font>TxtH<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>function </b></font>TShadowedLabel<font color="#000080">.</font>TxtWidth<font color="#000080">:</font>Word<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+ </b></font>Result<font color="#000080">:=</font>TxtW<font color="#000080">;
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>procedure Register</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>RegisterComponents<font color="#000080">(</font><font color="#800000">'MyComps'</font><font color="#000080">, [</font>TShadowedLabel<font color="#000080">]);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">.
+
+</font><font color="#008000"><i>{{------------------------- snip, snip ----------------------------}
+
+ENCODED SHDLABEL.ZIP FILE REMOVED.  PLEASE <A HREF="0335.SHDLABEL.ZIP">DOWNLOAD</A> EITHER THE 
+ATTACHMENT OR THE COMPLETE ZIP FILE.
+</I>
+</font>
+</code></pre><!--EndFragment--><p align="center"><b>[</b><a href="index.html">Back to DELPHI SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0335.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0335.SHDLABEL.ZIP">Attachment</a><b>]</b>
+</p></body>
+</html>

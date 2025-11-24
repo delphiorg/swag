@@ -1,0 +1,186 @@
+<html>
+<head><title> "Access FLAT memory in REAL Mode" by HERMAN DULLINK</title><link rel="STYLESHEET" type="text/css" href="../swagsource.css"></head>
+<body><p align="center">
+<b>[</b><a href="index.html">Back to MEMORY SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0099.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0099.FLAT.ZIP">Attachment</a><b>]</b>
+</p><!--StartFragment--><pre><code>
+<font color="#008000"><i>{ SWAG NOTE :  The code for this material is attached below and encoded
+  using XX3402 }
+
+</i></font>FLAT REAL <font color="#000080">/ </font>REAL BIG <font color="#000080">/ </font>UNREAL MODE <font color="#000080">(</font>v1<font color="#000080">.</font><font color="#800000">2</font><font color="#000080">)
+
+</font>Flat Real mode<font color="#000080">, </font>Real Big mode <font color="#FF0000"><b>and </b></font>UnReal mode are three names <font color="#FF0000"><b>with </b></font>the very
+same meaning<font color="#000080">, </font>I will call it FLAT <font color="#FF0000"><b>in </b></font>this text<font color="#000080">.
+
+</font>Since the  first PC<font color="#000080">-</font>XT<font color="#000080">, </font>people have  searched <font color="#FF0000"><b>for </b></font>methods <font color="#FF0000"><b>to  </b></font>get access <font color="#FF0000"><b>to
+</b></font>more <font color="#FF0000"><b>and </b></font>more memory <font color="#FF0000"><b>for </b></font>their DOS programs<font color="#000080">: </font>EMS<font color="#000080">, </font>UMBs<font color="#000080">, </font>XMS<font color="#000080">, </font>DPMI<font color="#000080">. </font><font color="#FF0000"><b>With </b></font>the
+i386<font color="#000080">, </font>Intel has  given <font color="#800000">32</font><font color="#000080">-</font>bit power <font color="#FF0000"><b>to </b></font>the PC<font color="#800000">'s.  Here'</font>s an example <font color="#FF0000"><b>to </b></font>take
+advantage <font color="#FF0000"><b>of  </b></font>the <font color="#800000">32</font><font color="#000080">-</font>bit capabilities  <font color="#FF0000"><b>of </b></font>the i386  <font color="#FF0000"><b>and </b></font>compatibles without
+the need  <font color="#FF0000"><b>of protected </b></font>mode<font color="#000080">,  </font>DOS<font color="#000080">-</font>extenders <font color="#FF0000"><b>and</b></font><font color="#000080">/</font><font color="#FF0000"><b>or </b></font>special  interfaces like
+VCPI <font color="#000080">&amp; </font>DPMI<font color="#000080">.
+
+</font>FLAT simply  allows you <font color="#FF0000"><b>to  </b></font>use <font color="#800000">32</font><font color="#000080">-</font>bit access  <font color="#FF0000"><b>on </b></font>top <font color="#FF0000"><b>of  </b></font>the normal <font color="#800000">16</font><font color="#000080">-</font>bit
+addressing<font color="#000080">.  </font><font color="#800000">32</font><font color="#000080">-</font>bit access  <font color="#FF0000"><b>is </b></font>possible  <font color="#FF0000"><b>as </b></font>the  well<font color="#000080">-</font>known <font color="#800000">64</font>KB limits are
+just registers  <font color="#FF0000"><b>on </b></font>the i386  <font color="#FF0000"><b>and </b></font>can be  altered <font color="#FF0000"><b>to </b></font>almost  any value up <font color="#FF0000"><b>to
+</b></font><font color="#800000">4</font>GB<font color="#000080">. </font>FLAT <font color="#FF0000"><b>is not </b></font>new<font color="#000080">, </font>Microsoft<font color="#800000">'s  HIMEM.SYS already uses it since 1988 for
+</font>its <font color="#800000">'Move Extended Memory Block' </font>service<font color="#000080">.
+
+</font><font color="#FF0000"><b>To </b></font>understand  how FLAT works<font color="#000080">, </font>you  have <font color="#FF0000"><b>to </b></font>understand how  the i386 works<font color="#000080">.
+</font>The  i386  <font color="#FF0000"><b>is  not  </b></font>made  <font color="#FF0000"><b>as  </b></font>one  but  several  seperate units<font color="#000080">; </font>an ALU<font color="#000080">, </font>an
+INSTRUCTION PREFETCHER<font color="#000080">,  </font>a SEGMENTATION <font color="#FF0000"><b>UNIT</b></font><font color="#000080">,  </font>a PAGING <font color="#FF0000"><b>UNIT</b></font><font color="#000080">,  </font>etc<font color="#000080">. </font>Most <font color="#FF0000"><b>of
+</b></font>these units  have no clue  about the  state  <font color="#FF0000"><b>of </b></font>the CPU<font color="#000080">;  </font>Real <font color="#FF0000"><b>or Protected
+</b></font>Mode<font color="#000080">.
+
+</font>The SEGMENTATION <font color="#FF0000"><b>UNIT </b></font>only holds the BASE<font color="#000080">, </font>the LIMIT <font color="#FF0000"><b>and </b></font>some attributes <font color="#FF0000"><b>of
+</b></font>the segment registers<font color="#000080">. </font>These values are used <font color="#FF0000"><b>for </b></font>addressing rather than the
+value  <font color="#FF0000"><b>of </b></font>the  segment registers<font color="#000080">.  </font>When a  segment <font color="#FF0000"><b>register  is </b></font>assigned  a
+value<font color="#000080">, </font><font color="#FF0000"><b>in </b></font>Real Mode <font color="#FF0000"><b>and in </b></font>a V86 task the BASE <font color="#FF0000"><b>is </b></font>loaded <font color="#FF0000"><b>with </b></font><font color="#800000">16 </font>times this
+value  so the  addressing <font color="#FF0000"><b>is  </b></font>compatible <font color="#FF0000"><b>with  </b></font>the <font color="#800000">8086.  </font>Most <font color="#FF0000"><b>of </b></font>the other
+fields<font color="#000080">, </font>including LIMIT<font color="#000080">, </font>are unaffected<font color="#000080">. </font><font color="#FF0000"><b>In </b></font>normal <font color="#FF0000"><b>Protected </b></font>Mode operation
+this value <font color="#FF0000"><b>is  </b></font>used <font color="#FF0000"><b>as </b></font>an index <font color="#FF0000"><b>for </b></font>the  GLOBAL<font color="#000080">/</font>LOCAL DESCRIPTOR TABLE from
+where all fields  BASE<font color="#000080">, </font>LIMIT <font color="#FF0000"><b>and </b></font>attributes are fetched<font color="#000080">.  </font>So<font color="#000080">, </font><font color="#FF0000"><b>to </b></font>alter the
+LIMITs<font color="#000080">, </font>we have <font color="#FF0000"><b>to </b></font>be <font color="#FF0000"><b>in Protected </b></font>Mode<font color="#000080">.
+
+</font>The SEGMENTATION <font color="#FF0000"><b>UNIT </b></font>will report a  fault when an instruction <font color="#FF0000"><b>is </b></font>trying <font color="#FF0000"><b>to
+</b></font>address beyond a  LIMIT<font color="#000080">, </font><font color="#FF0000"><b>or </b></font>when an instruction <font color="#FF0000"><b>is  </b></font>trying <font color="#FF0000"><b>to do </b></font>an illegal
+access like writing <font color="#FF0000"><b>to </b></font>a read<font color="#000080">-</font>only segment<font color="#000080">. </font>This fault will <font color="#FF0000"><b>raise </b></font>interrupt
+number <font color="#800000">13. </font><font color="#FF0000"><b>In Protected </b></font>Mode there<font color="#800000">'s  an exception handler that will handle
+</font>this<font color="#000080">. </font><font color="#FF0000"><b>In </b></font>normal DOS operation <font color="#000080">(</font>Real Mode<font color="#000080">), </font>there <font color="#FF0000"><b>is </b></font>_no_ exception handler<font color="#000080">.
+</font><font color="#FF0000"><b>In </b></font>fact<font color="#000080">, </font><font color="#FF0000"><b>in </b></font>the PC design interrupt  <font color="#800000">#13 </font><font color="#FF0000"><b>is </b></font>used <font color="#FF0000"><b>for </b></font>handling IRQ number <font color="#800000">5.
+</font>This <font color="#FF0000"><b>is  </b></font>the reason DOS  will hang the  system when <font color="#800000">32</font><font color="#000080">-</font>bit  access <font color="#FF0000"><b>is </b></font>used<font color="#000080">.
+</font><font color="#FF0000"><b>While </b></font>the IRQ  <font color="#800000">#5 </font>handler expects the address <font color="#FF0000"><b>of  </b></font>the _next_ instruction <font color="#FF0000"><b>is
+</b></font>pushed onto the stack<font color="#000080">, </font>exception <font color="#800000">#13 </font>will push the instruction which caused
+the  exception<font color="#000080">. </font>When  the IRQ  <font color="#800000">#5 </font>handler  does an  IRET<font color="#000080">, </font>the  CPU tries <font color="#FF0000"><b>to
+</b></font>execute the very  same instruction<font color="#000080">, </font>resulting <font color="#FF0000"><b>in </b></font>an  exception <font color="#800000">#13 </font><font color="#000080">(</font>again<font color="#000080">),
+</font>etc<font color="#000080">, </font>etc<font color="#000080">..
+
+</font>After a RESET <font color="#FF0000"><b>or </b></font>a switch <font color="#FF0000"><b>to </b></font>a V86 task<font color="#000080">, </font>all segment LIMITs have a value <font color="#FF0000"><b>of
+</b></font><font color="#800000">64</font>KB<font color="#000080">, </font>this  <font color="#FF0000"><b>to </b></font>be compatible  <font color="#FF0000"><b>with </b></font>the  <font color="#800000">8086  </font><font color="#FF0000"><b>and </b></font>the <font color="#800000">80286.  </font><font color="#FF0000"><b>As </b></font>the LIMITs
+can<font color="#800000">'t be altered from within a V86 task, FLAT will never work here. FLAT is
+</font>thus incompatible  <font color="#FF0000"><b>with </b></font>environments<font color="#000080">/</font>programs where  a V86 task  <font color="#FF0000"><b>is </b></font>used <font color="#FF0000"><b>to
+</b></font>simulate DOS<font color="#000080">, </font>including<font color="#000080">:  - </font>MS<font color="#000080">-</font>Windows <font color="#800000">3.</font>x <font color="#FF0000"><b>in </b></font><font color="#800000">'Enhanced  Mode' </font><font color="#000080">- </font>MS<font color="#000080">-</font>Windows
+NT <font color="#000080">- </font>OS<font color="#000080">/</font><font color="#800000">2 2.</font>x<font color="#000080">, </font>Warp <font color="#000080">- </font>Emm386<font color="#000080">, </font>Qemm<font color="#000080">, </font>etc<font color="#000080">.. </font>simulating UMBs
+
+Some environments<font color="#000080">/</font>programs have an option <font color="#FF0000"><b>to </b></font>disable the DOS simulation<font color="#000080">:
+ - </font>MS<font color="#000080">-</font>Windows<font color="#800000">'95; check the '</font>MS<font color="#000080">-</font>DOS Mode<font color="#800000">' option
+ </font><font color="#000080">- </font>Emm386 simulating EMS<font color="#000080">; </font>enter <font color="#800000">'Emm386 OFF' </font>at the DOS prompt
+
+Due <font color="#FF0000"><b>to </b></font>a bug <font color="#FF0000"><b>in </b></font>Qemm <font color="#000080">(</font><font color="#800000">7.02</font><font color="#000080">),  </font>its simulation cannot be disabled after being
+enabled<font color="#000080">.  </font><font color="#FF0000"><b>As  </b></font>long  Qemm  stays  disabled  FLAT  will  work<font color="#000080">.  </font>I <font color="#FF0000"><b>do not </b></font>have
+experience <font color="#FF0000"><b>with </b></font>other EMS simulators <font color="#000080">(</font>e<font color="#000080">.</font>g <font color="#800000">386</font>max<font color="#000080">)
+
+</font>FLAT <font color="#FF0000"><b>is </b></font>fully compatible <font color="#FF0000"><b>with</b></font><font color="#000080">:
+ - </font>DOS <font color="#800000">2.0 </font><font color="#FF0000"><b>and </b></font>above
+ <font color="#000080">- </font>MS<font color="#000080">-</font>Windows <font color="#800000">3.</font>x <font color="#FF0000"><b>in </b></font><font color="#800000">'Real Mode' </font><font color="#FF0000"><b>and </b></font><font color="#800000">'Standard Mode'
+ </font><font color="#000080">- </font>DesqView
+ <font color="#000080">- </font>Himem<font color="#000080">/</font>XMS<font color="#000080">/</font>UMB drivers
+ <font color="#000080">- </font>EMS drivers
+
+All FLAT actually does it jump  <font color="#FF0000"><b>to Protected </b></font>Mode<font color="#000080">, </font>alter the segment LIMITs
+using a DESCRIPTOR <font color="#FF0000"><b>with  </b></font>a <font color="#800000">4</font>GB LIMIT<font color="#000080">, </font><font color="#FF0000"><b>and </b></font>jump back <font color="#FF0000"><b>to  </b></font>Real Mode<font color="#000080">. </font><font color="#FF0000"><b>As </b></font>other
+programs<font color="#000080">/</font>TSRs may  enter <font color="#FF0000"><b>Protected </b></font>Mode<font color="#000080">,  </font>there<font color="#800000">'s the possibility  that the
+</font>LIMITs are altered <font color="#FF0000"><b>to </b></font><font color="#800000">64</font>KB again<font color="#000080">. </font>This <font color="#FF0000"><b>is </b></font>why I have implemented FLAT <font color="#FF0000"><b>as </b></font>an
+exception handler<font color="#000080">.  </font><font color="#FF0000"><b>To </b></font>allow IRQ  <font color="#800000">#5 </font><font color="#FF0000"><b>to </b></font>be  handled<font color="#000080">, </font>the exception  handler
+first checks the Interrupt Controller <font color="#FF0000"><b>if </b></font>IRQ  <font color="#800000">#5 </font><font color="#FF0000"><b>is </b></font><font color="#800000">'In Service'</font><font color="#000080">. </font><font color="#FF0000"><b>If </b></font>so<font color="#000080">, </font>it
+calls the IRQ <font color="#800000">#5 </font>handler<font color="#000080">. </font>FLAT will  terminate the <font color="#FF0000"><b>program if </b></font>it detects an
+instruction  that <font color="#FF0000"><b>is  </b></font>causing an  exception <font color="#800000">#13</font><font color="#000080">,  </font>even when  the LIMITs are
+<font color="#000080">(</font>re<font color="#000080">)</font><font color="#FF0000"><b>set to </b></font><font color="#800000">4</font>GB<font color="#000080">.
+
+</font><font color="#FF0000"><b>To </b></font>activate  FLAT<font color="#000080">, </font>just call  the FLAT_install routine<font color="#000080">,  </font><font color="#FF0000"><b>to </b></font>remove<font color="#000080">/</font>deactive
+it<font color="#000080">, </font>call  FLAT_destall<font color="#000080">. </font><font color="#FF0000"><b>As </b></font>FLAT must  be installed <font color="#FF0000"><b>on </b></font>top  <font color="#FF0000"><b>of </b></font>the interrupt
+<font color="#800000">#13 </font>handler<font color="#000080">,  </font>FLAT has <font color="#FF0000"><b>to </b></font>be  deactivated first before any  changes <font color="#FF0000"><b>to </b></font>this
+interrupt vector can  take place<font color="#000080">. </font><font color="#FF0000"><b>As </b></font>said above<font color="#000080">,  </font>interrupt <font color="#800000">#13 </font><font color="#FF0000"><b>is </b></font>normally
+used <font color="#FF0000"><b>for </b></font>IRQ <font color="#800000">#5</font><font color="#000080">.
+
+</font>FLAT <font color="#FF0000"><b>is </b></font>called FLAT because <font color="#FF0000"><b>with  </b></font><font color="#800000">32</font><font color="#000080">-</font>bit access the whole <font color="#800000">4</font>GB address space
+<font color="#FF0000"><b>of </b></font>the <font color="#800000">386  </font>can be accessed <font color="#FF0000"><b>with </b></font>only using  offsets<font color="#000080">. </font>But <font color="#FF0000"><b>as </b></font>the addressing
+mechanism needs a segment the format <font color="#000080">[</font><font color="#800000">0000</font><font color="#000080">:&lt;</font><font color="#800000">32</font><font color="#000080">-</font>bit offset<font color="#000080">&gt;] </font><font color="#FF0000"><b>is </b></font>used<font color="#000080">.
+
+</font>Using XMS<font color="#000080">, </font>when an  EMB <font color="#FF0000"><b>is </b></font>locked<font color="#000080">, </font>the physical base address  <font color="#FF0000"><b>of </b></font>the EMB <font color="#FF0000"><b>is
+</b></font>returned<font color="#000080">. </font>This base address can be used <font color="#FF0000"><b>as </b></font>base <font color="#FF0000"><b>for </b></font>access <font color="#FF0000"><b>to </b></font>the EMB<font color="#000080">:
+
+        </font>mov ah<font color="#000080">,</font><font color="#800000">09</font>h                      <font color="#000080">; </font>Allocate EMB
+        mov dx<font color="#000080">,</font><font color="#800000">256                      </font><font color="#000080">; </font><font color="#800000">256</font>KB
+        call XMS_driver                 <font color="#000080">; </font><font color="#FF0000"><b>Do </b></font>it<font color="#000080">!
+        </font>test ax<font color="#000080">,</font>ax                      <font color="#000080">; </font>Error<font color="#000080">?
+        </font>jz alloc_error
+        mov ah<font color="#000080">,</font><font color="#800000">0</font>Ch                      <font color="#000080">; </font>Lock EMB
+        call XMS_driver                 <font color="#000080">; </font><font color="#FF0000"><b>Do </b></font>it<font color="#000080">!
+        </font>test ax<font color="#000080">,</font>ax                      <font color="#000080">; </font>Error<font color="#000080">?
+        </font>jz lock_error
+        mov di<font color="#000080">,</font>dx                       <font color="#000080">; </font>DX has high word <font color="#FF0000"><b>of </b></font><font color="#800000">256</font>KB chunk
+        <font color="#FF0000"><b>shl </b></font>edi<font color="#000080">,</font><font color="#800000">16
+        </font>mov di<font color="#000080">,</font>bx                       <font color="#000080">; </font>BX has low word <font color="#FF0000"><b>of </b></font><font color="#800000">256</font>KB chunk
+        <font color="#FF0000"><b>xor </b></font>eax<font color="#000080">,</font>eax                     <font color="#000080">; </font>Clear EAX
+        mov es<font color="#000080">,</font>ax                       <font color="#000080">; </font>ES<font color="#000080">:</font>EDI now points <font color="#FF0000"><b>to </b></font>first address <font color="#FF0000"><b>of </b></font><font color="#800000">256</font>KB chunk
+        mov ecx<font color="#000080">,</font><font color="#800000">10000</font>h                  <font color="#000080">; </font><font color="#800000">256</font>KB equals <font color="#800000">64</font>K dwords
+        rep stos dword ptr es<font color="#000080">:[</font>edi<font color="#000080">]     ; </font>Clear <font color="#800000">256</font>KB chunk
+
+<font color="#800000">32</font><font color="#000080">-</font>bit access <font color="#FF0000"><b>is not </b></font>specially meant <font color="#FF0000"><b>for </b></font>extended memory<font color="#000080">, </font>it can be used <font color="#FF0000"><b>for </b></font>conventional memory <font color="#FF0000"><b>as </b></font>well<font color="#000080">. </font>DOS allows memory allocations larger than <font color="#800000">64</font>KB which now <font color="#FF0000"><b>is </b></font>addressable <font color="#FF0000"><b>as </b></font>one big chunk rather than separate chunks <font color="#FF0000"><b>of </b></font><font color="#800000">64</font>KB <font color="#FF0000"><b>and</b></font><font color="#000080">/</font><font color="#FF0000"><b>or </b></font>less<font color="#000080">:
+
+        </font>mov ah<font color="#000080">,</font><font color="#800000">48</font>h                      <font color="#000080">; </font>Allocate Memory
+        mov bx<font color="#000080">,</font><font color="#800000">4000</font>h                    <font color="#000080">; </font><font color="#800000">256</font>KB <font color="#000080">(</font><font color="#800000">16</font>K paragraphs<font color="#000080">)
+        </font>int <font color="#800000">21</font>h                         <font color="#000080">; </font><font color="#FF0000"><b>Do </b></font>it<font color="#000080">!
+        </font>jc alloc_error                  <font color="#000080">; </font><font color="#FF0000"><b>Out of </b></font>memory<font color="#000080">?
+        </font>mov es<font color="#000080">,</font>ax                       <font color="#000080">; </font><font color="#800000">256</font>KB can be accessed using es<font color="#000080">:</font><font color="#800000">00000000 </font>through es<font color="#000080">:</font><font color="#800000">0003</font>FFFFh
+        <font color="#FF0000"><b>xor </b></font>eax<font color="#000080">,</font>eax                     <font color="#000080">; </font>Clear EAX
+        <font color="#FF0000"><b>xor </b></font>edi<font color="#000080">,</font>edi                     <font color="#000080">; </font>ES<font color="#000080">:</font>EDI now points <font color="#FF0000"><b>to </b></font>first address <font color="#FF0000"><b>of </b></font><font color="#800000">256</font>KB chunk
+        mov ecx<font color="#000080">,</font><font color="#800000">10000</font>h                  <font color="#000080">; </font><font color="#800000">256</font>KB equals <font color="#800000">64</font>K dwords
+        rep stos dword ptr es<font color="#000080">:[</font>edi<font color="#000080">]     ; </font>Clear <font color="#800000">256</font>KB chunk
+
+<font color="#FF0000"><b>With </b></font>the new VESA VBE Core Standard  <font color="#800000">2.0</font><font color="#000080">, </font>the entire video memory <font color="#FF0000"><b>of </b></font>a SVGA
+<font color="#FF0000"><b>or </b></font>other video adapter that  support linear<font color="#000080">/</font>flat addressing can be accessed
+<font color="#FF0000"><b>as </b></font>one large  chunk <font color="#FF0000"><b>of </b></font>memory somewhere <font color="#FF0000"><b>in </b></font>the  <font color="#800000">4</font>GB<font color="#000080">(/</font><font color="#800000">16</font>MB<font color="#000080">) </font>address space <font color="#FF0000"><b>of
+</b></font>the <font color="#800000">386</font><font color="#000080">(</font>sx<font color="#000080">):
+
+        </font>mov ax<font color="#000080">,</font><font color="#800000">4</font>F01h                    <font color="#000080">; </font>Get VBE Mode Information
+        mov cx<font color="#000080">,</font><font color="#800000">100</font>h                     <font color="#000080">; </font>Mode <font color="#000080">: </font><font color="#800000">640</font>x400<font color="#000080">, </font><font color="#800000">256 </font>colours
+        les di<font color="#000080">,</font>ModeInfoBlockPtr         <font color="#000080">; </font>ES<font color="#000080">:</font>DI now points <font color="#FF0000"><b>to </b></font>ModeInfoBlock structure
+        int <font color="#800000">10</font>h                         <font color="#000080">; </font><font color="#FF0000"><b>Do </b></font>it<font color="#000080">!
+        </font>cmp ax<font color="#000080">,</font><font color="#800000">4</font>Fh                      <font color="#000080">; </font>Error<font color="#000080">?
+        </font>jne VBE_error
+        mov ax<font color="#000080">,</font><font color="#800000">4</font>F02h                    <font color="#000080">; </font><font color="#FF0000"><b>Set </b></font>VBE Mode
+        mov bx<font color="#000080">,</font><font color="#800000">0</font>C100h                   <font color="#000080">; </font>Mode <font color="#000080">: </font><font color="#800000">640</font>x400<font color="#000080">, </font><font color="#800000">256 </font>colours<font color="#000080">, </font>linear<font color="#000080">/</font>flat<font color="#000080">, </font>don<font color="#800000">'t clear display
+        </font>int <font color="#800000">10</font>h                         <font color="#000080">; </font><font color="#FF0000"><b>Do </b></font>it<font color="#000080">!
+        </font>cmp ax<font color="#000080">,</font><font color="#800000">4</font>Fh                      <font color="#000080">; </font>Error<font color="#000080">?
+        </font>jne VBE_error
+        <font color="#FF0000"><b>xor </b></font>eax<font color="#000080">,</font>eax                     <font color="#000080">; </font>Clear EAX
+        mov edi<font color="#000080">,</font>dword ptr es<font color="#000080">:</font>di<font color="#000080">[</font><font color="#800000">28</font>h<font color="#000080">]    ; </font>ModeInfoBlock<font color="#000080">[</font><font color="#800000">28</font>h<font color="#000080">] = </font><font color="#800000">'PhysBasePtr'
+        </font>mov es<font color="#000080">,</font>ax                       <font color="#000080">; </font>ES<font color="#000080">:</font>EDI now points <font color="#FF0000"><b>to </b></font>first address <font color="#FF0000"><b>of </b></font><font color="#800000">256</font>KB video buffer
+        mov ecx<font color="#000080">,</font><font color="#800000">10000</font>h                  <font color="#000080">; </font><font color="#800000">640 </font>x <font color="#800000">400 </font>bytes equals <font color="#800000">256000 </font>bytes equals about <font color="#800000">64</font>K dwords
+        rep stos dword ptr es<font color="#000080">:[</font>edi<font color="#000080">]     ; </font>Clear <font color="#800000">256</font>KB video buffer
+
+Accessing video memory  without the need <font color="#FF0000"><b>of </b></font>bankswitching  really speeds up
+video  performance<font color="#000080">. </font><font color="#FF0000"><b>In  </b></font>terms <font color="#FF0000"><b>of  </b></font>pixels per  second<font color="#000080">, </font>drawing  lines <font color="#FF0000"><b>in </b></font>the
+<font color="#800000">1600</font>x1200<font color="#000080">,</font><font color="#800000">256 </font>colours graphics mode <font color="#FF0000"><b>is </b></font>now  faster than <font color="#FF0000"><b>in </b></font>the <font color="#800000">320</font>x200<font color="#000080">, </font><font color="#800000">256
+</font>colours mode<font color="#000080">.
+
+</font>The only limitation <font color="#FF0000"><b>of </b></font>FLAT <font color="#FF0000"><b>is </b></font>your imagination<font color="#000080">. </font><font color="#FF0000"><b>And </b></font>you<font color="#800000">'ll need that as no
+</font>high<font color="#000080">-</font>level language DOS compiler I<font color="#800000">'ve seen (yet) supports 32-bit addressing
+</font>without  the need  <font color="#FF0000"><b>of </b></font>some  kind <font color="#FF0000"><b>of  </b></font>DOS<font color="#000080">-</font>extender<font color="#000080">. </font>However<font color="#000080">,  </font>FLAT will link
+smoothly <font color="#FF0000"><b>with  </b></font>almost any <font color="#800000">16</font><font color="#000080">-</font>bit DOS  compiler<font color="#000080">. </font>I use Turbo  <font color="#FF0000"><b>Pascal </b></font><font color="#800000">5.5 </font><font color="#FF0000"><b>and
+</b></font><font color="#800000">6.0 </font>myself <font color="#FF0000"><b>for </b></font>the body <font color="#FF0000"><b>of </b></font>the  programs I<font color="#800000">'m writing, and use some assembly
+</font>at  the places  I need  the <font color="#800000">32</font><font color="#000080">-</font>bit   addressing<font color="#000080">. </font>See  EX2 <font color="#FF0000"><b>for  </b></font>a very  nice
+example<font color="#000080">.
+
+
+        </font>Herman Dullink
+        Groningen <font color="#000080">(</font>the emulator city<font color="#000080">; </font>CPC<font color="#000080">, </font>MSX<font color="#000080">, </font>ZX <font color="#000080">:-)
+        </font>the Netherlands
+        <font color="#000080">+</font><font color="#800000">31</font><font color="#000080">-</font><font color="#800000">50</font><font color="#000080">-</font><font color="#800000">132829
+        </font>csg669<font color="#000080">@</font>wing<font color="#000080">.</font>rug<font color="#000080">.</font>nl <font color="#000080">(</font>fast<font color="#000080">)
+        </font>herman<font color="#000080">.</font>dullink<font color="#000080">@</font>prgbbs<font color="#000080">.</font>idn<font color="#000080">.</font>nl <font color="#000080">(</font><font color="#800000">1 </font>day slower<font color="#000080">)
+
+</font><font color="#008000"><i>{ ---------------------------   CUT  ----------------------- }
+
+ENCODED FLAT.ZIP FILE REMOVED.  PLEASE <A HREF="0099.FLAT.ZIP">DOWNLOAD</A> EITHER THE 
+ATTACHMENT OR THE COMPLETE ZIP FILE.
+</I>
+</code></pre><!--EndFragment--><p align="center"><b>[</b><a href="index.html">Back to MEMORY SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0099.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0099.FLAT.ZIP">Attachment</a><b>]</b>
+</p></body>
+</html>

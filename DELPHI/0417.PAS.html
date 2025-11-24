@@ -1,0 +1,42 @@
+<html>
+<head><title> "Creating a Control Panel Applet" by JOHN BATES</title><link rel="STYLESHEET" type="text/css" href="../swagsource.css"></head>
+<body><p align="center">
+<b>[</b><a href="index.html">Back to DELPHI SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0417.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0417.CPLTEST.ZIP">Attachment</a><b>]</b>
+
+</p><!--StartFragment--><pre><code>
+<font color="#000080">&gt; </font><font color="#FF0000"><b>Is </b></font>anybody have examples <font color="#FF0000"><b>on </b></font>how <font color="#FF0000"><b>to </b></font>create a Control
+<font color="#000080">&gt; </font>Panel Applet <font color="#FF0000"><b>in </b></font>Delphi <font color="#800000">2.0 </font><font color="#000080">?
+
+</font>Borland stuffed up <font color="#FF0000"><b>on </b></font>this one <font color="#000080">- </font>they didn<font color="#800000">'t bother to
+</font>port the CPL<font color="#000080">.</font>H header <font color="#FF0000"><b>file to </b></font>a Delphi <font color="#FF0000"><b>unit</b></font><font color="#000080">. </font>But never
+fear<font color="#000080">, </font>Johnny<font color="#800000">'s here. :-)
+
+</font>I<font color="#800000">'ve attached a Cpl.pas unit that is the port and a
+</font>CplTest project that tests it <font color="#FF0000"><b>out</b></font><font color="#000080">. </font>The important thing
+<font color="#FF0000"><b>is </b></font>the CplApplet <font color="#FF0000"><b>function </b></font><font color="#000080">- </font>it must be exported <font color="#FF0000"><b>as
+</b></font><font color="#000080">&quot;</font>CplApplet<font color="#000080">&quot; </font>since the Control Panel searches <font color="#FF0000"><b>for </b></font>a
+<font color="#FF0000"><b>function with </b></font>this name<font color="#000080">. </font><font color="#FF0000"><b>With </b></font>only minor changes<font color="#000080">, </font>the
+entire CplApplet <font color="#FF0000"><b>function </b></font>can be reused <font color="#FF0000"><b>for </b></font>any
+applet<font color="#000080">.
+
+</font>Depending <font color="#FF0000"><b>on </b></font>what you need <font color="#FF0000"><b>to do</b></font><font color="#000080">, </font>you are probably
+better off <font color="#FF0000"><b>NOT </b></font>using the VCL <font color="#000080">(</font>Forms<font color="#000080">, </font>etc<font color="#000080">) </font><font color="#FF0000"><b>and </b></font>using
+the old fashioned Windows dialog box functions<font color="#000080">, </font>etc<font color="#000080">.
+(</font>you can still <font color="#FF0000"><b>do </b></font>this <font color="#FF0000"><b>with </b></font>Delphi<font color="#000080">). </font>You<font color="#800000">'ll save at
+</font>least <font color="#800000">150</font>K <font color="#FF0000"><b>of </b></font>disk space this way<font color="#000080">.
+
+</font><font color="#008000"><i>{ { ------------------------- snip, snip ----------------------------}
+
+ENCODED CPLTEST.ZIP FILE REMOVED.  PLEASE <A HREF="0417.CPLTEST.ZIP">DOWNLOAD</A> EITHER THE 
+ATTACHMENT OR THE COMPLETE ZIP FILE.
+</I>
+</font>
+</code></pre><!--EndFragment--><p align="center"><b>[</b><a href="index.html">Back to DELPHI SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0417.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0417.CPLTEST.ZIP">Attachment</a><b>]</b>
+</p></body>
+</html>

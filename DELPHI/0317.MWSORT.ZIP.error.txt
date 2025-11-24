@@ -1,0 +1,3 @@
+MWSORT.ZIP was encoded into 0317.pas.
+
+It only has 10 of the 12 sections needed to de-encode it.

@@ -1,0 +1,1003 @@
+<html>
+<head><title> "File Protection using Encrypt/Decrypt" by KARTHIK RAMAKRISHNAN</title><link rel="STYLESHEET" type="text/css" href="../swagsource.css"></head>
+<body><p align="center">
+<b>[</b><a href="index.html">Back to FILES SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0103.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0103.FP.ZIP">Attachment</a><b>]</b>
+
+</p><!--StartFragment--><pre><code><font color="#008000"><i>{$M 16000,0,0}
+</i></font><font color="#FF0000"><b>Program </b></font>FP<font color="#000080">;
+</font><font color="#FF0000"><b>Uses
+  </b></font>Crt<font color="#000080">, </font>Dos<font color="#000080">,</font>UTILS<font color="#000080">,</font>ALLMIX<font color="#000080">,</font>process<font color="#000080">;  </font><font color="#008000"><i>{ support files are contained in the XX3402 Code below }
+</i></font><font color="#FF0000"><b>label </b></font><font color="#800000">1</font><font color="#000080">,</font><font color="#800000">2</font><font color="#000080">;
+
+</font><font color="#FF0000"><b>Const
+        </b></font>BufSize                <font color="#000080">=        </font><font color="#800000">512</font><font color="#000080">;
+        </font>Version                <font color="#000080">=        </font><font color="#800000">'1.3'</font><font color="#000080">;
+        </font>MaxError    <font color="#000080">=        </font><font color="#800000">7</font><font color="#000080">;
+
+</font><font color="#FF0000"><b>Const
+  </b></font>S <font color="#000080">= </font><font color="#800000">'           '</font><font color="#000080">;
+  </font>archive <font color="#000080">= </font><font color="#800000">$20</font><font color="#000080">;
+
+</font><font color="#FF0000"><b>const
+    </b></font>MajorVer <font color="#000080">= </font><font color="#800000">'1'</font><font color="#000080">;                     </font><font color="#008000"><i>{ Current major version number }
+    </i></font>MinorVer <font color="#000080">= </font><font color="#800000">'95'</font><font color="#000080">;                    </font><font color="#008000"><i>{ Current minor version number }
+    </i></font>Year     <font color="#000080">= </font><font color="#800000">1991</font><font color="#000080">;                    </font><font color="#008000"><i>{ Release year }
+
+{$IFDEF MsDos}
+    </i></font>fsDirectory <font color="#000080">= </font><font color="#800000">64</font><font color="#000080">;                   </font><font color="#008000"><i>{ Set directory length }
+    </i></font>faReadOnly <font color="#000080">= </font>ReadOnly<font color="#000080">;              </font><font color="#008000"><i>{ Set directory flags }
+    </i></font>faHidden <font color="#000080">= </font>Hidden<font color="#000080">;
+    </font>faSysFile <font color="#000080">= </font>SysFile<font color="#000080">;
+    </font>faVolumeID <font color="#000080">= </font>VolumeID<font color="#000080">;
+    </font>faDirectory <font color="#000080">= </font>Directory<font color="#000080">;
+    </font>faArchive <font color="#000080">= </font>Archive<font color="#000080">;
+    </font>faAnyFile <font color="#000080">= </font>AnyFile<font color="#000080">;
+</font><font color="#008000"><i>{$ENDIF}
+
+{$IFDEF MsDos}
+</i></font><font color="#FF0000"><b>type
+        </b></font>TRegisters <font color="#000080">= </font>Registers<font color="#000080">;                                </font><font color="#008000"><i>{ Used for DOS calls }
+    </i></font>TSearchRec <font color="#000080">= </font>SearchRec<font color="#000080">;             </font><font color="#008000"><i>{ Used for search record }
+{$ENDIF}
+
+</i></font><font color="#FF0000"><b>Type
+        </b></font>EDMode                        <font color="#000080">=        (</font>EnCrypt<font color="#000080">,</font>EnCryptPass<font color="#000080">,</font>DeCrypt<font color="#000080">);
+        </font>String79                <font color="#000080">=        </font><font color="#FF0000"><b>String</b></font><font color="#000080">[</font><font color="#800000">79</font><font color="#000080">];
+        </font>FilePaths                <font color="#000080">=        </font><font color="#FF0000"><b>Array </b></font><font color="#000080">[</font><font color="#800000">1</font><font color="#000080">..</font><font color="#800000">2</font><font color="#000080">] </font><font color="#FF0000"><b>Of </b></font>String79<font color="#000080">;
+        </font>Errors                        <font color="#000080">=        </font><font color="#800000">1</font><font color="#000080">..(</font>MaxError <font color="#000080">- </font><font color="#800000">1</font><font color="#000080">);
+
+
+</font><font color="#FF0000"><b>Var
+  </b></font>List         <font color="#000080">: </font><font color="#FF0000"><b>Array</b></font><font color="#000080">[</font><font color="#800000">1</font><font color="#000080">..</font><font color="#800000">200</font><font color="#000080">] </font><font color="#FF0000"><b>of String</b></font><font color="#000080">[</font><font color="#800000">15</font><font color="#000080">];
+  </font>AttrList     <font color="#000080">: </font><font color="#FF0000"><b>Array</b></font><font color="#000080">[</font><font color="#800000">1</font><font color="#000080">..</font><font color="#800000">200</font><font color="#000080">] </font><font color="#FF0000"><b>of String</b></font><font color="#000080">[</font><font color="#800000">15</font><font color="#000080">];
+  </font>filattr      <font color="#000080">: </font><font color="#FF0000"><b>ARRAY</b></font><font color="#000080">[</font><font color="#800000">1</font><font color="#000080">..</font><font color="#800000">200</font><font color="#000080">] </font><font color="#FF0000"><b>OF </b></font>CHAR<font color="#000080">;
+  </font>COUNT<font color="#000080">,</font>Pos<font color="#000080">, </font>First   <font color="#000080">: </font>Integer<font color="#000080">;
+  </font>C            <font color="#000080">: </font>Char<font color="#000080">;
+  </font>Cont         <font color="#000080">: </font>Integer<font color="#000080">;
+  </font>DirInfo      <font color="#000080">: </font>SearchRec<font color="#000080">;
+  </font>NumFiles     <font color="#000080">: </font>Integer<font color="#000080">;
+  </font>I<font color="#000080">,</font>J<font color="#000080">:</font>INTEGER<font color="#000080">;
+  </font>key<font color="#000080">:</font>char<font color="#000080">;
+  </font>lasts<font color="#000080">,</font>LAST<font color="#000080">,</font>pass<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">[</font><font color="#800000">15</font><font color="#000080">];
+  </font>pass1<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">[</font><font color="#800000">2</font><font color="#000080">];
+  </font>NEW<font color="#000080">,</font>point<font color="#000080">:</font>integer<font color="#000080">;
+  </font>delcount<font color="#000080">:</font>integer<font color="#000080">;
+  </font>F<font color="#000080">: </font><font color="#FF0000"><b>file</b></font><font color="#000080">;
+  </font>Attr<font color="#000080">: </font>Word<font color="#000080">;
+  </font>lines<font color="#000080">:</font>word<font color="#000080">;
+  </font>command<font color="#000080">:</font><font color="#FF0000"><b>string</b></font><font color="#000080">[</font><font color="#800000">25</font><font color="#000080">];
+ </font>_file<font color="#000080">:</font>filepaths<font color="#000080">;
+
+</font><font color="#FF0000"><b>Procedure </b></font>WriteXY<font color="#000080">( </font>X<font color="#000080">,</font>Y <font color="#000080">: </font>Byte<font color="#000080">; </font>S <font color="#000080">: </font>String79 <font color="#000080">);
+</font><font color="#FF0000"><b>Begin        </b></font><font color="#008000"><i>(* WriteXY *)
+        </i></font>GotoXY<font color="#000080">(</font>X<font color="#000080">,</font>Y<font color="#000080">);
+        </font>Write<font color="#000080">(</font>S<font color="#000080">);
+</font><font color="#FF0000"><b>End</b></font><font color="#000080">;        </font><font color="#008000"><i>(* WriteXY *)
+
+</i></font><font color="#FF0000"><b>Procedure </b></font>Rm<font color="#000080">( </font>FileName <font color="#000080">: </font>String79 <font color="#000080">);
+</font><font color="#FF0000"><b>Var
+        </b></font>F <font color="#000080">: </font><font color="#FF0000"><b>File</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>Begin        </b></font><font color="#008000"><i>(* Rm *)
+        </i></font><font color="#FF0000"><b>If </b></font><font color="#000080">(</font>FileName <font color="#000080">= </font><font color="#800000">''</font><font color="#000080">) </font><font color="#FF0000"><b>Then </b></font>Exit<font color="#000080">;
+        </font>Assign<font color="#000080">(</font>F<font color="#000080">,</font>FileName<font color="#000080">);
+        </font>Erase<font color="#000080">(</font>F<font color="#000080">);
+</font><font color="#FF0000"><b>End</b></font><font color="#000080">;        </font><font color="#008000"><i>(* Rm *)
+
+</i></font><font color="#FF0000"><b>Procedure </b></font>Center<font color="#000080">( </font>Y <font color="#000080">: </font>Byte<font color="#000080">; </font>S <font color="#000080">: </font><font color="#FF0000"><b>String</b></font><font color="#000080">; </font>OverWriteMode <font color="#000080">: </font>Errors <font color="#000080">);
+</font><font color="#FF0000"><b>Var
+        </b></font>X <font color="#000080">: </font>Byte<font color="#000080">;
+
+</font><font color="#FF0000"><b>Begin        </b></font><font color="#008000"><i>(* Center *)
+        </i></font>GotoXY<font color="#000080">(</font><font color="#800000">1</font><font color="#000080">,</font>Y<font color="#000080">);
+        </font><font color="#FF0000"><b>Case </b></font><font color="#000080">(</font>OverWriteMode<font color="#000080">) </font><font color="#FF0000"><b>of
+                </b></font><font color="#800000">1        </font><font color="#000080">: </font><font color="#FF0000"><b>For </b></font>X <font color="#000080">:= </font><font color="#800000">2 </font><font color="#FF0000"><b>To </b></font><font color="#800000">78 </font><font color="#FF0000"><b>Do </b></font>WriteXY<font color="#000080">(</font>X<font color="#000080">,</font>WhereY<font color="#000080">,</font><font color="#800000">' '</font><font color="#000080">);
+                </font><font color="#800000">2        </font><font color="#000080">: </font>ClrEOL<font color="#000080">;
+        </font><font color="#FF0000"><b>End</b></font><font color="#000080">;        </font><font color="#008000"><i>(* Case *)
+        </i></font>X <font color="#000080">:= ((</font><font color="#800000">79 </font><font color="#000080">- </font>Length<font color="#000080">(</font>S<font color="#000080">)) </font><font color="#FF0000"><b>Div </b></font><font color="#800000">2</font><font color="#000080">);
+        </font><font color="#FF0000"><b>If </b></font><font color="#000080">(</font>X <font color="#000080">&lt;= </font><font color="#800000">0</font><font color="#000080">) </font><font color="#FF0000"><b>Then </b></font>X <font color="#000080">:= </font><font color="#800000">1</font><font color="#000080">;
+        </font>WriteXY<font color="#000080">(</font>X<font color="#000080">,</font>Y<font color="#000080">,</font>S<font color="#000080">);
+</font><font color="#FF0000"><b>End</b></font><font color="#000080">;        </font><font color="#008000"><i>(* Center *)
+
+
+</i></font><font color="#FF0000"><b>Procedure </b></font>OutError<font color="#000080">( </font>S <font color="#000080">: </font>String79<font color="#000080">; </font>X<font color="#000080">,</font>OWM <font color="#000080">: </font>Errors <font color="#000080">);
+</font><font color="#FF0000"><b>Var
+        </b></font>T <font color="#000080">: </font>String79<font color="#000080">;
+
+</font><font color="#FF0000"><b>Begin        </b></font><font color="#008000"><i>(* OutError *)
+        </i></font>GotoXY<font color="#000080">(</font><font color="#800000">1</font><font color="#000080">, </font>WhereY<font color="#000080">);
+        </font><font color="#FF0000"><b>Case </b></font><font color="#000080">( </font>X <font color="#000080">) </font><font color="#FF0000"><b>Of
+                </b></font><font color="#800000">1        </font><font color="#000080">: </font>T <font color="#000080">:= (</font><font color="#800000">'Incorrect Number of parameters.'</font><font color="#000080">);
+                </font><font color="#800000">2        </font><font color="#000080">: </font>T <font color="#000080">:= (</font><font color="#800000">'Input file &quot;'</font><font color="#000080">+ </font>S <font color="#000080">+</font><font color="#800000">'&quot; not found.'</font><font color="#000080">);
+                </font><font color="#800000">3        </font><font color="#000080">: </font>T <font color="#000080">:= (</font><font color="#800000">'Input and Output files conflict.'</font><font color="#000080">);
+                </font><font color="#800000">4        </font><font color="#000080">: </font>T <font color="#000080">:= (</font><font color="#800000">'User Aborted!'</font><font color="#000080">);
+                </font><font color="#800000">5        </font><font color="#000080">: </font>T <font color="#000080">:= (</font><font color="#800000">'Input file &quot;'</font><font color="#000080">+ </font>S <font color="#000080">+</font><font color="#800000">'&quot; is corrupted!'</font><font color="#000080">);
+                </font><font color="#800000">6        </font><font color="#000080">: </font><font color="#FF0000"><b>If </b></font><font color="#000080">(</font>T <font color="#000080">= </font><font color="#800000">''</font><font color="#000080">) </font><font color="#FF0000"><b>Then </b></font>T <font color="#000080">:= (</font><font color="#800000">'DOS Input/Output Failure.'</font><font color="#000080">)
+                                </font><font color="#FF0000"><b>Else </b></font>T <font color="#000080">:= </font>S<font color="#000080">;
+        </font><font color="#FF0000"><b>End</b></font><font color="#000080">;        </font><font color="#008000"><i>(* Case *)
+        </i></font>TextColor<font color="#000080">(</font>LightRed<font color="#000080">);
+        </font>Center<font color="#000080">(</font>WhereY<font color="#000080">,</font>T<font color="#000080">,</font>OWM<font color="#000080">);
+        </font>TextColor<font color="#000080">(</font>LightGray<font color="#000080">);
+        </font><font color="#FF0000"><b>If </b></font><font color="#000080">(</font>OWM <font color="#000080">= </font><font color="#800000">1</font><font color="#000080">) </font><font color="#FF0000"><b>Then </b></font>WriteLn<font color="#000080">;
+        </font>Halt<font color="#000080">(</font>x<font color="#000080">);
+</font><font color="#FF0000"><b>End</b></font><font color="#000080">;        </font><font color="#008000"><i>(* OutError *)
+
+
+</i></font><font color="#FF0000"><b>Procedure </b></font>GetStr<font color="#000080">( </font><font color="#FF0000"><b>Var </b></font>S <font color="#000080">: </font>String79<font color="#000080">; </font>Prompt<font color="#000080">,</font>FName <font color="#000080">: </font>String79<font color="#000080">; </font>Show <font color="#000080">: </font>Boolean <font color="#000080">);
+</font><font color="#FF0000"><b>Var
+        </b></font>Max<font color="#000080">,
+        </font>Min        <font color="#000080">: </font>Byte<font color="#000080">;
+        </font>A        <font color="#000080">: </font>Char<font color="#000080">;
+        </font>X        <font color="#000080">: </font>Byte<font color="#000080">;
+
+</font><font color="#FF0000"><b>Begin        </b></font><font color="#008000"><i>(* GetStr *)
+        </i></font><font color="#FF0000"><b>If </b></font><font color="#000080">(</font>FName <font color="#000080">= </font><font color="#800000">''</font><font color="#000080">) </font><font color="#FF0000"><b>Then
+        Begin
+                </b></font>Max <font color="#000080">:= </font><font color="#800000">54</font><font color="#000080">;
+                </font>Min <font color="#000080">:= </font><font color="#800000">0
+        </font><font color="#FF0000"><b>End Else
+        Begin
+                </b></font>Max <font color="#000080">:= </font><font color="#800000">25</font><font color="#000080">;
+                </font>Min <font color="#000080">:= </font><font color="#800000">3
+        </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+        </font>TextColor<font color="#000080">(</font>LightGray<font color="#000080">);
+       </font>WriteXY<font color="#000080">(</font><font color="#800000">1</font><font color="#000080">,</font>WhereY<font color="#000080">,</font>Prompt<font color="#000080">);
+        </font><font color="#FF0000"><b>Repeat
+                </b></font>GotoXY<font color="#000080">(</font>Length<font color="#000080">(</font>Prompt<font color="#000080">) + </font><font color="#800000">1</font><font color="#000080">,</font>WhereY<font color="#000080">);
+                </font>ClrEOL<font color="#000080">;
+                </font><font color="#FF0000"><b>If </b></font><font color="#000080">(</font>Show<font color="#000080">) </font><font color="#FF0000"><b>Then </b></font>WriteXY<font color="#000080">(</font>Length<font color="#000080">(</font>Prompt<font color="#000080">) + </font><font color="#800000">1</font><font color="#000080">,</font>WhereY<font color="#000080">,</font>S<font color="#000080">)
+                </font><font color="#FF0000"><b>Else For </b></font>X <font color="#000080">:= </font><font color="#800000">1 </font><font color="#FF0000"><b>To </b></font>Length<font color="#000080">(</font>S<font color="#000080">) </font><font color="#FF0000"><b>Do </b></font>Write<font color="#000080">(</font><font color="#800000">#249</font><font color="#000080">);
+                </font>A <font color="#000080">:= (</font>ReadKey<font color="#000080">);
+                </font><font color="#FF0000"><b>Case </b></font><font color="#000080">( </font>A <font color="#000080">) </font><font color="#FF0000"><b>of
+                        </b></font><font color="#800000">#32</font><font color="#000080">..</font><font color="#800000">#126 </font><font color="#000080">:
+                                </font><font color="#FF0000"><b>If </b></font><font color="#000080">(</font>Length<font color="#000080">(</font>S<font color="#000080">) &lt; </font>Max<font color="#000080">) </font><font color="#FF0000"><b>Then </b></font>S <font color="#000080">:= </font>S <font color="#000080">+ </font>A
+                                <font color="#FF0000"><b>Else
+                                Begin
+                                        </b></font>Sound<font color="#000080">(</font><font color="#800000">100</font><font color="#000080">);
+                                        </font>Delay<font color="#000080">(</font><font color="#800000">12</font><font color="#000080">);
+                                        </font>NoSound<font color="#000080">;
+                                </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+                        </font><font color="#800000">#8 </font><font color="#000080">:
+                                </font><font color="#FF0000"><b>If </b></font><font color="#000080">(</font>Length<font color="#000080">(</font>S<font color="#000080">) &gt; </font><font color="#800000">0</font><font color="#000080">) </font><font color="#FF0000"><b>Then
+                                        </b></font>Delete<font color="#000080">(</font>S<font color="#000080">,(</font>Length<font color="#000080">(</font>S<font color="#000080">) ), </font><font color="#800000">1</font><font color="#000080">);
+                        </font><font color="#800000">#0 </font><font color="#000080">:
+                                </font>A <font color="#000080">:= </font>ReadKey<font color="#000080">;
+                        </font><font color="#800000">#27</font><font color="#000080">:
+                                </font><font color="#FF0000"><b>Begin
+                                        </b></font>Rm<font color="#000080">(</font>FName<font color="#000080">);
+                                        </font>OutError<font color="#000080">(</font><font color="#800000">''</font><font color="#000080">,</font><font color="#800000">4</font><font color="#000080">,</font><font color="#800000">2</font><font color="#000080">);
+                                </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+                </font><font color="#FF0000"><b>End</b></font><font color="#000080">;        </font><font color="#008000"><i>(* Case *)
+        </i></font><font color="#FF0000"><b>Until </b></font><font color="#000080">(</font>A <font color="#000080">= </font><font color="#800000">#13</font><font color="#000080">) </font><font color="#FF0000"><b>And </b></font><font color="#000080">(</font>Length<font color="#000080">(</font>S<font color="#000080">) &gt;= </font>Min<font color="#000080">);
+</font><font color="#FF0000"><b>End</b></font><font color="#000080">;        </font><font color="#008000"><i>(* GetStr *)
+
+</i></font><font color="#FF0000"><b>Procedure </b></font>GraphIt<font color="#000080">( </font><font color="#FF0000"><b>Var </b></font>F1<font color="#000080">, </font>F2        <font color="#000080">: </font><font color="#FF0000"><b>File</b></font><font color="#000080">;
+                                   </font><font color="#FF0000"><b>Var </b></font>OldX                <font color="#000080">: </font>Byte<font color="#000080">;
+                                   </font>Hour<font color="#000080">,
+                                   </font>Min<font color="#000080">,
+                                   </font>Sec<font color="#000080">,
+                                   </font>Sec100                <font color="#000080">: </font>Word<font color="#000080">;
+                                   </font>BoxSetUp                <font color="#000080">: </font>Boolean <font color="#000080">);
+</font><font color="#FF0000"><b>Var
+        </b></font>F1Size<font color="#000080">,
+        </font>F2Size        <font color="#000080">: </font>LongInt<font color="#000080">;
+        </font>Percent<font color="#000080">,
+        </font>X<font color="#000080">,
+        </font>NewX        <font color="#000080">: </font>Byte<font color="#000080">;
+        </font>H<font color="#000080">,
+        </font>M<font color="#000080">,
+        </font>S<font color="#000080">,
+        </font>S100        <font color="#000080">: </font>Word<font color="#000080">;
+        </font>A<font color="#000080">,
+        </font>B<font color="#000080">,
+        </font>C<font color="#000080">,
+        </font>D<font color="#000080">,
+        </font>Temp        <font color="#000080">: </font>String79<font color="#000080">;
+
+</font><font color="#FF0000"><b>Begin        </b></font><font color="#008000"><i>(* GraphIt *)
+        </i></font><font color="#FF0000"><b>If </b></font><font color="#000080">(</font>BoxSetUp<font color="#000080">) </font><font color="#FF0000"><b>Then
+        Begin
+                </b></font>Percent <font color="#000080">:= </font><font color="#800000">0</font><font color="#000080">;
+                </font>OldX <font color="#000080">:= </font><font color="#800000">1</font><font color="#000080">;
+         </font><font color="#008000"><i>{       GotoXY(1,WhereY);
+                WriteLn('&Eacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&raquo;');
+                WriteLn('&ordm;                                                                             &ordm;');
+                WriteLn('&Egrave;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&Iacute;&frac14;');}
+            {    GotoXY(3,WhereY - 2);}
+        </i></font><font color="#FF0000"><b>End Else
+        Begin
+           </b></font>textattr<font color="#000080">:=</font>red<font color="#000080">+(</font><font color="#800000">16</font><font color="#000080">*</font>white<font color="#000080">);
+                </font>GetTime<font color="#000080">(</font>H<font color="#000080">,</font>M<font color="#000080">,</font>S<font color="#000080">,</font>S100<font color="#000080">);
+                </font><font color="#FF0000"><b>If </b></font><font color="#000080">(</font>Sec100 <font color="#000080">&lt;= </font>S100<font color="#000080">) </font><font color="#FF0000"><b>Then </b></font>Dec<font color="#000080">(</font>S100<font color="#000080">,</font>Sec100<font color="#000080">)
+                        </font><font color="#FF0000"><b>Else
+                        Begin
+                                </b></font>S100 <font color="#000080">:= (</font>S100 <font color="#000080">+ </font><font color="#800000">100 </font><font color="#000080">- </font>Sec100<font color="#000080">);
+                                </font><font color="#FF0000"><b>If </b></font><font color="#000080">(</font>S <font color="#000080">&gt; </font><font color="#800000">0</font><font color="#000080">) </font><font color="#FF0000"><b>Then </b></font>Dec<font color="#000080">(</font>S<font color="#000080">);
+                        </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+                </font><font color="#FF0000"><b>If </b></font><font color="#000080">(</font>Sec <font color="#000080">&lt;= </font>S<font color="#000080">) </font><font color="#FF0000"><b>Then </b></font>Dec<font color="#000080">(</font>S<font color="#000080">,</font>Sec<font color="#000080">)
+                        </font><font color="#FF0000"><b>Else
+                        Begin
+                                </b></font>S <font color="#000080">:= (</font>S <font color="#000080">+ </font><font color="#800000">60 </font><font color="#000080">- </font>Sec<font color="#000080">);
+                                </font><font color="#FF0000"><b>If </b></font><font color="#000080">(</font>M <font color="#000080">&gt; </font><font color="#800000">0</font><font color="#000080">) </font><font color="#FF0000"><b>Then </b></font>Dec<font color="#000080">(</font>M<font color="#000080">);
+                        </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+                </font><font color="#FF0000"><b>If </b></font><font color="#000080">(</font>Min <font color="#000080">&lt;= </font>M<font color="#000080">) </font><font color="#FF0000"><b>Then </b></font>Dec<font color="#000080">(</font>M<font color="#000080">,</font>Min<font color="#000080">)
+                        </font><font color="#FF0000"><b>Else
+                        Begin
+                                </b></font>M <font color="#000080">:= (</font>M <font color="#000080">+ </font><font color="#800000">60 </font><font color="#000080">- </font>Min<font color="#000080">);
+                                </font><font color="#FF0000"><b>If </b></font><font color="#000080">(</font>H <font color="#000080">&gt; </font><font color="#800000">0</font><font color="#000080">) </font><font color="#FF0000"><b>Then </b></font>Dec<font color="#000080">(</font>H<font color="#000080">);
+                        </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+                </font><font color="#FF0000"><b>If </b></font><font color="#000080">(</font>Hour <font color="#000080">&lt;= </font>H<font color="#000080">) </font><font color="#FF0000"><b>Then </b></font>Dec<font color="#000080">(</font>H<font color="#000080">,</font>Hour<font color="#000080">)
+                        </font><font color="#FF0000"><b>Else </b></font>H <font color="#000080">:= (</font>H <font color="#000080">+ </font><font color="#800000">12 </font><font color="#000080">- </font>Hour<font color="#000080">);
+                </font>Str<font color="#000080">(</font>H<font color="#000080">,</font>A<font color="#000080">);
+                </font>Str<font color="#000080">(</font>M<font color="#000080">,</font>B<font color="#000080">);
+                </font>Str<font color="#000080">(</font>S<font color="#000080">,</font>C<font color="#000080">);
+                </font>Str<font color="#000080">(</font>S100<font color="#000080">,</font>D<font color="#000080">);
+                </font><font color="#FF0000"><b>Case </b></font><font color="#000080">(</font>S100<font color="#000080">) </font><font color="#FF0000"><b>of
+                        </b></font><font color="#800000">0</font><font color="#000080">..</font><font color="#800000">9        </font><font color="#000080">: </font>D <font color="#000080">:= (</font><font color="#800000">'0' </font><font color="#000080">+ </font>D<font color="#000080">);
+                </font><font color="#FF0000"><b>End</b></font><font color="#000080">;        </font><font color="#008000"><i>(* Case *)
+                </i></font><font color="#FF0000"><b>If </b></font><font color="#000080">(</font>M <font color="#000080">&gt; </font><font color="#800000">0</font><font color="#000080">) </font><font color="#FF0000"><b>Then
+                Case </b></font><font color="#000080">(</font>S<font color="#000080">) </font><font color="#FF0000"><b>of
+                        </b></font><font color="#800000">0</font><font color="#000080">..</font><font color="#800000">9        </font><font color="#000080">: </font>C <font color="#000080">:= (</font><font color="#800000">'0' </font><font color="#000080">+ </font>C<font color="#000080">);
+                </font><font color="#FF0000"><b>End</b></font><font color="#000080">;        </font><font color="#008000"><i>(* Case *)
+                </i></font><font color="#FF0000"><b>If </b></font><font color="#000080">(</font>H <font color="#000080">&gt; </font><font color="#800000">0</font><font color="#000080">) </font><font color="#FF0000"><b>Then
+                Case </b></font><font color="#000080">(</font>M<font color="#000080">) </font><font color="#FF0000"><b>of
+                        </b></font><font color="#800000">0</font><font color="#000080">..</font><font color="#800000">9        </font><font color="#000080">: </font>B <font color="#000080">:= (</font><font color="#800000">'0' </font><font color="#000080">+ </font>B<font color="#000080">);
+                </font><font color="#FF0000"><b>End</b></font><font color="#000080">;        </font><font color="#008000"><i>(* Case *)
+                </i></font><font color="#FF0000"><b>If </b></font><font color="#000080">(</font>H <font color="#000080">= </font><font color="#800000">0</font><font color="#000080">) </font><font color="#FF0000"><b>Then
+                Begin
+                        If </b></font><font color="#000080">(</font>M <font color="#000080">= </font><font color="#800000">0</font><font color="#000080">) </font><font color="#FF0000"><b>Then </b></font>Temp <font color="#000080">:= (</font>Concat<font color="#000080">(</font>C<font color="#000080">,</font><font color="#800000">'.'</font><font color="#000080">,</font>D<font color="#000080">,</font><font color="#800000">' sec'</font><font color="#000080">) )
+                        </font><font color="#FF0000"><b>Else </b></font>Temp <font color="#000080">:= (</font>Concat<font color="#000080">(</font>B<font color="#000080">,</font><font color="#800000">' min '</font><font color="#000080">,</font>C<font color="#000080">,</font><font color="#800000">'.'</font><font color="#000080">,</font>D<font color="#000080">,</font><font color="#800000">' sec'</font><font color="#000080">) );
+                </font><font color="#FF0000"><b>End
+                Else If </b></font><font color="#000080">(</font>H <font color="#000080">= </font><font color="#800000">1</font><font color="#000080">) </font><font color="#FF0000"><b>Then </b></font>Temp <font color="#000080">:= (</font>Concat<font color="#000080">(</font>A<font color="#000080">,</font><font color="#800000">' hr '</font><font color="#000080">,</font>B<font color="#000080">,</font><font color="#800000">' min '</font><font color="#000080">,</font>C<font color="#000080">,</font><font color="#800000">'.'</font><font color="#000080">,</font>D<font color="#000080">,</font><font color="#800000">' sec'</font><font color="#000080">) )
+                                </font><font color="#FF0000"><b>Else </b></font>Temp <font color="#000080">:= (</font>Concat<font color="#000080">(</font>A<font color="#000080">,</font><font color="#800000">' hrs '</font><font color="#000080">,</font>B<font color="#000080">,</font><font color="#800000">' min '</font><font color="#000080">,</font>C<font color="#000080">,</font><font color="#800000">'.'</font><font color="#000080">,</font>D<font color="#000080">,</font><font color="#800000">' sec'</font><font color="#000080">) );
+            </font>F1Size <font color="#000080">:= </font>FileSize<font color="#000080">(</font>F1<font color="#000080">);
+                </font>F2Size <font color="#000080">:= </font>FileSize<font color="#000080">(</font>F2<font color="#000080">);
+                </font><font color="#FF0000"><b>If </b></font><font color="#000080">(</font>F2Size <font color="#000080">&lt;= </font>F1Size<font color="#000080">) </font><font color="#FF0000"><b>Then
+                </b></font>Percent <font color="#000080">:= ((</font>F2Size <font color="#000080">* </font><font color="#800000">100</font><font color="#000080">) </font><font color="#FF0000"><b>Div </b></font>F1Size <font color="#000080">)
+                        </font><font color="#FF0000"><b>Else </b></font>Percent <font color="#000080">:= </font><font color="#800000">100</font><font color="#000080">;
+                </font>NewX <font color="#000080">:= (((</font>Percent <font color="#000080">* </font><font color="#800000">76</font><font color="#000080">) </font><font color="#FF0000"><b>Div </b></font><font color="#800000">100</font><font color="#000080">) + </font><font color="#800000">2</font><font color="#000080">);
+                </font><font color="#FF0000"><b>If </b></font><font color="#000080">(</font>NewX <font color="#000080">&lt; </font><font color="#800000">3</font><font color="#000080">) </font><font color="#FF0000"><b>Then </b></font>NewX <font color="#000080">:= </font><font color="#800000">3</font><font color="#000080">;
+                </font>textattr<font color="#000080">:=</font>lightred<font color="#000080">+(</font><font color="#800000">16</font><font color="#000080">*</font>white<font color="#000080">);   </font><font color="#008000"><i>{*************************}
+{**}            </i></font><font color="#FF0000"><b>For </b></font>X <font color="#000080">:= </font>OldX <font color="#FF0000"><b>To </b></font>NewX <font color="#FF0000"><b>Do </b></font>WriteXY<font color="#000080">(</font>X<font color="#000080">,</font><font color="#008000"><i>{WhereY}</i></font><font color="#800000">23</font><font color="#000080">,</font><font color="#800000">#249</font><font color="#000080">);</font><font color="#008000"><i>{}
+                </i></font>OldX <font color="#000080">:= </font>NewX<font color="#000080">;
+                </font>textattr<font color="#000080">:=</font><font color="#800000">9</font><font color="#000080">+(</font><font color="#800000">16</font><font color="#000080">*</font>white<font color="#000080">);
+                </font>Center<font color="#000080">(</font><font color="#008000"><i>{WhereY}</i></font><font color="#800000">1 </font><font color="#000080">+ </font><font color="#008000"><i>{1}</i></font><font color="#800000">23</font><font color="#000080">,(</font><font color="#800000">#181 </font><font color="#000080">+ </font><font color="#800000">' ' </font><font color="#000080">+ </font>Temp <font color="#000080">+ </font><font color="#800000">' ' </font><font color="#000080">+ </font><font color="#800000">#198</font><font color="#000080">),</font><font color="#800000">5</font><font color="#000080">);
+                </font>GotoXY<font color="#000080">(</font>NewX<font color="#000080">,</font>WhereY <font color="#000080">- </font><font color="#800000">1</font><font color="#000080">);
+        </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>End</b></font><font color="#000080">;        </font><font color="#008000"><i>(* GraphIt *)
+
+</i></font><font color="#FF0000"><b>Function </b></font>Shrink<font color="#000080">( </font>P <font color="#000080">: </font>PathStr <font color="#000080">) : </font>String79<font color="#000080">;
+</font><font color="#FF0000"><b>Var
+        </b></font>D        <font color="#000080">: </font>DirStr<font color="#000080">;
+        </font>N        <font color="#000080">: </font>NameStr<font color="#000080">;
+        </font>E        <font color="#000080">: </font>ExtStr<font color="#000080">;
+
+</font><font color="#FF0000"><b>Begin        </b></font><font color="#008000"><i>(* Shrink *)
+        </i></font>FSplit<font color="#000080">(</font>P<font color="#000080">,</font>D<font color="#000080">,</font>N<font color="#000080">,</font>E<font color="#000080">);
+        </font>Shrink <font color="#000080">:= </font>N <font color="#000080">+ </font>E<font color="#000080">;
+</font><font color="#FF0000"><b>End</b></font><font color="#000080">;        </font><font color="#008000"><i>(* Shrink *)
+
+</i></font><font color="#FF0000"><b>Function </b></font>UpStr<font color="#000080">( </font>S <font color="#000080">: </font><font color="#FF0000"><b>String </b></font><font color="#000080">) : </font><font color="#FF0000"><b>String</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>Var
+        </b></font>X        <font color="#000080">: </font>Byte<font color="#000080">;
+
+</font><font color="#FF0000"><b>Begin        </b></font><font color="#008000"><i>(* UpStr *)
+        </i></font><font color="#FF0000"><b>For </b></font>X <font color="#000080">:= </font><font color="#800000">1 </font><font color="#FF0000"><b>To </b></font>Length<font color="#000080">(</font>S<font color="#000080">) </font><font color="#FF0000"><b>Do
+                </b></font>S<font color="#000080">[</font>x<font color="#000080">] := (</font>UpCase<font color="#000080">(</font>S<font color="#000080">[</font>x<font color="#000080">]) );
+        </font>UpStr <font color="#000080">:= </font>S<font color="#000080">;
+</font><font color="#FF0000"><b>End</b></font><font color="#000080">;        </font><font color="#008000"><i>(* UpStr *)
+
+</i></font><font color="#FF0000"><b>Procedure </b></font>EnCode<font color="#000080">( </font>_File <font color="#000080">: </font>FilePaths<font color="#000080">; </font>Protect <font color="#000080">: </font>Boolean <font color="#000080">);
+</font><font color="#FF0000"><b>Var
+        </b></font>Seed<font color="#000080">,
+        </font>PI<font color="#000080">,
+        </font>Y<font color="#000080">,
+        </font>OldX                <font color="#000080">: </font>Byte<font color="#000080">;
+        </font>I<font color="#000080">,
+        </font>Increment        <font color="#000080">: </font>Integer<font color="#000080">;
+        </font>Buf                        <font color="#000080">: </font><font color="#FF0000"><b>Array </b></font><font color="#000080">[</font><font color="#800000">1</font><font color="#000080">..</font>BufSize<font color="#000080">] </font><font color="#FF0000"><b>of </b></font>Char<font color="#000080">;
+        </font>Hour<font color="#000080">,
+        </font>Min<font color="#000080">,
+        </font>Sec<font color="#000080">,
+        </font>Sec100<font color="#000080">,
+        </font>Status                <font color="#000080">: </font>Word<font color="#000080">;
+        </font>Temp<font color="#000080">,
+        </font>Pass                <font color="#000080">: </font>String79<font color="#000080">;
+        </font>F1<font color="#000080">,
+        </font>F2                        <font color="#000080">: </font><font color="#FF0000"><b>File</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>Begin        </b></font><font color="#008000"><i>(* EnCode *)
+        </i></font>Pass <font color="#000080">:= </font><font color="#800000">''</font><font color="#000080">;
+    </font><font color="#008000"><i>{$I-}
+        </i></font>Assign<font color="#000080">(</font>F1<font color="#000080">, </font>_File<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">]);        </font><font color="#008000"><i>(* input file  *)
+        </i></font>Assign<font color="#000080">(</font>F2<font color="#000080">, </font>_File<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">]);        </font><font color="#008000"><i>(* output file *)
+        </i></font>Reset<font color="#000080">(</font>F1<font color="#000080">,</font><font color="#800000">1</font><font color="#000080">);
+        </font><font color="#008000"><i>{CheckError('','Couldn''t open input file.');}
+        </i></font>ReWrite<font color="#000080">(</font>F2<font color="#000080">,</font><font color="#800000">1</font><font color="#000080">);
+        </font><font color="#008000"><i>{CheckError(_File[2],'Couldn''t create output file.');}
+        </i></font>Randomize<font color="#000080">;
+</font><font color="#008000"><i>{**}    </i></font><font color="#FF0000"><b>If </b></font><font color="#000080">(</font>Protect<font color="#000080">) </font><font color="#FF0000"><b>Then
+        Begin
+       </b></font>gotoxy<font color="#000080">(</font><font color="#800000">61</font><font color="#000080">,</font><font color="#800000">18</font><font color="#000080">);
+       </font>readln<font color="#000080">(</font>pass<font color="#000080">);
+</font><font color="#008000"><i>{                GetStr(Pass,'(3 Char min, 25 Char max) Enter Password: ',_File[2],False);}
+                </i></font>Buf<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">] := </font>Chr<font color="#000080">(</font>Random<font color="#000080">(</font><font color="#800000">127</font><font color="#000080">) );
+                </font>BlockWrite<font color="#000080">(</font>F2<font color="#000080">,</font>Buf<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">],</font>SizeOf<font color="#000080">(</font>Buf<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">]),</font>Status<font color="#000080">);
+                </font><font color="#008000"><i>{CheckError(_File[2],'Couldn''t write to output file.');}
+        </i></font><font color="#FF0000"><b>End Else
+        Begin
+                </b></font>Buf<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">] := </font>Chr<font color="#000080">(</font>Random<font color="#000080">(</font><font color="#800000">127</font><font color="#000080">) + </font><font color="#800000">127</font><font color="#000080">);
+                </font>BlockWrite<font color="#000080">(</font>F2<font color="#000080">,</font>Buf<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">],</font>SizeOf<font color="#000080">(</font>Buf<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">]),</font>Status<font color="#000080">);
+                </font><font color="#008000"><i>{CheckError(_File[2],'Couldn''t write to output file.');}
+        </i></font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+        </font>Seed <font color="#000080">:= </font>Ord<font color="#000080">(</font>Buf<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">]);
+        </font>Increment <font color="#000080">:= </font><font color="#800000">1</font><font color="#000080">;
+        </font>PI <font color="#000080">:= </font><font color="#800000">1</font><font color="#000080">;
+        </font>Y <font color="#000080">:= </font><font color="#800000">127</font><font color="#000080">;
+    </font><font color="#008000"><i>{TextColor(LightGray);
+{        ClrEOL;}
+        </i></font>GetTime<font color="#000080">(</font>Hour<font color="#000080">,</font>Min<font color="#000080">,</font>Sec<font color="#000080">,</font>Sec100<font color="#000080">);
+        </font>GraphIt<font color="#000080">(</font>F1<font color="#000080">,</font>F2<font color="#000080">,</font>OldX<font color="#000080">,</font>Hour<font color="#000080">,</font>Min<font color="#000080">,</font>Sec<font color="#000080">,</font>Sec100<font color="#000080">,</font>True<font color="#000080">);
+        </font><font color="#FF0000"><b>Repeat
+                </b></font>BlockRead<font color="#000080">(</font>F1<font color="#000080">, </font>Buf<font color="#000080">, </font>BufSize<font color="#000080">, </font>Status<font color="#000080">);
+                </font><font color="#008000"><i>{CheckError(_File[2],'Couldn''t read input file.');}
+                {CheckAbort(_File[2]);}
+                </i></font>GraphIt<font color="#000080">(</font>F1<font color="#000080">,</font>F2<font color="#000080">,</font>OldX<font color="#000080">,</font>Hour<font color="#000080">,</font>Min<font color="#000080">,</font>Sec<font color="#000080">,</font>Sec100<font color="#000080">,</font>False<font color="#000080">);
+                </font><font color="#FF0000"><b>For </b></font>I <font color="#000080">:= </font><font color="#800000">1 </font><font color="#FF0000"><b>To </b></font>BufSize <font color="#FF0000"><b>Do
+                        Begin
+                                If </b></font><font color="#000080">(</font>Protect<font color="#000080">) </font><font color="#FF0000"><b>Then
+                                        Begin
+                                                </b></font>Buf<font color="#000080">[</font>I<font color="#000080">] := </font>Char<font color="#000080">(</font>Byte<font color="#000080">(</font>Buf<font color="#000080">[</font>I<font color="#000080">]) </font><font color="#FF0000"><b>XOR </b></font>Byte<font color="#000080">(</font>Pass<font color="#000080">[</font>PI<font color="#000080">]));
+                                                </font><font color="#FF0000"><b>If </b></font><font color="#000080">(</font>PI <font color="#000080">= </font>Length<font color="#000080">(</font>Pass<font color="#000080">)) </font><font color="#FF0000"><b>Then </b></font>Increment <font color="#000080">:= -</font><font color="#800000">1</font><font color="#000080">;
+                                                </font><font color="#FF0000"><b>If </b></font><font color="#000080">(</font>PI <font color="#000080">= </font><font color="#800000">1</font><font color="#000080">) </font><font color="#FF0000"><b>Then </b></font>Increment <font color="#000080">:= </font><font color="#800000">1</font><font color="#000080">;
+                                                </font>Inc<font color="#000080">(</font>PI<font color="#000080">,</font>Increment<font color="#000080">);
+                                        </font><font color="#FF0000"><b>End
+                                Else
+                                        Begin
+                                                </b></font>Buf<font color="#000080">[</font>I<font color="#000080">] := </font>Char<font color="#000080">(</font>Byte<font color="#000080">(</font>Buf<font color="#000080">[</font>I<font color="#000080">]) </font><font color="#FF0000"><b>XOR </b></font>Y<font color="#000080">);
+                                        </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+                        </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+                </font>BlockWrite<font color="#000080">(</font>F2<font color="#000080">, </font>Buf<font color="#000080">, </font>Status<font color="#000080">);
+                </font><font color="#008000"><i>{CheckError(_File[2],'Couldn''t write to output file.');}
+        </i></font><font color="#FF0000"><b>Until </b></font><font color="#000080">(</font>Status <font color="#000080">&lt; </font>BufSize<font color="#000080">);
+        </font>Close<font color="#000080">(</font>F1<font color="#000080">);
+        </font><font color="#008000"><i>{CheckError(_File[2],'Couldn''t close input file.');}
+        </i></font>Close<font color="#000080">(</font>F2<font color="#000080">);
+        </font><font color="#008000"><i>{CheckError(_File[2],'Couldn''t close output file.');}
+        {$I+}
+(* Successful Encryption *)
+        </i></font>TextColor<font color="#000080">(</font>LightGray<font color="#000080">);
+        </font>Temp <font color="#000080">:= (</font>Shrink<font color="#000080">(</font>_File<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">]) +</font><font color="#800000">' Encoded to '</font><font color="#000080">+ </font>Shrink<font color="#000080">(</font>_File<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">]));
+        </font><font color="#FF0000"><b>If </b></font><font color="#000080">(</font>Protect<font color="#000080">) </font><font color="#FF0000"><b>Then </b></font>Temp <font color="#000080">:= (</font>Temp <font color="#000080">+ </font><font color="#800000">' with Password.'</font><font color="#000080">);
+        </font>Center<font color="#000080">(</font>WhereY<font color="#000080">,</font>Temp<font color="#000080">,</font><font color="#800000">1</font><font color="#000080">);
+       </font><font color="#008000"><i>{ GotoXY(1,WhereY + 1);}
+{        WriteLn;}
+</i></font><font color="#FF0000"><b>End</b></font><font color="#000080">;        </font><font color="#008000"><i>(* EnCode *)
+
+</i></font><font color="#FF0000"><b>Procedure </b></font>DeCode<font color="#000080">( </font>_File <font color="#000080">: </font>FilePaths <font color="#000080">);
+</font><font color="#FF0000"><b>Var
+        </b></font>Seed<font color="#000080">,
+        </font>PI<font color="#000080">,
+        </font>Y<font color="#000080">,
+        </font>OldX                <font color="#000080">: </font>Byte<font color="#000080">;
+        </font>I<font color="#000080">,
+        </font>Increment        <font color="#000080">: </font>Integer<font color="#000080">;
+        </font>Buf                        <font color="#000080">: </font><font color="#FF0000"><b>Array </b></font><font color="#000080">[</font><font color="#800000">1</font><font color="#000080">..</font>BufSize<font color="#000080">] </font><font color="#FF0000"><b>of </b></font>Char<font color="#000080">;
+        </font>Hour<font color="#000080">,
+        </font>Min<font color="#000080">,
+        </font>Sec<font color="#000080">,
+        </font>Sec100<font color="#000080">,
+        </font>Status                <font color="#000080">: </font>Word<font color="#000080">;
+        </font>Temp<font color="#000080">,
+        </font>Pass                <font color="#000080">: </font>String79<font color="#000080">;
+        </font>F1<font color="#000080">,
+        </font>F2                        <font color="#000080">: </font><font color="#FF0000"><b>File</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>Begin        </b></font><font color="#008000"><i>(* DeCode *)
+        </i></font>Pass <font color="#000080">:= </font><font color="#800000">''</font><font color="#000080">;
+        </font><font color="#008000"><i>{$I-}
+        </i></font>Assign<font color="#000080">(</font>F1<font color="#000080">, </font>_File<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">]);
+        </font>Assign<font color="#000080">(</font>F2<font color="#000080">, </font>_File<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">]);
+        </font>Reset<font color="#000080">(</font>F1<font color="#000080">,</font><font color="#800000">1</font><font color="#000080">);
+        </font><font color="#008000"><i>{CheckError('','Couldn''t open input file.');}
+        </i></font>ReWrite<font color="#000080">(</font>F2<font color="#000080">,</font><font color="#800000">1</font><font color="#000080">);
+        </font><font color="#008000"><i>{CheckError(_File[2],'Couldn''t create output file.');}
+        </i></font>BlockRead<font color="#000080">(</font>F1<font color="#000080">,</font>Buf<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">],</font>SizeOf<font color="#000080">(</font>Buf<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">]),</font>Status<font color="#000080">);
+        </font><font color="#008000"><i>{CheckError(_File[2],'Couldn''t read input file.');}
+        </i></font>Seed <font color="#000080">:= </font>Ord<font color="#000080">(</font>Buf<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">]);
+        </font><font color="#FF0000"><b>If </b></font><font color="#000080">(</font>Buf<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">] &lt; </font><font color="#800000">#127</font><font color="#000080">) </font><font color="#FF0000"><b>Then </b></font><font color="#008000"><i>(* There's a Password *)
+ {               GetStr(Pass,'Enter Password: ',_File[2],False);}
+       </i></font>gotoxy<font color="#000080">(</font><font color="#800000">61</font><font color="#000080">,</font><font color="#800000">18</font><font color="#000080">);
+       </font>readln<font color="#000080">(</font>pass<font color="#000080">);
+        </font>Increment <font color="#000080">:= </font><font color="#800000">1</font><font color="#000080">;
+        </font>PI <font color="#000080">:= </font><font color="#800000">1</font><font color="#000080">;
+        </font>Y <font color="#000080">:= </font><font color="#800000">127</font><font color="#000080">;
+        </font>TextColor<font color="#000080">(</font>LightGray<font color="#000080">);
+        </font>ClrEOL<font color="#000080">;
+        </font>GetTime<font color="#000080">(</font>Hour<font color="#000080">,</font>Min<font color="#000080">,</font>Sec<font color="#000080">,</font>Sec100<font color="#000080">);
+        </font>GraphIt<font color="#000080">(</font>F1<font color="#000080">,</font>F2<font color="#000080">,</font>OldX<font color="#000080">,</font>Hour<font color="#000080">,</font>Min<font color="#000080">,</font>Sec<font color="#000080">,</font>Sec100<font color="#000080">,</font>True<font color="#000080">);
+        </font><font color="#FF0000"><b>Repeat
+                </b></font>BlockRead<font color="#000080">(</font>F1<font color="#000080">, </font>Buf<font color="#000080">, </font>BufSize<font color="#000080">, </font>Status<font color="#000080">);
+                </font><font color="#008000"><i>{CheckError(_File[2],'Couldn''t read input file.');}
+                </i></font>GraphIt<font color="#000080">(</font>F1<font color="#000080">,</font>F2<font color="#000080">,</font>OldX<font color="#000080">,</font>Hour<font color="#000080">,</font>Min<font color="#000080">,</font>Sec<font color="#000080">,</font>Sec100<font color="#000080">,</font>False<font color="#000080">);
+                </font><font color="#008000"><i>{CheckAbort(_File[2]);}
+                </i></font><font color="#FF0000"><b>For </b></font>I <font color="#000080">:= </font><font color="#800000">1 </font><font color="#FF0000"><b>To </b></font>BufSize <font color="#FF0000"><b>Do
+                        Begin
+                                If </b></font><font color="#000080">(</font>Pass <font color="#000080">&lt;&gt; </font><font color="#800000">''</font><font color="#000080">) </font><font color="#FF0000"><b>Then </b></font><font color="#008000"><i>(* There's a Password *)
+                                        </i></font><font color="#FF0000"><b>Begin
+                                                </b></font>Buf<font color="#000080">[</font>I<font color="#000080">] := </font>Char<font color="#000080">(</font>Byte<font color="#000080">(</font>Buf<font color="#000080">[</font>I<font color="#000080">]) </font><font color="#FF0000"><b>XOR </b></font>Byte<font color="#000080">(</font>Pass<font color="#000080">[</font>PI<font color="#000080">]));
+                                                </font><font color="#FF0000"><b>If </b></font><font color="#000080">(</font>PI <font color="#000080">= </font>Length<font color="#000080">(</font>Pass<font color="#000080">)) </font><font color="#FF0000"><b>Then </b></font>Increment <font color="#000080">:= -</font><font color="#800000">1</font><font color="#000080">;
+                                                </font><font color="#FF0000"><b>If </b></font><font color="#000080">(</font>PI <font color="#000080">= </font><font color="#800000">1</font><font color="#000080">) </font><font color="#FF0000"><b>Then </b></font>Increment <font color="#000080">:= </font><font color="#800000">1</font><font color="#000080">;
+                                                </font>Inc<font color="#000080">(</font>PI<font color="#000080">,</font>Increment<font color="#000080">);
+                                        </font><font color="#FF0000"><b>End
+                                Else
+                                        Begin
+                                                </b></font>Buf<font color="#000080">[</font>I<font color="#000080">] := </font>Char<font color="#000080">(</font>Byte<font color="#000080">(</font>Buf<font color="#000080">[</font>I<font color="#000080">]) </font><font color="#FF0000"><b>XOR </b></font>Y<font color="#000080">);
+                                        </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+                        </font><font color="#FF0000"><b>End</b></font><font color="#000080">;
+                </font>BlockWrite<font color="#000080">(</font>F2<font color="#000080">, </font>Buf<font color="#000080">, </font>Status<font color="#000080">);
+                </font><font color="#008000"><i>{CheckError(_File[2],'Couldn''t write to output file.');}
+        </i></font><font color="#FF0000"><b>Until </b></font><font color="#000080">(</font>Status <font color="#000080">&lt; </font>BufSize<font color="#000080">);
+        </font>Close<font color="#000080">(</font>F1<font color="#000080">);
+        </font><font color="#008000"><i>{CheckError(_File[2],'Couldn''t close input file.');}
+        </i></font>Close<font color="#000080">(</font>F2<font color="#000080">);
+        </font><font color="#008000"><i>{CheckError(_File[2],'Couldn''t close output file.');}
+        {$I+}
+(* Successful Decryption *)
+        </i></font>Center<font color="#000080">(</font>WhereY<font color="#000080">,</font>Shrink<font color="#000080">(</font>_File<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">]) +</font><font color="#800000">' Decoded to '</font><font color="#000080">+ </font>Shrink<font color="#000080">(</font>_File<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">]),</font><font color="#800000">1</font><font color="#000080">);
+        </font>GotoXY<font color="#000080">(</font><font color="#800000">1</font><font color="#000080">,</font>WhereY <font color="#000080">+ </font><font color="#800000">1</font><font color="#000080">);
+      </font><font color="#008000"><i>{  WriteLn;}
+</i></font><font color="#FF0000"><b>End</b></font><font color="#000080">;        </font><font color="#008000"><i>(* DeCode *)
+
+
+
+
+
+</i></font><font color="#FF0000"><b>function </b></font>DeleteFile<font color="#000080">(</font>FN <font color="#000080">: </font>PathStr<font color="#000080">) : </font>Boolean<font color="#000080">;
+</font><font color="#FF0000"><b>var
+  </b></font>Regs <font color="#000080">: </font>Registers<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>FN <font color="#000080">:= </font>FN <font color="#000080">+ </font><font color="#800000">#0</font><font color="#000080">;          </font><font color="#008000"><i>{ Add NUL chr for DOS }
+  </i></font>Regs<font color="#000080">.</font>AH <font color="#000080">:= </font><font color="#800000">$41</font><font color="#000080">;
+  </font>Regs<font color="#000080">.</font>DX <font color="#000080">:= </font>Ofs<font color="#000080">(</font>FN<font color="#000080">) + </font><font color="#800000">1</font><font color="#000080">; </font><font color="#008000"><i>{ Add 1 to bypass length byte }
+  </i></font>Regs<font color="#000080">.</font>DS <font color="#000080">:= </font>Seg<font color="#000080">(</font>FN<font color="#000080">);
+  </font>MsDos<font color="#000080">(</font>Regs<font color="#000080">);
+  </font>DeleteFile <font color="#000080">:= </font><font color="#FF0000"><b>NOT </b></font><font color="#000080">(</font>Regs<font color="#000080">.</font>Flags <font color="#FF0000"><b>AND </b></font><font color="#800000">$0 </font><font color="#000080">= </font><font color="#800000">$0</font><font color="#000080">)
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>PROCEDURE </b></font>BOX<font color="#000080">;
+</font><font color="#FF0000"><b>BEGIN
+</b></font>textattr<font color="#000080">:=</font><font color="#800000">9</font><font color="#000080">+(</font><font color="#800000">16</font><font color="#000080">*</font><font color="#800000">0</font><font color="#000080">);
+</font><font color="#FF0000"><b>FOR </b></font>J<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>TO </b></font><font color="#800000">24 </font><font color="#FF0000"><b>DO
+FOR </b></font>I<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>TO </b></font><font color="#800000">80 </font><font color="#FF0000"><b>DO
+ BEGIN
+ </b></font>GOTOXY<font color="#000080">(</font>I<font color="#000080">,</font>J<font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&Ucirc;'</font><font color="#000080">);
+ </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+</font>textattr<font color="#000080">:=</font>white<font color="#000080">+(</font><font color="#800000">16</font><font color="#000080">*</font><font color="#800000">0</font><font color="#000080">);
+</font><font color="#FF0000"><b>FOR </b></font>I<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>TO </b></font><font color="#800000">80 </font><font color="#FF0000"><b>DO
+BEGIN
+</b></font>GOTOXY<font color="#000080">(</font>I<font color="#000080">,</font><font color="#800000">1</font><font color="#000080">);
+</font>WRITELN<font color="#000080">(</font><font color="#800000">'&Ucirc;'</font><font color="#000080">);
+</font>GOTOXY<font color="#000080">(</font>I<font color="#000080">,</font><font color="#800000">23</font><font color="#000080">);
+</font>WRITELN<font color="#000080">(</font><font color="#800000">'&Ucirc;'</font><font color="#000080">);
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+</font>textattr<font color="#000080">:=</font>black<font color="#000080">+(</font><font color="#800000">16</font><font color="#000080">*</font>white<font color="#000080">);
+</font>GOTOXY<font color="#000080">(</font><font color="#800000">3</font><font color="#000080">,</font><font color="#800000">1</font><font color="#000080">);
+</font>WRITELN<font color="#000080">(</font><font color="#800000">'File Protection, Encoder/Decoder Ver 1.1'</font><font color="#000080">);
+</font><font color="#008000"><i>{GOTOXY(16,23);
+WRITELN('E-Encode File, D-Decode File, Esc Exit Utility');
+
+{TEXTCOLOR(WHITE);
+TEXTBACKGROUND(BLACK);     }
+</i></font>textattr<font color="#000080">:=</font>white<font color="#000080">+(</font><font color="#800000">16</font><font color="#000080">*</font><font color="#800000">9</font><font color="#000080">);
+</font><font color="#FF0000"><b>FOR </b></font>I<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>TO </b></font><font color="#800000">27 </font><font color="#FF0000"><b>DO
+ BEGIN
+ </b></font>GOTOXY<font color="#000080">(</font><font color="#800000">2</font><font color="#000080">+</font>I<font color="#000080">,</font><font color="#800000">3</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&Auml;'</font><font color="#000080">);
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">2</font><font color="#000080">+</font>I<font color="#000080">,</font><font color="#800000">20</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&Auml;'</font><font color="#000080">);
+ </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>FOR </b></font>J<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>TO </b></font><font color="#800000">16 </font><font color="#FF0000"><b>DO
+ BEGIN
+ </b></font>GOTOXY<font color="#000080">(</font><font color="#800000">2</font><font color="#000080">,</font><font color="#800000">3</font><font color="#000080">+</font>J<font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&sup3;'</font><font color="#000080">);
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">29</font><font color="#000080">,</font><font color="#800000">3</font><font color="#000080">+</font>J<font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&sup3;'</font><font color="#000080">);
+ </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">29</font><font color="#000080">,</font><font color="#800000">3</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&iquest;'</font><font color="#000080">);
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">29</font><font color="#000080">,</font><font color="#800000">20</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&Ugrave;'</font><font color="#000080">);
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">2</font><font color="#000080">,</font><font color="#800000">3</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&Uacute;'</font><font color="#000080">);
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">2</font><font color="#000080">,</font><font color="#800000">20</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&Agrave;'</font><font color="#000080">);
+</font>textattr<font color="#000080">:=</font><font color="#800000">9</font><font color="#000080">+(</font><font color="#800000">16</font><font color="#000080">*</font><font color="#800000">0</font><font color="#000080">);
+</font><font color="#FF0000"><b>for </b></font>j<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>to </b></font><font color="#800000">16 </font><font color="#FF0000"><b>do
+for </b></font>i<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>to </b></font><font color="#800000">26 </font><font color="#FF0000"><b>do
+begin
+</b></font>gotoxy<font color="#000080">(</font><font color="#800000">2</font><font color="#000080">+</font>i<font color="#000080">,</font><font color="#800000">3</font><font color="#000080">+</font>j<font color="#000080">);
+</font>writeln<font color="#000080">(</font><font color="#800000">'&Ucirc;'</font><font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font>EnableHighBgd<font color="#000080">;
+</font>textattr<font color="#000080">:=</font><font color="#800000">10</font><font color="#000080">+(</font><font color="#800000">16</font><font color="#000080">*</font><font color="#800000">9</font><font color="#000080">);
+</font>GOTOXY<font color="#000080">(</font><font color="#800000">4</font><font color="#000080">,</font><font color="#800000">3</font><font color="#000080">);
+</font>WRITELN<font color="#000080">(</font><font color="#800000">'List'</font><font color="#000080">);
+</font>textattr<font color="#000080">:=</font><font color="#800000">9</font><font color="#000080">+(</font><font color="#800000">16</font><font color="#000080">*</font><font color="#800000">9</font><font color="#000080">);
+</font>gotoxy<font color="#000080">(</font><font color="#800000">3</font><font color="#000080">,</font><font color="#800000">19</font><font color="#000080">);
+</font>writeln<font color="#000080">(</font><font color="#800000">'                          '</font><font color="#000080">);
+</font>SHADOW<font color="#000080">(</font><font color="#800000">20</font><font color="#000080">,</font><font color="#800000">3</font><font color="#000080">,</font><font color="#800000">20</font><font color="#000080">,</font><font color="#800000">29</font><font color="#000080">);
+</font>SHADOW<font color="#000080">(</font><font color="#800000">3</font><font color="#000080">,</font><font color="#800000">29</font><font color="#000080">,</font><font color="#800000">20</font><font color="#000080">,</font><font color="#800000">29</font><font color="#000080">);
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>PROCEDURE </b></font>BOX2<font color="#000080">;
+</font><font color="#FF0000"><b>BEGIN
+</b></font>textattr<font color="#000080">:=</font>white<font color="#000080">+(</font><font color="#800000">16</font><font color="#000080">*</font><font color="#800000">9</font><font color="#000080">);
+</font><font color="#FF0000"><b>FOR </b></font>I<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>TO </b></font><font color="#800000">37 </font><font color="#FF0000"><b>DO
+ BEGIN
+ </b></font>GOTOXY<font color="#000080">(</font><font color="#800000">40</font><font color="#000080">+</font>I<font color="#000080">,</font><font color="#800000">3</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&Auml;'</font><font color="#000080">);
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">40</font><font color="#000080">+</font>I<font color="#000080">,</font><font color="#800000">5</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&Auml;'</font><font color="#000080">);
+ </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">40</font><font color="#000080">,</font><font color="#800000">4</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&sup3;'</font><font color="#000080">);
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">77</font><font color="#000080">,</font><font color="#800000">4</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&sup3;'</font><font color="#000080">);
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">77</font><font color="#000080">,</font><font color="#800000">3</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&iquest;'</font><font color="#000080">);
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">77</font><font color="#000080">,</font><font color="#800000">5</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&Ugrave;'</font><font color="#000080">);
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">40</font><font color="#000080">,</font><font color="#800000">3</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&Uacute;'</font><font color="#000080">);
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">40</font><font color="#000080">,</font><font color="#800000">5</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&Agrave;'</font><font color="#000080">);
+</font>textattr<font color="#000080">:=</font><font color="#800000">9</font><font color="#000080">+(</font><font color="#800000">16</font><font color="#000080">*</font><font color="#800000">0</font><font color="#000080">);
+</font><font color="#FF0000"><b>for </b></font>i<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>to </b></font><font color="#800000">36 </font><font color="#FF0000"><b>do
+begin
+</b></font>gotoxy<font color="#000080">(</font><font color="#800000">40</font><font color="#000080">+</font>i<font color="#000080">,</font><font color="#800000">4</font><font color="#000080">);
+</font>writeln<font color="#000080">(</font><font color="#800000">'&Ucirc;'</font><font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font>textattr<font color="#000080">:=</font><font color="#800000">10</font><font color="#000080">+(</font><font color="#800000">16</font><font color="#000080">*</font><font color="#800000">9</font><font color="#000080">);
+</font>gotoxy<font color="#000080">(</font><font color="#800000">42</font><font color="#000080">,</font><font color="#800000">3</font><font color="#000080">);
+</font>writeln<font color="#000080">(</font><font color="#800000">'Last Modification'</font><font color="#000080">);
+</font>gotoxy<font color="#000080">(</font><font color="#800000">42</font><font color="#000080">,</font><font color="#800000">4</font><font color="#000080">);
+</font>writeln<font color="#000080">(</font>last<font color="#000080">);
+</font>SHADOW<font color="#000080">(</font><font color="#800000">3</font><font color="#000080">,</font><font color="#800000">77</font><font color="#000080">,</font><font color="#800000">4</font><font color="#000080">,</font><font color="#800000">77</font><font color="#000080">);
+</font>SHADOW<font color="#000080">(</font><font color="#800000">5</font><font color="#000080">,</font><font color="#800000">41</font><font color="#000080">,</font><font color="#800000">5</font><font color="#000080">,</font><font color="#800000">77</font><font color="#000080">);
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>PROCEDURE </b></font>BOX3<font color="#000080">;
+</font><font color="#FF0000"><b>BEGIN
+</b></font>textattr<font color="#000080">:=</font>white<font color="#000080">+(</font><font color="#800000">16</font><font color="#000080">*</font><font color="#800000">9</font><font color="#000080">);
+</font><font color="#FF0000"><b>FOR </b></font>I<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>TO </b></font><font color="#800000">37 </font><font color="#FF0000"><b>DO
+ BEGIN
+ </b></font>GOTOXY<font color="#000080">(</font><font color="#800000">40</font><font color="#000080">+</font>I<font color="#000080">,</font><font color="#800000">7</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&Auml;'</font><font color="#000080">);
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">40</font><font color="#000080">+</font>I<font color="#000080">,</font><font color="#800000">10</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&Auml;'</font><font color="#000080">);
+ </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">40</font><font color="#000080">,</font><font color="#800000">8</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&sup3;'</font><font color="#000080">);
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">77</font><font color="#000080">,</font><font color="#800000">8</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&sup3;'</font><font color="#000080">);
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">40</font><font color="#000080">,</font><font color="#800000">9</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&sup3;'</font><font color="#000080">);
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">77</font><font color="#000080">,</font><font color="#800000">9</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&sup3;'</font><font color="#000080">);
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">77</font><font color="#000080">,</font><font color="#800000">7</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&iquest;'</font><font color="#000080">);
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">77</font><font color="#000080">,</font><font color="#800000">10</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&Ugrave;'</font><font color="#000080">);
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">40</font><font color="#000080">,</font><font color="#800000">7</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&Uacute;'</font><font color="#000080">);
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">40</font><font color="#000080">,</font><font color="#800000">10</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&Agrave;'</font><font color="#000080">);
+</font>textattr<font color="#000080">:=</font><font color="#800000">9</font><font color="#000080">+(</font><font color="#800000">16</font><font color="#000080">*</font><font color="#800000">9</font><font color="#000080">);
+</font><font color="#FF0000"><b>FOR </b></font>J<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>TO </b></font><font color="#800000">2 </font><font color="#FF0000"><b>DO
+for </b></font>i<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>to </b></font><font color="#800000">36 </font><font color="#FF0000"><b>do
+begin
+</b></font>gotoxy<font color="#000080">(</font><font color="#800000">40</font><font color="#000080">+</font>i<font color="#000080">,</font><font color="#800000">7</font><font color="#000080">+</font>J<font color="#000080">);
+</font>writeln<font color="#000080">(</font><font color="#800000">'&Ucirc;'</font><font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font>textattr<font color="#000080">:=</font><font color="#800000">10</font><font color="#000080">+(</font><font color="#800000">16</font><font color="#000080">*</font><font color="#800000">9</font><font color="#000080">);
+</font>gotoxy<font color="#000080">(</font><font color="#800000">42</font><font color="#000080">,</font><font color="#800000">7</font><font color="#000080">);
+</font>writeln<font color="#000080">(</font><font color="#800000">'User Information'</font><font color="#000080">);
+</font>SHADOW<font color="#000080">(</font><font color="#800000">7</font><font color="#000080">,</font><font color="#800000">77</font><font color="#000080">,</font><font color="#800000">9</font><font color="#000080">,</font><font color="#800000">77</font><font color="#000080">);
+</font>SHADOW<font color="#000080">(</font><font color="#800000">10</font><font color="#000080">,</font><font color="#800000">41</font><font color="#000080">,</font><font color="#800000">10</font><font color="#000080">,</font><font color="#800000">77</font><font color="#000080">);
+</font>textattr<font color="#000080">:=</font>lightgreen<font color="#000080">+(</font><font color="#800000">16</font><font color="#000080">*</font><font color="#800000">9</font><font color="#000080">);
+</font>GOTOXY<font color="#000080">(</font><font color="#800000">42</font><font color="#000080">,</font><font color="#800000">8</font><font color="#000080">);
+</font>WRITELN<font color="#000080">(</font><font color="#800000">'E- Encode File'</font><font color="#000080">);
+</font>GOTOXY<font color="#000080">(</font><font color="#800000">42</font><font color="#000080">,</font><font color="#800000">9</font><font color="#000080">);
+</font>WRITELN<font color="#000080">(</font><font color="#800000">'D- Decode File'</font><font color="#000080">);
+
+</font>GOTOXY<font color="#000080">(</font><font color="#800000">60</font><font color="#000080">,</font><font color="#800000">8</font><font color="#000080">);
+</font>WRITELN<font color="#000080">(</font><font color="#800000">'Del- Delete File'</font><font color="#000080">);
+</font>GOTOXY<font color="#000080">(</font><font color="#800000">60</font><font color="#000080">,</font><font color="#800000">9</font><font color="#000080">);
+</font>WRITELN<font color="#000080">(</font><font color="#800000">'Esc -Exit'</font><font color="#000080">);
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+
+</font><font color="#FF0000"><b>PROCEDURE </b></font>DELdir<font color="#000080">;
+</font><font color="#FF0000"><b>BEGIN
+</b></font>lines<font color="#000080">:=</font><font color="#800000">0</font><font color="#000080">;
+</font><font color="#FF0000"><b>if </b></font>pos<font color="#000080">&lt;</font><font color="#800000">15 </font><font color="#FF0000"><b>then
+  </b></font>pass<font color="#000080">:=</font>list<font color="#000080">[</font>pos<font color="#000080">]
+</font><font color="#FF0000"><b>else
+</b></font>pass<font color="#000080">:=</font>list<font color="#000080">[</font>cont<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">];
+</font>textattr<font color="#000080">:=</font>white<font color="#000080">+(</font><font color="#800000">16</font><font color="#000080">*</font><font color="#800000">9</font><font color="#000080">);
+</font>gotoxy<font color="#000080">(</font><font color="#800000">3</font><font color="#000080">,</font><font color="#800000">23</font><font color="#000080">);
+</font>write<font color="#000080">(</font><font color="#800000">'Do You Wish To Remove Thise Directory And All Its Contents [y/n]'</font><font color="#000080">);
+</font>key<font color="#000080">:=</font>readkey<font color="#000080">;
+</font><font color="#FF0000"><b>IF </b></font><font color="#000080">(</font>KEY<font color="#000080">=</font><font color="#800000">'Y'</font><font color="#000080">) </font><font color="#FF0000"><b>OR </b></font><font color="#000080">(</font>KEY<font color="#000080">=</font><font color="#800000">'y'</font><font color="#000080">) </font><font color="#FF0000"><b>THEN
+BEGIN
+</b></font>Assign<font color="#000080">(</font>f<font color="#000080">,</font>pass<font color="#000080">);
+</font>SetFAttr<font color="#000080">(</font>f<font color="#000080">, </font>Archive<font color="#000080">);
+</font>NukeDir <font color="#000080">(</font>pass<font color="#000080">,</font>true<font color="#000080">, </font>false<font color="#000080">,</font>false<font color="#000080">,</font>faAnyFile<font color="#000080">,</font>lines<font color="#000080">);
+</font>LAST<font color="#000080">:=</font>PASS<font color="#000080">;
+</font><font color="#FF0000"><b>END
+ELSE
+IF </b></font><font color="#000080">(</font>KEY<font color="#000080">=</font><font color="#800000">'N'</font><font color="#000080">) </font><font color="#FF0000"><b>OR </b></font><font color="#000080">(</font>KEY<font color="#000080">=</font><font color="#800000">'n'</font><font color="#000080">) </font><font color="#FF0000"><b>THEN
+BEGIN
+</b></font>lasts<font color="#000080">:=</font>pass<font color="#000080">;
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+
+
+</font><font color="#FF0000"><b>PROCEDURE </b></font>MAIN<font color="#000080">;
+</font><font color="#FF0000"><b>begin
+  </b></font>TextBackground<font color="#000080">(</font>Black<font color="#000080">);
+  </font>TextColor<font color="#000080">(</font>LightGray<font color="#000080">);
+</font><font color="#008000"><i>{  ClrScr;}
+
+  </i></font><font color="#FF0000"><b>For </b></font>Cont <font color="#000080">:= </font><font color="#800000">1 </font><font color="#FF0000"><b>to </b></font><font color="#800000">15 </font><font color="#FF0000"><b>do
+  begin
+    </b></font>List<font color="#000080">[</font>Cont<font color="#000080">] := </font><font color="#800000">''</font><font color="#000080">;
+    </font>AttrList<font color="#000080">[</font>Cont<font color="#000080">] := </font><font color="#800000">''</font><font color="#000080">;
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+  </font>NumFiles <font color="#000080">:= </font><font color="#800000">0</font><font color="#000080">;
+  </font>FindFirst<font color="#000080">(</font><font color="#800000">'*.*'</font><font color="#000080">, </font>AnyFile<font color="#000080">, </font>DirInfo<font color="#000080">);    </font><font color="#008000"><i>{replace here path to *.*}
+
+  </i></font><font color="#FF0000"><b>While </b></font><font color="#000080">(</font>DosError <font color="#000080">= </font><font color="#800000">0</font><font color="#000080">) </font><font color="#FF0000"><b>do
+  begin
+    </b></font>Inc<font color="#000080">(</font>NumFiles<font color="#000080">, </font><font color="#800000">1</font><font color="#000080">);
+    </font>List<font color="#000080">[</font>NumFiles<font color="#000080">] := </font>Concat<font color="#000080">(</font>DirInfo<font color="#000080">.</font>Name<font color="#000080">,
+                      </font>Copy<font color="#000080">(</font>S<font color="#000080">, </font><font color="#800000">1</font><font color="#000080">, </font><font color="#800000">12 </font><font color="#000080">- </font>Length<font color="#000080">(</font>DirInfo<font color="#000080">.</font>Name<font color="#000080">)));
+    </font><font color="#FF0000"><b>If </b></font><font color="#000080">(</font>DirInfo<font color="#000080">.</font>Attr <font color="#000080">= </font><font color="#800000">$10</font><font color="#000080">) </font><font color="#FF0000"><b>Then
+      </b></font>AttrList<font color="#000080">[</font>NumFiles<font color="#000080">] := </font><font color="#800000">'&lt;DIR&gt;'
+    </font><font color="#FF0000"><b>Else
+      </b></font>Str<font color="#000080">(</font>DirInfo<font color="#000080">.</font>Size<font color="#000080">, </font>AttrList<font color="#000080">[</font>NumFiles<font color="#000080">]);
+    </font>AttrList<font color="#000080">[</font>NumFiles<font color="#000080">] := </font>Concat<font color="#000080">(</font>AttrList<font color="#000080">[</font>NumFiles<font color="#000080">],
+                          </font>Copy<font color="#000080">(</font>S<font color="#000080">, </font><font color="#800000">1</font><font color="#000080">, </font><font color="#800000">6 </font><font color="#000080">- </font>Length<font color="#000080">(</font>AttrList<font color="#000080">[</font>NumFiles<font color="#000080">])));
+    </font>FindNext<font color="#000080">(</font>DirInfo<font color="#000080">);
+  </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+  </font>First <font color="#000080">:= </font><font color="#800000">1</font><font color="#000080">;
+  </font>Pos   <font color="#000080">:= </font><font color="#800000">1</font><font color="#000080">;
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>PROCEDURE </b></font>DIRCHANGE<font color="#000080">;
+</font><font color="#FF0000"><b>BEGIN
+ </b></font>command<font color="#000080">:=</font><font color="#800000">'cd..'</font><font color="#000080">;
+ </font>SwapVectors<font color="#000080">;
+ </font>Exec<font color="#000080">(</font>GetEnv<font color="#000080">(</font><font color="#800000">'COMSPEC'</font><font color="#000080">), </font><font color="#800000">'/C ' </font><font color="#000080">+ </font>Command<font color="#000080">);
+ </font>SwapVectors<font color="#000080">;
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>PROCEDURE </b></font>DIRCHANGE1<font color="#000080">;
+</font><font color="#FF0000"><b>BEGIN
+ </b></font>command<font color="#000080">:=</font><font color="#800000">'cd '</font><font color="#000080">+</font>pass<font color="#000080">;
+ </font>SwapVectors<font color="#000080">;
+ </font>Exec<font color="#000080">(</font>GetEnv<font color="#000080">(</font><font color="#800000">'COMSPEC'</font><font color="#000080">), </font><font color="#800000">'/C ' </font><font color="#000080">+ </font>Command<font color="#000080">);
+ </font>SwapVectors<font color="#000080">;
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>PROCEDURE </b></font>userinf<font color="#000080">;
+</font><font color="#FF0000"><b>BEGIN
+</b></font>textattr<font color="#000080">:=</font>white<font color="#000080">+(</font><font color="#800000">16</font><font color="#000080">*</font><font color="#800000">9</font><font color="#000080">);
+</font><font color="#FF0000"><b>FOR </b></font>I<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>TO </b></font><font color="#800000">37 </font><font color="#FF0000"><b>DO
+ BEGIN
+ </b></font>GOTOXY<font color="#000080">(</font><font color="#800000">40</font><font color="#000080">+</font>I<font color="#000080">,</font><font color="#800000">12</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&Auml;'</font><font color="#000080">);
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">40</font><font color="#000080">+</font>I<font color="#000080">,</font><font color="#800000">20</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&Auml;'</font><font color="#000080">);
+ </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>FOR </b></font>I<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>TO </b></font><font color="#800000">7 </font><font color="#FF0000"><b>DO
+BEGIN
+ </b></font>GOTOXY<font color="#000080">(</font><font color="#800000">40</font><font color="#000080">,</font><font color="#800000">12</font><font color="#000080">+</font>I<font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&sup3;'</font><font color="#000080">);
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">77</font><font color="#000080">,</font><font color="#800000">12</font><font color="#000080">+</font>I<font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&sup3;'</font><font color="#000080">);
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">77</font><font color="#000080">,</font><font color="#800000">12</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&iquest;'</font><font color="#000080">);
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">77</font><font color="#000080">,</font><font color="#800000">20</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&Ugrave;'</font><font color="#000080">);
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">40</font><font color="#000080">,</font><font color="#800000">12</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&Uacute;'</font><font color="#000080">);
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">40</font><font color="#000080">,</font><font color="#800000">20</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&Agrave;'</font><font color="#000080">);
+</font>textattr<font color="#000080">:=</font><font color="#800000">9</font><font color="#000080">+(</font><font color="#800000">16</font><font color="#000080">*</font><font color="#800000">0</font><font color="#000080">);
+</font><font color="#FF0000"><b>FOR </b></font>J<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>TO </b></font><font color="#800000">7 </font><font color="#FF0000"><b>DO
+for </b></font>i<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>to </b></font><font color="#800000">36 </font><font color="#FF0000"><b>do
+begin
+</b></font>gotoxy<font color="#000080">(</font><font color="#800000">40</font><font color="#000080">+</font>i<font color="#000080">,</font><font color="#800000">12</font><font color="#000080">+</font>J<font color="#000080">);
+</font>writeln<font color="#000080">(</font><font color="#800000">'&Ucirc;'</font><font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font>SHADOW<font color="#000080">(</font><font color="#800000">12</font><font color="#000080">,</font><font color="#800000">77</font><font color="#000080">,</font><font color="#800000">19</font><font color="#000080">,</font><font color="#800000">77</font><font color="#000080">);
+</font>SHADOW<font color="#000080">(</font><font color="#800000">20</font><font color="#000080">,</font><font color="#800000">41</font><font color="#000080">,</font><font color="#800000">20</font><font color="#000080">,</font><font color="#800000">77</font><font color="#000080">);
+
+</font>textattr<font color="#000080">:=</font>LIGHTGREEN<font color="#000080">+(</font><font color="#800000">16</font><font color="#000080">*</font><font color="#800000">9</font><font color="#000080">);
+</font>GOTOXY<font color="#000080">(</font><font color="#800000">42</font><font color="#000080">,</font><font color="#800000">14</font><font color="#000080">);
+</font>WRITELN<font color="#000080">(</font><font color="#800000">'Source File Name : '</font><font color="#000080">,</font>pass<font color="#000080">);
+</font>_FILE<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">]:=</font>PASS<font color="#000080">;
+</font>_File<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">] := (</font>UpStr<font color="#000080">(</font>_File<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">]) );
+</font>GOTOXY<font color="#000080">(</font><font color="#800000">42</font><font color="#000080">,</font><font color="#800000">16</font><font color="#000080">);
+</font>WRITE<font color="#000080">(</font><font color="#800000">'Target File Name : '</font><font color="#000080">);
+
+</font>GOTOXY<font color="#000080">(</font><font color="#800000">61</font><font color="#000080">,</font><font color="#800000">16</font><font color="#000080">);
+</font>WRITE<font color="#000080">(</font><font color="#800000">'             '</font><font color="#000080">);
+</font>GOTOXY<font color="#000080">(</font><font color="#800000">61</font><font color="#000080">,</font><font color="#800000">16</font><font color="#000080">);
+</font>READLN<font color="#000080">(</font>_FILE<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">]);
+</font><font color="#008000"><i>{GetStr(_File[2],'','',True);}
+</i></font>_File<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">] := (</font>UpStr<font color="#000080">(</font>_File<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">]) );
+</font>GOTOXY<font color="#000080">(</font><font color="#800000">42</font><font color="#000080">,</font><font color="#800000">18</font><font color="#000080">);
+</font>WRITELN<font color="#000080">(</font><font color="#800000">'File Password    : '</font><font color="#000080">);
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+
+</font><font color="#FF0000"><b>PROCEDURE </b></font>CONFIRM_ENCODE<font color="#000080">;
+</font><font color="#FF0000"><b>BEGIN
+</b></font>lines<font color="#000080">:=</font><font color="#800000">0</font><font color="#000080">;
+</font><font color="#FF0000"><b>if </b></font>pos<font color="#000080">&lt;</font><font color="#800000">15 </font><font color="#FF0000"><b>then
+  </b></font>pass<font color="#000080">:=</font>list<font color="#000080">[</font>pos<font color="#000080">]
+</font><font color="#FF0000"><b>else
+</b></font>pass<font color="#000080">:=</font>list<font color="#000080">[</font>cont<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">];
+</font>textattr<font color="#000080">:=</font>WHITE<font color="#000080">+(</font><font color="#800000">16</font><font color="#000080">*</font><font color="#800000">9</font><font color="#000080">);
+</font><font color="#FF0000"><b>FOR </b></font>I<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>TO </b></font><font color="#800000">57 </font><font color="#FF0000"><b>DO
+ BEGIN
+ </b></font>GOTOXY<font color="#000080">(</font><font color="#800000">10</font><font color="#000080">+</font>I<font color="#000080">,</font><font color="#800000">7</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&Auml;'</font><font color="#000080">);
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">10</font><font color="#000080">+</font>I<font color="#000080">,</font><font color="#800000">9</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&Auml;'</font><font color="#000080">);
+ </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">10</font><font color="#000080">,</font><font color="#800000">8</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&sup3;'</font><font color="#000080">);
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">67</font><font color="#000080">,</font><font color="#800000">8</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&sup3;'</font><font color="#000080">);
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">67</font><font color="#000080">,</font><font color="#800000">7</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&iquest;'</font><font color="#000080">);
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">67</font><font color="#000080">,</font><font color="#800000">9</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&Ugrave;'</font><font color="#000080">);
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">10</font><font color="#000080">,</font><font color="#800000">7</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&Uacute;'</font><font color="#000080">);
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">10</font><font color="#000080">,</font><font color="#800000">9</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&Agrave;'</font><font color="#000080">);
+</font>textattr<font color="#000080">:=</font><font color="#800000">9</font><font color="#000080">+(</font><font color="#800000">16</font><font color="#000080">*</font><font color="#800000">0</font><font color="#000080">);
+</font><font color="#FF0000"><b>for </b></font>i<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>to </b></font><font color="#800000">56 </font><font color="#FF0000"><b>do
+begin
+</b></font>gotoxy<font color="#000080">(</font><font color="#800000">10</font><font color="#000080">+</font>i<font color="#000080">,</font><font color="#800000">8</font><font color="#000080">);
+</font>writeln<font color="#000080">(</font><font color="#800000">'&Ucirc;'</font><font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font>textattr<font color="#000080">:=</font><font color="#800000">10</font><font color="#000080">+(</font><font color="#800000">16</font><font color="#000080">*</font><font color="#800000">9</font><font color="#000080">);
+</font>gotoxy<font color="#000080">(</font><font color="#800000">12</font><font color="#000080">,</font><font color="#800000">7</font><font color="#000080">);
+</font>writeln<font color="#000080">(</font><font color="#800000">'Encode File Confirmation [y/n]'</font><font color="#000080">);
+</font>gotoxy<font color="#000080">(</font><font color="#800000">42</font><font color="#000080">,</font><font color="#800000">4</font><font color="#000080">);
+</font>writeln<font color="#000080">(</font>last<font color="#000080">);
+</font>SHADOW<font color="#000080">(</font><font color="#800000">7</font><font color="#000080">,</font><font color="#800000">67</font><font color="#000080">,</font><font color="#800000">8</font><font color="#000080">,</font><font color="#800000">67</font><font color="#000080">);
+</font>SHADOW<font color="#000080">(</font><font color="#800000">9</font><font color="#000080">,</font><font color="#800000">11</font><font color="#000080">,</font><font color="#800000">9</font><font color="#000080">,</font><font color="#800000">67</font><font color="#000080">);
+
+</font>textattr<font color="#000080">:=</font>white<font color="#000080">+(</font><font color="#800000">16</font><font color="#000080">*</font><font color="#800000">9</font><font color="#000080">);
+</font>GOTOXY<font color="#000080">(</font><font color="#800000">12</font><font color="#000080">,</font><font color="#800000">8</font><font color="#000080">);
+</font>WRITELN<font color="#000080">(</font><font color="#800000">'Do You Wish To Encode File : '</font><font color="#000080">,</font>pass<font color="#000080">); </font><font color="#008000"><i>{&lt;----}
+</i></font>key<font color="#000080">:=</font>readkey<font color="#000080">;
+</font><font color="#FF0000"><b>if </b></font><font color="#000080">(</font>key<font color="#000080">=</font><font color="#800000">'N'</font><font color="#000080">) </font><font color="#FF0000"><b>OR </b></font><font color="#000080">(</font>key<font color="#000080">=</font><font color="#800000">'n'</font><font color="#000080">) </font><font color="#FF0000"><b>THEN
+BEGIN
+END
+ELSE
+if </b></font><font color="#000080">(</font>key<font color="#000080">=</font><font color="#800000">'Y'</font><font color="#000080">) </font><font color="#FF0000"><b>OR </b></font><font color="#000080">(</font>key<font color="#000080">=</font><font color="#800000">'y'</font><font color="#000080">) </font><font color="#FF0000"><b>THEN
+BEGIN
+</b></font><font color="#008000"><i>{MAIN CODE HERE}
+</i></font>userinf<font color="#000080">;
+</font>EnCode<font color="#000080">(</font>_file<font color="#000080">,</font>true<font color="#000080">);
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>PROCEDURE </b></font>CONFIRM_DECODE<font color="#000080">;
+</font><font color="#FF0000"><b>BEGIN
+</b></font>lines<font color="#000080">:=</font><font color="#800000">0</font><font color="#000080">;
+</font><font color="#FF0000"><b>if </b></font>pos<font color="#000080">&lt;</font><font color="#800000">15 </font><font color="#FF0000"><b>then
+  </b></font>pass<font color="#000080">:=</font>list<font color="#000080">[</font>pos<font color="#000080">]
+</font><font color="#FF0000"><b>else
+</b></font>pass<font color="#000080">:=</font>list<font color="#000080">[</font>cont<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">];
+</font>textattr<font color="#000080">:=</font>WHITE<font color="#000080">+(</font><font color="#800000">16</font><font color="#000080">*</font><font color="#800000">9</font><font color="#000080">);
+</font><font color="#FF0000"><b>FOR </b></font>I<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>TO </b></font><font color="#800000">57 </font><font color="#FF0000"><b>DO
+ BEGIN
+ </b></font>GOTOXY<font color="#000080">(</font><font color="#800000">10</font><font color="#000080">+</font>I<font color="#000080">,</font><font color="#800000">7</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&Auml;'</font><font color="#000080">);
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">10</font><font color="#000080">+</font>I<font color="#000080">,</font><font color="#800000">9</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&Auml;'</font><font color="#000080">);
+ </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">10</font><font color="#000080">,</font><font color="#800000">8</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&sup3;'</font><font color="#000080">);
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">67</font><font color="#000080">,</font><font color="#800000">8</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&sup3;'</font><font color="#000080">);
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">67</font><font color="#000080">,</font><font color="#800000">7</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&iquest;'</font><font color="#000080">);
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">67</font><font color="#000080">,</font><font color="#800000">9</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&Ugrave;'</font><font color="#000080">);
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">10</font><font color="#000080">,</font><font color="#800000">7</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&Uacute;'</font><font color="#000080">);
+ </font>GOTOXY<font color="#000080">(</font><font color="#800000">10</font><font color="#000080">,</font><font color="#800000">9</font><font color="#000080">);
+ </font>WRITELN<font color="#000080">(</font><font color="#800000">'&Agrave;'</font><font color="#000080">);
+</font>textattr<font color="#000080">:=</font><font color="#800000">9</font><font color="#000080">+(</font><font color="#800000">16</font><font color="#000080">*</font><font color="#800000">0</font><font color="#000080">);
+</font><font color="#FF0000"><b>for </b></font>i<font color="#000080">:=</font><font color="#800000">1 </font><font color="#FF0000"><b>to </b></font><font color="#800000">56 </font><font color="#FF0000"><b>do
+begin
+</b></font>gotoxy<font color="#000080">(</font><font color="#800000">10</font><font color="#000080">+</font>i<font color="#000080">,</font><font color="#800000">8</font><font color="#000080">);
+</font>writeln<font color="#000080">(</font><font color="#800000">'&Ucirc;'</font><font color="#000080">);
+</font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+</font>textattr<font color="#000080">:=</font><font color="#800000">10</font><font color="#000080">+(</font><font color="#800000">16</font><font color="#000080">*</font><font color="#800000">9</font><font color="#000080">);
+</font>gotoxy<font color="#000080">(</font><font color="#800000">12</font><font color="#000080">,</font><font color="#800000">7</font><font color="#000080">);
+</font>writeln<font color="#000080">(</font><font color="#800000">'Decode File Confirmation [y/n]'</font><font color="#000080">);
+</font>gotoxy<font color="#000080">(</font><font color="#800000">42</font><font color="#000080">,</font><font color="#800000">4</font><font color="#000080">);
+</font>writeln<font color="#000080">(</font>last<font color="#000080">);
+</font>SHADOW<font color="#000080">(</font><font color="#800000">7</font><font color="#000080">,</font><font color="#800000">67</font><font color="#000080">,</font><font color="#800000">8</font><font color="#000080">,</font><font color="#800000">67</font><font color="#000080">);
+</font>SHADOW<font color="#000080">(</font><font color="#800000">9</font><font color="#000080">,</font><font color="#800000">11</font><font color="#000080">,</font><font color="#800000">9</font><font color="#000080">,</font><font color="#800000">67</font><font color="#000080">);
+
+</font>textattr<font color="#000080">:=</font>white<font color="#000080">+(</font><font color="#800000">16</font><font color="#000080">*</font><font color="#800000">9</font><font color="#000080">);
+</font>GOTOXY<font color="#000080">(</font><font color="#800000">12</font><font color="#000080">,</font><font color="#800000">8</font><font color="#000080">);
+</font>WRITELN<font color="#000080">(</font><font color="#800000">'Do You Wish To Decode File : '</font><font color="#000080">,</font>pass<font color="#000080">); </font><font color="#008000"><i>{&lt;----}
+</i></font>key<font color="#000080">:=</font>readkey<font color="#000080">;
+</font><font color="#FF0000"><b>if </b></font><font color="#000080">(</font>key<font color="#000080">=</font><font color="#800000">'N'</font><font color="#000080">) </font><font color="#FF0000"><b>OR </b></font><font color="#000080">(</font>key<font color="#000080">=</font><font color="#800000">'n'</font><font color="#000080">) </font><font color="#FF0000"><b>THEN
+BEGIN
+END
+ELSE
+if </b></font><font color="#000080">(</font>key<font color="#000080">=</font><font color="#800000">'Y'</font><font color="#000080">) </font><font color="#FF0000"><b>OR </b></font><font color="#000080">(</font>key<font color="#000080">=</font><font color="#800000">'y'</font><font color="#000080">) </font><font color="#FF0000"><b>THEN
+BEGIN
+</b></font><font color="#008000"><i>{MAIN CODE HERE}
+</i></font>userinf<font color="#000080">;
+</font>deCode<font color="#000080">(</font>_file<font color="#000080">);
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>PROCEDURE </b></font>DELFILE<font color="#000080">;
+</font><font color="#FF0000"><b>BEGIN
+if </b></font>pos<font color="#000080">&lt;</font><font color="#800000">15 </font><font color="#FF0000"><b>then
+  </b></font>pass<font color="#000080">:=</font>list<font color="#000080">[</font>pos<font color="#000080">]
+</font><font color="#FF0000"><b>else
+</b></font>pass<font color="#000080">:=</font>list<font color="#000080">[</font>cont<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">];
+
+</font>textattr<font color="#000080">:=</font>BLACK<font color="#000080">+(</font><font color="#800000">16</font><font color="#000080">*</font>WHITE<font color="#000080">);
+</font>GOTOXY<font color="#000080">(</font><font color="#800000">1</font><font color="#000080">,</font><font color="#800000">23</font><font color="#000080">);
+</font>WRITE<font color="#000080">(</font><font color="#800000">'Do You Wish To Delete File [y/n] : '</font><font color="#000080">,</font>pass<font color="#000080">);
+</font><font color="#FF0000"><b>REPEAT
+</b></font>key<font color="#000080">:=</font>READKEY<font color="#000080">;
+</font><font color="#FF0000"><b>UNTIL </b></font><font color="#000080">(</font>KEY<font color="#000080">=</font><font color="#800000">'N'</font><font color="#000080">) </font><font color="#FF0000"><b>OR </b></font><font color="#000080">(</font>KEY<font color="#000080">=</font><font color="#800000">'n'</font><font color="#000080">) </font><font color="#FF0000"><b>OR </b></font><font color="#000080">(</font>KEY<font color="#000080">=</font><font color="#800000">'Y'</font><font color="#000080">) </font><font color="#FF0000"><b>OR </b></font><font color="#000080">(</font>KEY<font color="#000080">=</font><font color="#800000">'y'</font><font color="#000080">);
+</font><font color="#FF0000"><b>IF </b></font><font color="#000080">(</font>KEY<font color="#000080">=</font><font color="#800000">'Y'</font><font color="#000080">) </font><font color="#FF0000"><b>OR </b></font><font color="#000080">(</font>KEY<font color="#000080">=</font><font color="#800000">'y'</font><font color="#000080">) </font><font color="#FF0000"><b>THEN
+ BEGIN
+ </b></font>Assign<font color="#000080">(</font>F<font color="#000080">, </font>pass<font color="#000080">);
+ </font>SetFAttr<font color="#000080">(</font>F<font color="#000080">, </font>Archive<font color="#000080">);          </font><font color="#008000"><i>{ For Windows: faArchive }
+ </i></font>DeleteFile<font color="#000080">(</font>pass<font color="#000080">);
+ </font>LAST<font color="#000080">:=</font>PASS<font color="#000080">;
+ </font><font color="#FF0000"><b>END
+ELSE
+IF </b></font><font color="#000080">(</font>KEY<font color="#000080">=</font><font color="#800000">'N'</font><font color="#000080">) </font><font color="#FF0000"><b>OR </b></font><font color="#000080">(</font>KEY<font color="#000080">=</font><font color="#800000">'n'</font><font color="#000080">) </font><font color="#FF0000"><b>THEN
+ BEGIN
+ END</b></font><font color="#000080">;
+</font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+</font><font color="#FF0000"><b>BEGIN
+</b></font><font color="#800000">2</font><font color="#000080">:</font>TEXTMODE<font color="#000080">(</font>CO80<font color="#000080">);
+</font><font color="#800000">1</font><font color="#000080">:</font>BOX<font color="#000080">;
+</font>BOX2<font color="#000080">;
+</font>BOX3<font color="#000080">;
+</font>MAIN<font color="#000080">;
+  </font><font color="#FF0000"><b>Repeat
+    For </b></font>Cont <font color="#000080">:= </font>First <font color="#FF0000"><b>To </b></font>First <font color="#000080">+ </font><font color="#800000">15 </font><font color="#FF0000"><b>do
+    begin
+      If </b></font><font color="#000080">(</font>Cont <font color="#000080">- </font>First <font color="#000080">+ </font><font color="#800000">1 </font><font color="#000080">= </font>Pos<font color="#000080">) </font><font color="#FF0000"><b>Then
+      begin
+        </b></font>TextBackground<font color="#000080">(</font>Blue<font color="#000080">);
+        </font>TextColor<font color="#000080">(</font>Yellow<font color="#000080">);
+      </font><font color="#FF0000"><b>end
+      Else
+      begin
+      </b></font>textattr<font color="#000080">:=</font>lightgreen<font color="#000080">+(</font><font color="#800000">16</font><font color="#000080">*</font><font color="#800000">9</font><font color="#000080">);
+
+      </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+      </font>GotoXY<font color="#000080">(</font><font color="#800000">5</font><font color="#000080">, </font>Cont <font color="#000080">- </font>First <font color="#000080">+ </font><font color="#800000">4</font><font color="#000080">);
+      </font>Write<font color="#000080">(</font><font color="#800000">' '</font><font color="#000080">, </font>List<font color="#000080">[</font>Cont<font color="#000080">], </font><font color="#800000">'  '</font><font color="#000080">, </font>AttrList<font color="#000080">[</font>Cont<font color="#000080">]);
+    </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+    </font>C <font color="#000080">:= </font>ReadKey<font color="#000080">;
+    </font><font color="#FF0000"><b>If </b></font><font color="#000080">(</font>C <font color="#000080">= </font><font color="#800000">#72</font><font color="#000080">) </font><font color="#FF0000"><b>Then
+      If </b></font><font color="#000080">(</font>Pos <font color="#000080">&gt; </font><font color="#800000">1</font><font color="#000080">) </font><font color="#FF0000"><b>Then
+        </b></font>Dec<font color="#000080">(</font>Pos<font color="#000080">, </font><font color="#800000">1</font><font color="#000080">)
+      </font><font color="#FF0000"><b>Else
+      If </b></font><font color="#000080">(</font>First <font color="#000080">&gt; </font><font color="#800000">1</font><font color="#000080">) </font><font color="#FF0000"><b>Then
+        </b></font>Dec<font color="#000080">(</font>First<font color="#000080">,</font><font color="#800000">1</font><font color="#000080">);
+
+    </font><font color="#FF0000"><b>If </b></font><font color="#000080">(</font>C <font color="#000080">= </font><font color="#800000">#80</font><font color="#000080">) </font><font color="#FF0000"><b>Then
+      If </b></font><font color="#000080">(</font>Pos <font color="#000080">&lt; </font><font color="#800000">15</font><font color="#000080">) </font><font color="#FF0000"><b>Then
+        </b></font>Inc<font color="#000080">(</font>Pos<font color="#000080">, </font><font color="#800000">1</font><font color="#000080">)
+      </font><font color="#FF0000"><b>Else
+      If </b></font><font color="#000080">(</font>First <font color="#000080">+ </font><font color="#800000">15 </font><font color="#000080">&lt; </font>NumFiles<font color="#000080">) </font><font color="#FF0000"><b>Then
+        </b></font>Inc<font color="#000080">(</font>First<font color="#000080">,</font><font color="#800000">1</font><font color="#000080">);
+
+    </font><font color="#FF0000"><b>IF </b></font><font color="#000080">(</font>C<font color="#000080">=</font><font color="#800000">#27</font><font color="#000080">) </font><font color="#FF0000"><b>THEN
+    begin
+    </b></font>textmode<font color="#000080">(</font>co80<font color="#000080">);
+    </font>EXIT<font color="#000080">;
+    </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+    </font><font color="#FF0000"><b>IF </b></font><font color="#000080">(</font>C<font color="#000080">=</font><font color="#800000">'D'</font><font color="#000080">) </font><font color="#FF0000"><b>OR </b></font><font color="#000080">(</font>C<font color="#000080">=</font><font color="#800000">'d'</font><font color="#000080">) </font><font color="#FF0000"><b>THEN
+    begin
+    </b></font>CONFIRM_DECODE<font color="#000080">;
+    </font><font color="#FF0000"><b>GOTO </b></font><font color="#800000">1</font><font color="#000080">;
+    </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+    </font><font color="#FF0000"><b>IF </b></font><font color="#000080">(</font>C<font color="#000080">=</font><font color="#800000">'E'</font><font color="#000080">) </font><font color="#FF0000"><b>OR </b></font><font color="#000080">(</font>C<font color="#000080">=</font><font color="#800000">'e'</font><font color="#000080">) </font><font color="#FF0000"><b>THEN
+    begin
+    </b></font>CONFIRM_ENCODE<font color="#000080">;
+    </font><font color="#FF0000"><b>GOTO </b></font><font color="#800000">1</font><font color="#000080">;
+    </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+
+    </font><font color="#FF0000"><b>IF </b></font><font color="#000080">(</font>C<font color="#000080">=</font><font color="#800000">#13</font><font color="#000080">) </font><font color="#FF0000"><b>THEN
+    BEGIN
+    if </b></font>pos<font color="#000080">&lt;</font><font color="#800000">15 </font><font color="#FF0000"><b>then
+    </b></font>pass1<font color="#000080">:=</font>list<font color="#000080">[</font>pos<font color="#000080">]
+    </font><font color="#FF0000"><b>else
+    </b></font>pass1<font color="#000080">:=</font>list<font color="#000080">[</font>cont<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">];
+    </font><font color="#FF0000"><b>if </b></font>pass1<font color="#000080">=</font><font color="#800000">'..' </font><font color="#FF0000"><b>then
+     begin
+     </b></font>DIRCHANGE<font color="#000080">;
+     </font><font color="#FF0000"><b>goto </b></font><font color="#800000">1</font><font color="#000080">;
+     </font><font color="#FF0000"><b>end
+    else
+     begin
+     if </b></font>pos<font color="#000080">&lt;</font><font color="#800000">15 </font><font color="#FF0000"><b>then
+     </b></font>pass<font color="#000080">:=</font>list<font color="#000080">[</font>pos<font color="#000080">]
+     </font><font color="#FF0000"><b>else
+     </b></font>pass<font color="#000080">:=</font>list<font color="#000080">[</font>cont<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">];
+     </font>dirchange1<font color="#000080">;
+     </font><font color="#FF0000"><b>goto </b></font><font color="#800000">1</font><font color="#000080">;
+     </font><font color="#FF0000"><b>end</b></font><font color="#000080">;
+    </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+    </font><font color="#FF0000"><b>IF </b></font><font color="#000080">(</font>C<font color="#000080">=</font><font color="#800000">#83</font><font color="#000080">) </font><font color="#FF0000"><b>THEN
+    BEGIN
+    if </b></font>pos<font color="#000080">&lt;</font><font color="#800000">15 </font><font color="#FF0000"><b>then
+    </b></font>pass1<font color="#000080">:=</font>list<font color="#000080">[</font>pos<font color="#000080">]
+    </font><font color="#FF0000"><b>else
+    </b></font>pass1<font color="#000080">:=</font>list<font color="#000080">[</font>cont<font color="#000080">-</font><font color="#800000">1</font><font color="#000080">];
+     </font>Delfile<font color="#000080">;
+     </font><font color="#FF0000"><b>goto </b></font><font color="#800000">1</font><font color="#000080">;
+    </font><font color="#FF0000"><b>END</b></font><font color="#000080">;
+
+  </font><font color="#FF0000"><b>Until </b></font><font color="#000080">(</font>Ord<font color="#000080">(</font>c<font color="#000080">) = </font><font color="#800000">13</font><font color="#000080">);</font><font color="#008000"><i>{}
+</i></font><font color="#FF0000"><b>END</b></font><font color="#000080">.
+
+</font>GetStr<font color="#000080">(</font>_File<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">],</font><font color="#800000">'Enter Input Path/File : '</font><font color="#000080">,</font><font color="#800000">''</font><font color="#000080">,</font>True<font color="#000080">);
+</font>_File<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">] := (</font>UpStr<font color="#000080">(</font>_File<font color="#000080">[</font><font color="#800000">1</font><font color="#000080">]) );
+</font>GetStr<font color="#000080">(</font>_File<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">],</font><font color="#800000">'Enter Output Path/File : '</font><font color="#000080">,</font><font color="#800000">''</font><font color="#000080">,</font>True<font color="#000080">);
+</font>_File<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">] := (</font>UpStr<font color="#000080">(</font>_File<font color="#000080">[</font><font color="#800000">2</font><font color="#000080">]) );
+</font><font color="#008000"><i>{EnCode(_file,true);}
+</i></font>decode<font color="#000080">(</font>_file<font color="#000080">);
+
+</font>
+{------------------------- snip, snip ----------------------------}
+
+ENCODED FP.ZIP FILE REMOVED.  PLEASE <A HREF="0103.FP.ZIP">DOWNLOAD</A> EITHER THE 
+ATTACHMENT OR THE COMPLETE ZIP FILE.
+
+</code></pre><!--EndFragment--><p align="center"><b>[</b><a href="index.html">Back to FILES SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="../index.html">Back to Main SWAG index</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0103.PAS">Original</a><b>]</b>&nbsp;&nbsp;
+<b>[</b><a href="0103.FP.ZIP">Attachment</a><b>]</b>
+</p></body>
+</html>
