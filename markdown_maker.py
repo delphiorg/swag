@@ -5,8 +5,9 @@ import hashlib
 import sys
 
 # Configuration
-SOURCE_DIR = "./"  # Current directory
-OUTPUT_DIR = "./output" # Where to put the MD files
+# Set this to "." to search the current directory and all subdirectories
+ROOT_DIR = "." 
+OUTPUT_BASE = "./output" # Markdown files will go here, mirroring structure
 
 # Pascal keyword triggers to detect code blocks
 PASCAL_TRIGGERS = [
@@ -19,7 +20,6 @@ TRIGGER_REGEX = re.compile('|'.join(PASCAL_TRIGGERS), re.IGNORECASE)
 END_REGEX = re.compile(r'^\s*end\.\s*', re.IGNORECASE)
 
 # Regex to parse the dir.txt lines
-# Primary: 0001.PAS      05-28-93  14:09  "CLKTSR.PAS" by SWAG SUPPORT TEAM
 REGEX_WITH_AUTHOR = re.compile(
     r'^(?P<filename>[\w\d]+\.PAS)\s+'
     r'(?P<date>[\d-]+)\s+'
@@ -29,7 +29,6 @@ REGEX_WITH_AUTHOR = re.compile(
     re.IGNORECASE
 )
 
-# Fallback: 0001.PAS      05-28-93  14:09  Some Description Here
 REGEX_NO_AUTHOR = re.compile(
     r'^(?P<filename>[\w\d]+\.PAS)\s+'
     r'(?P<date>[\d-]+)\s+'
@@ -38,133 +37,131 @@ REGEX_NO_AUTHOR = re.compile(
     re.IGNORECASE
 )
 
+def log(msg):
+    print(f"[LOG] {msg}")
+
 def sanitize_filename(text):
-    """
-    Cleans up a string to be safe for filenames.
-    Replaces spaces with underscores, removes quotes, etc.
-    """
-    if not text:
-        return ""
-    # Remove quotes
+    if not text: return ""
     text = text.replace('"', '').replace("'", "")
-    # Replace common separators with dash or underscore
     text = text.replace(' ', '_').replace('/', '-').replace('\\', '-')
-    # Keep only alphanumeric, dashes, underscores, dots
     text = re.sub(r'[^a-zA-Z0-9_.-]', '', text)
     return text
 
 def get_file_stats(filepath):
-    """
-    Calculates size and SHA256 hash of the file.
-    Returns (size_in_bytes, formatted_size_str, sha256_hex)
-    """
     if not os.path.exists(filepath):
         return 0, "0 bytes", ""
-        
     size = os.path.getsize(filepath)
     sha256_hash = hashlib.sha256()
-    
     with open(filepath, "rb") as f:
-        # Read and update hash string value in blocks of 4K
         for byte_block in iter(lambda: f.read(4096), b""):
             sha256_hash.update(byte_block)
-            
     return size, f"{size:,} bytes", sha256_hash.hexdigest().upper()
 
-def get_category_info(directory):
+def parse_dir_file(directory):
     """
-    Finds the *_dir.txt file and parses it.
-    Returns (category_name, category_slug, metadata_dict)
+    Looks for a *_dir.txt file in the given directory.
+    Returns (Category Name, Slug, Metadata Dictionary)
     """
-    dir_files = glob.glob(os.path.join(directory, "*dir.txt"))
-    # Fallback if no dir file found
-    if not dir_files:
-        return "Unknown Category", "unknown", {}
+    # Find any file ending in dir.txt (case insensitive usually matches on Windows)
+    # We use glob to be sure.
+    search_path = os.path.join(directory, "*dir.txt")
+    files = glob.glob(search_path)
+    
+    if not files:
+        # Try finding uppercase DIR.TXT or similar if case sensitivity is an issue
+        files = [f for f in os.listdir(directory) if f.lower().endswith("dir.txt")]
+        if files:
+            files = [os.path.join(directory, files[0])]
+    
+    if not files:
+        log(f"⚠️  No *_dir.txt file found in {directory}. Skipping metadata scan.")
+        return None, None, {}
 
-    dir_file = dir_files[0]
+    dir_file = files[0]
+    log(f"Found index file: {os.path.basename(dir_file)}")
+
     metadata = {}
     category_name = "Unknown Category"
 
-    with open(dir_file, 'r', encoding='cp437', errors='replace') as f:
-        lines = f.readlines()
-        
-    # Extract Category Name
-    if lines:
-        first_line = lines[0].strip()
-        if "SWAG Title:" in first_line:
-            category_name = first_line.split("SWAG Title:")[1].strip()
-        else:
-            category_name = first_line
+    try:
+        with open(dir_file, 'r', encoding='cp437', errors='replace') as f:
+            lines = f.readlines()
+            
+        if lines:
+            first_line = lines[0].strip()
+            if "SWAG Title:" in first_line:
+                category_name = first_line.split("SWAG Title:")[1].strip()
+            else:
+                category_name = first_line
 
-    # Generate slug (e.g. "TSR UTILITIES" -> "tsr")
-    # Taking the first word is usually safe for SWAG structure
-    category_slug = category_name.split()[0].lower()
-
-    # Parse the file list
-    for line in lines:
-        line = line.strip()
-        if not line: continue
+        # Default slug is directory name if category is weird, otherwise first word of category
+        dir_name = os.path.basename(os.path.normpath(directory))
+        category_slug = dir_name.lower()
         
-        # Try finding Author first
-        match = REGEX_WITH_AUTHOR.match(line)
-        if match:
-            fname = match.group('filename')
-            metadata[fname] = {
-                'date': f"{match.group('date')}  {match.group('time')}",
-                'description': match.group('description'),
-                'contributor': match.group('contributor'),
-                'has_author': True
-            }
-        else:
-            # Try fallback (Description only)
+        # Parse content
+        count = 0
+        for line in lines:
+            line = line.strip()
+            if not line: continue
+            
+            # Try Author match
+            match = REGEX_WITH_AUTHOR.match(line)
+            if match:
+                fname = match.group('filename')
+                metadata[fname] = {
+                    'date': f"{match.group('date')}  {match.group('time')}",
+                    'description': match.group('description'),
+                    'contributor': match.group('contributor'),
+                    'has_author': True
+                }
+                count += 1
+                continue
+
+            # Try No-Author match
             match = REGEX_NO_AUTHOR.match(line)
             if match:
                 fname = match.group('filename')
-                # Ignore the header line itself if it matches the pattern accidentally
                 if "SWAG Title" in line: continue
-                
                 metadata[fname] = {
                     'date': f"{match.group('date')}  {match.group('time')}",
                     'description': match.group('description'),
                     'contributor': None,
                     'has_author': False
                 }
-            
-    return category_name, category_slug, metadata
+                count += 1
+        
+        log(f"Parsed {count} entries from {os.path.basename(dir_file)}")
+        return category_name, category_slug, metadata
+
+    except Exception as e:
+        log(f"❌ Error reading {dir_file}: {e}")
+        return None, None, {}
 
 def read_file_content(filepath):
-    """
-    Tries to read the file using CP437. 
-    Strips the CTRL-Z character.
-    """
     try:
         with open(filepath, 'r', encoding='cp437') as f:
             content = f.read()
         return content.rstrip('\x1a')
     except Exception as e:
-        print(f"Error reading {filepath}: {e}")
+        log(f"Error reading content of {filepath}: {e}")
         return ""
 
 def generate_markdown(filename, content, meta, category_name, category_slug, file_stats):
     lines = content.splitlines()
     markdown_output = []
     
-    # Metadata extraction
     description = meta.get('description', filename)
-    # Strip quotes for title display if they exist
-    title_display = description.strip('"')
-    
     contributor = meta.get('contributor', 'Unknown')
     date = meta.get('date', 'Unknown')
     has_author = meta.get('has_author', False)
     
-    # --- 1. HEADER GENERATION ---
+    # 1. Header
+    title_line = f"# {description}"
     if has_author:
-        header = f"# {description} by {contributor}\n"
-    else:
-        header = f"# {description}\n"
-        
-    header += f"""
+        title_line += f" by {contributor}"
+    
+    header = f"""{title_line}
+
 * Original date: `{date}`
 * Listed as: `{filename}`
 
@@ -173,10 +170,10 @@ def generate_markdown(filename, content, meta, category_name, category_slug, fil
 """
     markdown_output.append(header)
 
-    # --- 2. CONTENT (THE SANDWICH) ---
+    # 2. Content Sandwich
     state = "HEADER"
     
-    # Check for initial large comment block
+    # Strip initial comment start if present
     if lines and lines[0].strip().startswith('{') and not lines[0].strip().startswith('{$'):
         lines[0] = lines[0].replace('{', '', 1) 
         
@@ -203,7 +200,7 @@ def generate_markdown(filename, content, meta, category_name, category_slug, fil
     if state == "CODE":
         markdown_output.append("\n```\n")
 
-    # --- 3. METADATA FOOTER ---
+    # 3. Footer
     size_bytes, size_fmt, sha256 = file_stats
     
     footer = f"""
@@ -227,69 +224,79 @@ _Metadata:_
 ↪️End of File↩️
 """
     markdown_output.append(footer)
-
     return "\n".join(markdown_output)
 
-def main():
-    if not os.path.exists(OUTPUT_DIR):
-        os.makedirs(OUTPUT_DIR)
-
-    # 1. Get info from dir.txt
-    category_name, category_slug, metadata = get_category_info(SOURCE_DIR)
-    print(f"Processing Category: {category_name} ({category_slug})")
-
-    # 2. Process files
-    pas_files = glob.glob(os.path.join(SOURCE_DIR, "*.PAS"))
+def process_directory(directory, output_root):
+    log(f"📂 Scanning directory: {directory}")
     
+    # Check for .PAS files first
+    pas_files = glob.glob(os.path.join(directory, "*.PAS"))
+    if not pas_files:
+        # log(f"   No .PAS files found in {directory}. Skipping.")
+        return
+
+    # Try to get metadata
+    cat_name, cat_slug, metadata = parse_dir_file(directory)
+    
+    if not cat_name:
+        log(f"⚠️  Skipping folder {directory} (Could not determine category).")
+        return
+
+    # Create output folder
+    # We want output/CATEGORY/file.md
+    out_dir = os.path.join(output_root, cat_slug)
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
+
+    processed_count = 0
     for filepath in pas_files:
         filename = os.path.basename(filepath)
         
-        # Get content and stats
+        # Get content & stats
         content = read_file_content(filepath)
-        stats = get_file_stats(filepath) # (bytes, "x bytes", hash)
+        stats = get_file_stats(filepath)
         
-        # Get metadata
+        # Get Meta
         file_meta = metadata.get(filename, {})
         description = file_meta.get('description', filename)
         contributor = file_meta.get('contributor', '')
         has_author = file_meta.get('has_author', False)
         
-        # --- NEW FILENAME GENERATION ---
-        # Format: category-id-subject_by_author.md
-        # 1. Category Slug
-        new_name_parts = [category_slug]
-        
-        # 2. Original ID (0001)
-        # remove extension from 0001.PAS
+        # Name Gen
+        new_name_parts = [cat_slug]
         id_part = os.path.splitext(filename)[0]
         new_name_parts.append(id_part)
-        
-        # 3. Subject/Description
         clean_desc = sanitize_filename(description)
         new_name_parts.append(clean_desc)
-        
-        # 4. Author (if exists)
         if has_author and contributor:
             clean_author = sanitize_filename(contributor)
             new_name_parts.append(f"by_{clean_author}")
             
         new_filename = "-".join(new_name_parts) + ".md"
         
-        print(f"Converting {filename} -> {new_filename}")
+        # Write
+        md_content = generate_markdown(filename, content, file_meta, cat_name, cat_slug, stats)
         
-        # Generate Markdown
-        md_content = generate_markdown(
-            filename, 
-            content, 
-            file_meta, 
-            category_name, 
-            category_slug,
-            stats
-        )
-        
-        # Save
-        with open(os.path.join(OUTPUT_DIR, new_filename), 'w', encoding='utf-8') as f:
+        final_out_path = os.path.join(out_dir, new_filename)
+        with open(final_out_path, 'w', encoding='utf-8') as f:
             f.write(md_content)
+            
+        processed_count += 1
+    
+    log(f"✅ Finished {directory}: Converted {processed_count} files.")
+
+def main():
+    if not os.path.exists(OUTPUT_BASE):
+        os.makedirs(OUTPUT_BASE)
+
+    # Walk through the directories
+    for root, dirs, files in os.walk(ROOT_DIR):
+        # Exclude the output directory itself to prevent loops
+        if os.path.abspath(root).startswith(os.path.abspath(OUTPUT_BASE)):
+            continue
+            
+        # Process the current directory
+        process_directory(root, OUTPUT_BASE)
 
 if __name__ == "__main__":
     main()
