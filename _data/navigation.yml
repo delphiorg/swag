@@ -1,0 +1,120 @@
+- name: ANSI Control & Output
+  path: ANSI/index.html
+- name: Archive Handling
+  path: ARCHIVES/index.html
+- name: Character Handling
+  path: CHARS/index.html
+- name: Command Line
+  path: CMDLINE/index.html
+- name: Text/Graphics Colors
+  path: COLOR/index.html
+- name: Communications/INT14
+  path: COMM/index.html
+- name: File Copy/Move
+  path: COPYMOVE/index.html
+- name: 16/32 Bit CRC
+  path: CRC/index.html
+- name: CRT
+  path: CRT/index.html
+- name: Cursor Handling
+  path: CURSOR/index.html
+- name: Data Type & Compare
+  path: DATATYPE/index.html
+- name: Date & Time
+  path: DATETIME/index.html
+- name: Borland Delphi
+  path: DELPHI/index.html
+- name: DesqView
+  path: DESQVIEW/index.html
+- name: Directory Handling
+  path: DIRS/index.html
+- name: DOS & Environment
+  path: DOS/index.html
+- name: Disk Drive Handling
+  path: DRIVES/index.html
+- name: EGA/VGA
+  path: EGAVGA/index.html
+- name: File & Encryption
+  path: ENCRYPT/index.html
+- name: Input And Field Entry
+  path: ENTRY/index.html
+- name: Execution
+  path: EXEC/index.html
+- name: FAQ's/Tutorials
+  path: FAQ/index.html
+- name: File Handling
+  path: FILES/index.html
+- name: Search/Find/Replace
+  path: FINDREPL/index.html
+- name: Graphics
+  path: GRAPHICS/index.html
+- name: Hardware Detection
+  path: HARDWARE/index.html
+- name: Interrupt Handling
+  path: INTERRUP/index.html
+- name: ISR Handling
+  path: ISR/index.html
+- name: Joystick
+  path: JOYSTICK/index.html
+- name: Keyboard I/O
+  path: KEYBOARD/index.html
+- name: Mail/QWK/Hudson File
+  path: MAIL/index.html
+- name: Math
+  path: MATH/index.html
+- name: Memory/DPMI Management
+  path: MEMORY/index.html
+- name: Menu Management
+  path: MENU/index.html
+- name: Miscellaneous
+  path: MISC/index.html
+- name: Rodent Management
+  path: MOUSE/index.html
+- name: Novell/Lantastic Network
+  path: NETWORK/index.html
+- name: BitWise Translations
+  path: NUMBERS/index.html
+- name: OOP/Turbo Vision
+  path: OOP/index.html
+- name: Parsing/Tokenizing
+  path: PARSING/index.html
+- name: Pointers, Linking, Lists, Trees
+  path: POINTERS/index.html
+- name: Printing/Printer Management
+  path: PRINTING/index.html
+- name: Record Related
+  path: RECORDS/index.html
+- name: DOS Redirection
+  path: REDIRECT/index.html
+- name: Screen Saving
+  path: SAVESCRN/index.html
+- name: Screen Handling
+  path: SCREEN/index.html
+- name: Screen Scrolling
+  path: SCROLL/index.html
+- name: Sorting
+  path: SORTING/index.html
+- name: SoundBlaster/AdLib/Speaker
+  path: SOUND/index.html
+- name: Stream Handling
+  path: STREAMS/index.html
+- name: String Handling
+  path: STRINGS/index.html
+- name: Text Editing
+  path: TEXTEDIT/index.html
+- name: Text File Management
+  path: TEXTFILE/index.html
+- name: Text Windowing
+  path: TEXTWNDW/index.html
+- name: Timer/Resolution
+  path: TIMING/index.html
+- name: TSR Utilities And
+  path: TSR/index.html
+- name: Turtle Graphic In OOP
+  path: TURTLE/index.html
+- name: Pascal Tutors
+  path: TUTOR/index.html
+- name: Unit Information
+  path: UNITINFO/index.html
+- name: Windows & OS/2 Stuff
+  path: WIN-OS2/index.html
