@@ -1,7 +1,7 @@
 # SWAG
 This a snapshot from what I published in 2001... Maybe I will revisit it again.
 
-[index](index.html)
+[Live on Delphi.org](http://delphi.org/swag/)
 
 ---
 
