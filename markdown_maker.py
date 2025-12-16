@@ -146,7 +146,7 @@ def read_file_content(filepath):
         log(f"Error reading content of {filepath}: {e}")
         return ""
 
-def generate_markdown(filename, content, meta, category_name, category_slug, file_stats):
+def generate_markdown(filename, content, meta, category_name, category_slug, file_stats, new_filename):
     lines = content.splitlines()
     markdown_output = []
     
@@ -209,7 +209,7 @@ Part of [delphi.org/swag](https://delphi.org)
 
 _Metadata:_
 
-* filename: `{filename}`
+* filename: [`{filename}`](https://delphi.org/swag/{category_slug.lower()}/{filename})
 * category: `{category_slug.upper()}`
 * description: `{description}`
 """
@@ -220,6 +220,7 @@ _Metadata:_
 * size: `{size_fmt}`
 * encoding: `CP437`
 * SHA256: `{sha256}`
+* permalink: <https://delphi.org/swag/{category_slug.lower()}/{new_filename}>
 
 ↪️End of File↩️
 """
@@ -275,7 +276,7 @@ def process_directory(directory, output_root):
         new_filename = "-".join(new_name_parts) + ".md"
         
         # Write
-        md_content = generate_markdown(filename, content, file_meta, cat_name, cat_slug, stats)
+        md_content = generate_markdown(filename, content, file_meta, cat_name, cat_slug, stats, new_filename)
         
         final_out_path = os.path.join(out_dir, new_filename)
         with open(final_out_path, 'w', encoding='utf-8') as f:
